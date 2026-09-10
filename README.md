@@ -1,59 +1,147 @@
 # NuryBase
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 22.1.7.
+Sistema web para centralizar la gestión de ventas, inventario y reportes de la cadena de cafeterías Nury's.
 
-## Development server
+## Contexto del proyecto
 
-To start a local development server, run:
+Nury's cuenta con ocho locales, distribuidos entre Santiago y Valparaíso. Actualmente existe información sobre las ventas por sucursal, pero no suficiente trazabilidad sobre los productos vendidos ni sobre el consumo real de los ingredientes.
 
-```bash
-ng serve
-```
+NuryBase busca resolver esta situación mediante una plataforma centralizada que permita:
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+- Registrar ventas por sucursal, cajero, producto y medio de pago.
+- Mantener el inventario actualizado en tiempo real.
+- Gestionar productos compuestos mediante recetas e ingredientes.
+- Registrar compras y evitar el procesamiento duplicado de facturas.
+- Generar reportes para apoyar las decisiones de la administración.
 
-## Code scaffolding
+El sistema debe ser accesible desde computadores, tablets y teléfonos, además de soportar lectores de códigos de barras y lectura de códigos QR mediante cámara.
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## Funcionalidades
 
-```bash
-ng generate component component-name
-```
+### Usuarios y accesos
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+- Inicio y cierre de sesión.
+- Persistencia y expiración segura de sesiones.
+- Control de acceso según rol: Admin, Cajero y Bodeguero.
+- Protección de rutas y operaciones no autorizadas.
 
-```bash
-ng generate --help
-```
+### Punto de venta
 
-## Building
+- Lectura de códigos de barras y códigos QR mediante pistola lectora o cámara.
+- Búsqueda manual y catálogo visual de productos.
+- Soporte para códigos internos de Nury's.
+- Carrito de compra y registro de pagos en efectivo, tarjeta o Junaeb.
+- Emisión de ticket o comprobante digital.
+- Historial de ventas del turno activo.
+- Cierre y cuadratura de caja.
+- Anulación de ventas con reversión del inventario asociado a la receta.
 
-To build the project run:
+### Inventario y abastecimiento
 
-```bash
-ng build
-```
+- Registro de materias primas y unidades de medida.
+- Ingreso de facturas mediante lectura de código QR.
+- Validación de factura usando la combinación única RUT del emisor + folio.
+- Actualización automática del stock después de una compra o venta.
+- Descuento de ingredientes según la receta del producto vendido.
+- Panel de stock por sucursal actualizado en tiempo real.
+- Filtros por estado: agotado, crítico y estable.
+- Alertas cuando el stock esté bajo el mínimo configurado.
+- Ajustes manuales con motivo obligatorio y registro de mermas.
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+### Reportes e inteligencia de negocio
 
-## Running unit tests
+- Reportes consolidados de ventas por sucursal.
+- Filtros por día, semana, mes o rango personalizado.
+- Reportes por cajero, cantidad de transacciones y total recaudado.
+- Desglose por producto, unidades vendidas y monto generado.
+- Reportes de mermas y ajustes de inventario.
+- Recomendaciones y proyecciones basadas en el historial de ventas, visibles para Admin.
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+### Administración
 
-```bash
-ng test
-```
+- Creación, edición y desactivación de perfiles de cajero.
+- Asignación de usuarios a una sucursal.
+- Creación y configuración de promociones.
+- Programación de inicio y término de promociones.
+- Gestión de productos compuestos, recetas e ingredientes.
 
-## Running end-to-end tests
+## Arquitectura
 
-For end-to-end (e2e) testing, run:
+El frontend está desarrollado con Angular usando componentes standalone y una organización por funcionalidades de negocio. Cada funcionalidad contiene sus propias páginas, componentes, servicios, modelos y rutas.
 
-```bash
-ng e2e
-```
+La aplicación se divide en las siguientes capas:
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+    Interfaz de usuario
+            |
+            v
+    Páginas y componentes Angular
+            |
+            v
+    Servicios de cada funcionalidad
+            |
+            v
+    API del backend
+            |
+            v
+    Base de datos y servicios externos
 
-## Additional Resources
+### Criterios de arquitectura
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+- Las rutas de cada funcionalidad deben cargarse de forma diferida cuando corresponda.
+- La autenticación, los guards, los interceptores y la sesión deben centralizarse en core.
+- Los componentes reutilizables deben ubicarse en shared.
+- La lógica específica de ventas, inventario, reportes o administración debe permanecer dentro de su funcionalidad.
+- El frontend debe validar la experiencia de usuario, pero la autorización real debe validarse también en el backend.
+- El inventario debe recibir actualizaciones mediante WebSockets, Server-Sent Events u otro mecanismo reactivo.
+- Las operaciones de venta, anulación, compra y ajuste de stock deben ser consistentes y transaccionales en el backend.
+
+### Convenciones de organización
+
+- Usar nombres técnicos de carpetas en inglés y nombres de páginas de negocio en español.
+- Usar el sufijo correspondiente: .component.ts, .service.ts, .guard.ts, .interceptor.ts y .model.ts.
+- Mantener los componentes pequeños y enfocados en la presentación.
+- Colocar la lógica de negocio y las llamadas HTTP en servicios.
+- No crear una carpeta global de servicios para lógica que pertenece a una funcionalidad.
+- No organizar el código por rol. Los roles se controlan mediante guards y permisos.
+- Crear modelos globales solo cuando sean compartidos por varias funcionalidades.
+
+## Reglas del repositorio
+
+1. No trabajar directamente sobre main. Cada cambio debe realizarse en una rama propia.
+2. Usar mensajes de commit claros y, de preferencia, con Conventional Commits:
+   - feat: agrega lectura de codigo QR
+   - fix: corrige cierre de caja
+   - docs: actualiza estructura del proyecto
+3. Ejecutar las verificaciones antes de crear un Pull Request:
+
+       npm ci
+       npm run build
+       npm test
+
+4. No subir secretos, contraseñas, tokens, archivos .env, node_modules ni la carpeta dist.
+5. Todo cambio funcional debe incluir o actualizar sus pruebas cuando corresponda.
+6. Revisar que las rutas y permisos funcionen para Admin, Cajero y Bodeguero.
+7. Mantener compatibilidad responsive para PC, tablets y smartphones.
+8. Documentar en el Pull Request el objetivo del cambio, las pruebas realizadas y cualquier pendiente.
+9. Resolver los conflictos y contar con revisión antes de fusionar una rama a main.
+
+## Desarrollo local
+
+Instalar las dependencias:
+
+    npm install
+
+Iniciar el servidor de desarrollo:
+
+    npm start
+
+Luego abrir http://localhost:4200/ en el navegador.
+
+## Comandos disponibles
+
+| Comando | Descripción |
+| --- | --- |
+| npm start | Inicia el servidor de desarrollo. |
+| npm run build | Compila la aplicación. |
+| npm test | Ejecuta las pruebas unitarias. |
+| ng generate component nombre | Genera un componente Angular. |
