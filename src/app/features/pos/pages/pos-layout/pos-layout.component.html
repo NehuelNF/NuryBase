@@ -1,0 +1,191 @@
+<div class="pos-screen">
+  <!-- Barra de Turno Activo (H1.1 / H1.2) -->
+  <header class="pos-top-bar">
+    <div class="pos-bar-left">
+      <div class="brand-pos">
+        <span class="brand-coffee-icon">☕</span>
+        <div>
+          <span class="brand-name-bold">NuryBase POS</span>
+          <span class="sub-badge">{{ currentUser()?.sucursalNombre || 'Nury Providencia' }}</span>
+        </div>
+      </div>
+      <div class="shift-info">
+        <span class="shift-dot"></span>
+        <span>Turno #1 Activo &bull; Cajero: <strong>{{ currentUser()?.nombre || 'Camila Rojas' }}</strong></span>
+      </div>
+    </div>
+
+    <div class="pos-bar-right">
+      <div class="clock-display">
+        <span class="clock-icon">🕒</span>
+        <span>{{ currentTime() }}</span>
+      </div>
+      <button type="button" class="btn-logout" (click)="authService.logout()" title="Cerrar turno y salir">
+        Cerrar Sesión ⎋
+      </button>
+    </div>
+  </header>
+
+  <!-- Notificación de escáner / código interno -->
+  @if (barcodeFeedback()) {
+    <div class="scanner-toast" [class.error-toast]="barcodeFeedback()?.includes('❌')">
+      {{ barcodeFeedback() }}
+    </div>
+  }
+
+  <!-- Layout Principal de 2 Columnas -->
+  <div class="pos-main-container">
+    <!-- COLUMNA IZQUIERDA: CATÁLOGO Y BÚSQUEDA -->
+    <div class="catalog-column">
+      <!-- Toolbar de Búsqueda y Pistola Lectora (H2.1, H2.2, H2.3) -->
+      <div class="search-toolbar">
+        <div class="search-input-box">
+          <span class="search-icon">🔍</span>
+          <input
+            type="text"
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+            placeholder="Buscar por nombre o descripción (ej. espresso, ave palta)..."
+          />
+          @if (searchQuery()) {
+            <button type="button" class="btn-clear-search" (click)="searchQuery.set('')">✕</button>
+          }
+        </div>
+
+        <div class="barcode-input-box">
+          <span class="barcode-icon">🔫</span>
+          <input
+            type="text"
+            [ngModel]="quickBarcodeInput()"
+            (ngModelChange)="quickBarcodeInput.set($event)"
+            (keydown.enter)="onBarcodeScan()"
+            placeholder="Lector / Código interno (ej. NUR-101)..."
+          />
+          <button type="button" class="btn-scan" (click)="onBarcodeScan()">
+            Añadir
+          </button>
+        </div>
+      </div>
+
+      <!-- Pestañas de Categorías Visuales -->
+      <div class="categories-bar">
+        @for (cat of categories; track cat.id) {
+          <button
+            type="button"
+            class="category-btn"
+            [class.active]="selectedCategoryId() === cat.id"
+            (click)="selectCategory(cat.id)"
+          >
+            <span class="cat-icon">{{ cat.icono }}</span>
+            <span class="cat-name">{{ cat.nombre }}</span>
+          </button>
+        }
+      </div>
+
+      <!-- Grilla de Productos -->
+      <div class="products-grid">
+        @for (prod of filteredCatalog(); track prod.id) {
+          <div class="product-card" (click)="addProduct(prod)">
+            <div class="card-top">
+              <span class="product-icon">{{ prod.icono }}</span>
+              <span class="code-pill">{{ prod.codigoInterno }}</span>
+            </div>
+            <h3 class="product-title">{{ prod.nombre }}</h3>
+            <p class="product-desc">{{ prod.descripcion }}</p>
+            <div class="card-bottom">
+              <span class="product-price">{{ formatClp(prod.precioVenta) }}</span>
+              <button type="button" class="btn-add-item" (click)="$event.stopPropagation(); addProduct(prod)">
+                + Añadir
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- COLUMNA DERECHA: CARRITO DE VENTAS -->
+    <div class="cart-column">
+      <div class="cart-panel">
+        <div class="cart-header">
+          <div>
+            <h2>Venta Actual</h2>
+            <span class="cart-count">{{ totalItemsCount() }} items en total</span>
+          </div>
+          @if (cart().length > 0) {
+            <button type="button" class="btn-clear-cart" (click)="posService.clearCart()">
+              Vaciar
+            </button>
+          }
+        </div>
+
+        <!-- Lista de Items del Carrito -->
+        <div class="cart-items-list">
+          @if (cart().length === 0) {
+            <div class="empty-cart">
+              <span class="empty-cart-icon">🛒</span>
+              <h4>Carrito Vacío</h4>
+              <p>Haz clic en los productos del catálogo o usa la pistola lectora para agregar items a la venta.</p>
+            </div>
+          } @else {
+            @for (item of cart(); track item.producto.id) {
+              <div class="cart-item-row">
+                <div class="item-meta">
+                  <span class="item-name">{{ item.producto.nombre }}</span>
+                  <span class="item-unit-price">{{ formatClp(item.producto.precioVenta) }} c/u</span>
+                </div>
+
+                <div class="item-actions">
+                  <div class="stepper">
+                    <button type="button" (click)="posService.updateQuantity(item.producto.id, -1)">-</button>
+                    <span class="qty">{{ item.cantidad }}</span>
+                    <button type="button" (click)="posService.updateQuantity(item.producto.id, 1)">+</button>
+                  </div>
+                  <span class="item-subtotal">{{ formatClp(item.subtotal) }}</span>
+                  <button type="button" class="btn-remove" (click)="posService.removeFromCart(item.producto.id)">
+                    🗑️
+                  </button>
+                </div>
+              </div>
+            }
+          }
+        </div>
+
+        <!-- Totales y Botón de Cobro -->
+        <div class="cart-footer">
+          <div class="summary-line">
+            <span>Subtotal Neto:</span>
+            <span>{{ formatClp(total() * 0.81) }}</span>
+          </div>
+          <div class="summary-line text-muted">
+            <span>IVA (19% incluido):</span>
+            <span>{{ formatClp(total() * 0.19) }}</span>
+          </div>
+          <div class="summary-line total-line">
+            <span>TOTAL:</span>
+            <span class="grand-total">{{ formatClp(total()) }}</span>
+          </div>
+
+          <button
+            type="button"
+            class="btn-charge"
+            [disabled]="total() === 0"
+            (click)="openPayment()"
+          >
+            <span class="charge-icon">💰</span>
+            <span>Cobrar {{ formatClp(total()) }}</span>
+            <span class="charge-arrow">➜</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Pago (Card 2 / H2.4) -->
+  @if (isPaymentModalOpen()) {
+    <app-payment-modal
+      [totalToPay]="total()"
+      (close)="closePayment()"
+      (saleFinished)="onSaleFinished($event)"
+    ></app-payment-modal>
+  }
+</div>

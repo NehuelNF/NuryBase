@@ -1,0 +1,96 @@
+<div class="login-page">
+  <div class="login-card">
+    <!-- Branding Header -->
+    <div class="brand-header">
+      <div class="brand-icon">☕</div>
+      <h1>Nury's Cafetería</h1>
+      <p class="brand-subtitle">Punto de Venta &bull; Control de Turno &bull; Acceso Seguro</p>
+      <span class="tag-badge">H1.1 &bull; Autenticación de Usuarios</span>
+    </div>
+
+    <!-- Mensaje de error si falla -->
+    @if (errorMessage()) {
+      <div class="error-alert">
+        <span class="alert-icon">⚠️</span>
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <!-- Formulario de Login -->
+    <form (ngSubmit)="onLogin()" class="login-form">
+      <div class="form-group">
+        <label for="identificador">Identificador de Acceso (Correo o RUT)</label>
+        <div class="input-wrapper">
+          <span class="input-icon">👤</span>
+          <input
+            id="identificador"
+            type="text"
+            [ngModel]="identificador()"
+            (ngModelChange)="identificador.set($event)"
+            name="identificador"
+            placeholder="ej. c.rojas@nurys.cl"
+            required
+            autocomplete="username"
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="contrasena">Contraseña</label>
+        <div class="input-wrapper">
+          <span class="input-icon">🔒</span>
+          <input
+            id="contrasena"
+            type="password"
+            [ngModel]="contrasena()"
+            (ngModelChange)="contrasena.set($event)"
+            name="contrasena"
+            placeholder="••••••••"
+            required
+            autocomplete="current-password"
+          />
+        </div>
+      </div>
+
+      <button type="submit" class="btn-submit" [disabled]="isLoading()">
+        @if (isLoading()) {
+          <span class="spinner"></span> Validando credenciales...
+        } @else {
+          Ingresar al Turno (POS) ➜
+        }
+      </button>
+    </form>
+
+    <!-- Accesos rápidos de prueba para evaluación de mockup -->
+    <div class="quick-access-section">
+      <div class="quick-title">
+        <span>Accesos rápidos de prueba (Mockup H1.2):</span>
+      </div>
+
+      <div class="quick-users-list">
+        @for (u of mockUsers; track u.id) {
+          <button
+            type="button"
+            class="quick-user-btn"
+            [class.cajero]="u.rol === 'cajero'"
+            [class.admin]="u.rol === 'admin'"
+            [class.bodeguero]="u.rol === 'bodeguero'"
+            (click)="selectQuickUser(u)"
+          >
+            <div class="qu-role-tag">{{ u.rol | uppercase }}</div>
+            <div class="qu-info">
+              <strong>{{ u.nombre }}</strong>
+              <small>{{ u.sucursalNombre }}</small>
+            </div>
+            <span class="qu-arrow">➜</span>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="login-footer">
+      <small>NuryBase &copy; 2026 &bull; Cadena de 8 cafeterías (Santiago y Valparaíso)</small>
+    </div>
+  </div>
+</div>

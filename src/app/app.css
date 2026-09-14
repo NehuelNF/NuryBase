@@ -1,0 +1,10 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+.app-viewport {
+  min-height: 100vh;
+}

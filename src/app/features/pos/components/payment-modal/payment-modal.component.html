@@ -1,0 +1,207 @@
+<div class="modal-overlay" (click)="close.emit()">
+  <div class="modal-window" (click)="$event.stopPropagation()">
+    @if (!completedTicket()) {
+      <!-- ESTADO 1: SELECCIÓN DE MEDIO DE PAGO Y CÁLCULO DE VUELTO (H2.4) -->
+      <div class="modal-header">
+        <div>
+          <span class="badge-tag">H2.4 &bull; Cobro en Caja</span>
+          <h2>Procesar Pago de Venta</h2>
+        </div>
+        <button type="button" class="btn-close" (click)="close.emit()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Resumen de Total a Pagar -->
+        <div class="total-banner">
+          <span class="total-label">Total a Pagar</span>
+          <span class="total-amount">{{ formatClp(totalToPay) }}</span>
+        </div>
+
+        <!-- Selector de Medio de Pago -->
+        <div class="methods-selector">
+          <button
+            type="button"
+            class="method-btn"
+            [class.active]="selectedMethod() === 'efectivo'"
+            (click)="setMethod('efectivo')"
+          >
+            <span class="method-icon">💵</span>
+            <span class="method-name">Efectivo</span>
+            <small>Con cálculo de vuelto</small>
+          </button>
+
+          <button
+            type="button"
+            class="method-btn"
+            [class.active]="selectedMethod() === 'tarjeta'"
+            (click)="setMethod('tarjeta')"
+          >
+            <span class="method-icon">💳</span>
+            <span class="method-name">Tarjeta</span>
+            <small>Débito / Crédito</small>
+          </button>
+
+          <button
+            type="button"
+            class="method-btn"
+            [class.active]="selectedMethod() === 'junaeb'"
+            (click)="setMethod('junaeb')"
+          >
+            <span class="method-icon">🎓</span>
+            <span class="method-name">Beca Junaeb</span>
+            <small>Edenred / Sodexo</small>
+          </button>
+        </div>
+
+        <!-- Sección Específica de EFECTIVO -->
+        @if (selectedMethod() === 'efectivo') {
+          <div class="cash-section">
+            <div class="cash-input-group">
+              <label for="cashInput">Monto Recibido en Efectivo:</label>
+              <div class="input-cash-wrapper">
+                <span class="currency-symbol">$</span>
+                <input
+                  id="cashInput"
+                  type="number"
+                  step="100"
+                  [ngModel]="amountReceived()"
+                  (ngModelChange)="amountReceived.set(+$event)"
+                  placeholder="0"
+                />
+                <button type="button" class="btn-exact" (click)="setExactAmount()">
+                  Paga Justo
+                </button>
+              </div>
+            </div>
+
+            <!-- Botones Rápidos de Billetes Chilenos -->
+            <div class="denominations-group">
+              <span class="denom-label">Billetes chilenos rápidos:</span>
+              <div class="denom-buttons">
+                @for (d of quickCashButtons; track d) {
+                  <button type="button" class="btn-denom" (click)="setCashAmount(d)">
+                    {{ formatClp(d) }}
+                  </button>
+                }
+              </div>
+            </div>
+
+            <!-- Recuadro Dinámico del Vuelto (Cálculo Inmediato) -->
+            <div
+              class="change-card"
+              [class.valid-change]="isPaymentValid()"
+              [class.invalid-change]="!isPaymentValid()"
+            >
+              <div class="change-info">
+                @if (isPaymentValid()) {
+                  <span class="change-title">Vuelto a entregar al cliente:</span>
+                  <span class="change-amount text-success">{{ formatClp(changeDue()) }}</span>
+                } @else {
+                  <span class="change-title">Dinero insuficiente:</span>
+                  <span class="change-amount text-danger">Faltan {{ formatClp(changeDue() * -1) }}</span>
+                }
+              </div>
+              <div class="change-icon">
+                {{ isPaymentValid() ? '✅' : '⚠️' }}
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Sección Específica de TARJETA o JUNAEB -->
+        @if (selectedMethod() === 'tarjeta' || selectedMethod() === 'junaeb') {
+          <div class="pos-terminal-box">
+            <div class="pos-terminal-icon">
+              {{ selectedMethod() === 'tarjeta' ? '💳' : '🎓' }}
+            </div>
+            <div class="pos-terminal-details">
+              <h4>Monto configurado en terminal POS: {{ formatClp(totalToPay) }}</h4>
+              <p>
+                {{ selectedMethod() === 'tarjeta' ? 'Solicite al cliente insertar o acercar su tarjeta bancaria.' : 'Verifique saldo de beca Junaeb en el lector de tarjeta/código.' }}
+              </p>
+              <span class="terminal-status-ok">&bull; Terminal Conectado y Listo</span>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" (click)="close.emit()">
+          Volver a la venta
+        </button>
+        <button
+          type="button"
+          class="btn-confirm-pay"
+          [disabled]="!isPaymentValid()"
+          (click)="onConfirmPayment()"
+        >
+          Confirmar Cobro {{ formatClp(totalToPay) }} ➜
+        </button>
+      </div>
+    } @else {
+      <!-- ESTADO 2: COMPROBANTE DIGITAL EMITIDO (PREVIEW TICKET H2.6) -->
+      <div class="ticket-view">
+        <div class="ticket-badge-ok">🎉 Venta Registrada con Éxito</div>
+        <div class="receipt-paper">
+          <div class="receipt-header">
+            <h3>Nury's Cafetería</h3>
+            <p>{{ completedTicket()?.sucursalNombre }}</p>
+            <p>RUT: 76.842.190-3</p>
+            <p>Folio: <strong>{{ completedTicket()?.ticketFolio }}</strong></p>
+            <p class="receipt-date">{{ completedTicket()?.fecha | date:'dd/MM/yyyy HH:mm:ss' }}</p>
+            <p>Atendido por: {{ completedTicket()?.cajeroNombre }}</p>
+          </div>
+
+          <div class="receipt-divider">================================</div>
+
+          <div class="receipt-items">
+            @for (item of completedTicket()?.items; track item.producto.id) {
+              <div class="receipt-row">
+                <span>{{ item.cantidad }}x {{ item.producto.nombre }}</span>
+                <span>{{ formatClp(item.subtotal) }}</span>
+              </div>
+            }
+          </div>
+
+          <div class="receipt-divider">================================</div>
+
+          <div class="receipt-totals">
+            <div class="receipt-row font-bold">
+              <span>TOTAL PAGADO</span>
+              <span>{{ formatClp(completedTicket()?.total || 0) }}</span>
+            </div>
+            <div class="receipt-row text-muted text-xs">
+              <span>Medio de Pago</span>
+              <span class="capitalize">{{ completedTicket()?.medioPago }}</span>
+            </div>
+            @if (completedTicket()?.medioPago === 'efectivo') {
+              <div class="receipt-row text-muted text-xs">
+                <span>Efectivo Recibido</span>
+                <span>{{ formatClp(completedTicket()?.montoRecibido || 0) }}</span>
+              </div>
+              <div class="receipt-row font-bold text-success">
+                <span>VUELTO ENTREGADO</span>
+                <span>{{ formatClp(completedTicket()?.vuelto || 0) }}</span>
+              </div>
+            }
+          </div>
+
+          <div class="receipt-divider">================================</div>
+          <div class="receipt-footer">
+            <p>¡Gracias por su preferencia en Nury's!</p>
+            <small>Conserve este ticket para cualquier consulta.</small>
+          </div>
+        </div>
+
+        <div class="ticket-actions">
+          <button type="button" class="btn-print" onclick="window.print()">
+            🖨️ Imprimir Ticket
+          </button>
+          <button type="button" class="btn-next-sale" (click)="onFinish()">
+            ➕ Iniciar Siguiente Venta
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</div>
