@@ -36,4 +36,7 @@ export interface CompletedSale {
   montoRecibido: number;
   vuelto: number;
   items: CartItem[];
+  codigoAutorizacion?: string;
+  titularJunaeb?: string;
+  saldoRestanteJunaeb?: number;
 }

@@ -245,7 +245,12 @@ export class PosService {
     medioPago: PaymentMethod,
     montoRecibido: number,
     cajeroNombre: string,
-    sucursalNombre: string
+    sucursalNombre: string,
+    extraDetails?: {
+      codigoAutorizacion?: string;
+      titularJunaeb?: string;
+      saldoRestanteJunaeb?: number;
+    }
   ): CompletedSale {
     this.ticketSequence++;
     const totalVenta = this.total();
@@ -262,6 +267,9 @@ export class PosService {
       montoRecibido,
       vuelto,
       items: [...this.cart()],
+      codigoAutorizacion: extraDetails?.codigoAutorizacion,
+      titularJunaeb: extraDetails?.titularJunaeb,
+      saldoRestanteJunaeb: extraDetails?.saldoRestanteJunaeb,
     };
 
     this.salesHistory.set([sale, ...this.salesHistory()]);

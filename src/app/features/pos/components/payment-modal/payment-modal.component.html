@@ -49,7 +49,7 @@
           >
             <span class="method-icon">🎓</span>
             <span class="method-name">Beca Junaeb</span>
-            <small>Edenred / Sodexo</small>
+            <small>App Ticket Junaeb (QR)</small>
           </button>
         </div>
 
@@ -108,19 +108,128 @@
           </div>
         }
 
-        <!-- Sección Específica de TARJETA o JUNAEB -->
-        @if (selectedMethod() === 'tarjeta' || selectedMethod() === 'junaeb') {
+        <!-- Sección Específica de TARJETA (Transbank) -->
+        @if (selectedMethod() === 'tarjeta') {
           <div class="pos-terminal-box">
-            <div class="pos-terminal-icon">
-              {{ selectedMethod() === 'tarjeta' ? '💳' : '🎓' }}
-            </div>
+            <div class="pos-terminal-icon">💳</div>
             <div class="pos-terminal-details">
-              <h4>Monto configurado en terminal POS: {{ formatClp(totalToPay) }}</h4>
+              <h4>Monto configurado en terminal Transbank: {{ formatClp(totalToPay) }}</h4>
               <p>
-                {{ selectedMethod() === 'tarjeta' ? 'Solicite al cliente insertar o acercar su tarjeta bancaria.' : 'Verifique saldo de beca Junaeb en el lector de tarjeta/código.' }}
+                Solicite al cliente insertar, deslizar o acercar su tarjeta bancaria (Contactless) e ingresar PIN si corresponde.
               </p>
-              <span class="terminal-status-ok">&bull; Terminal Conectado y Listo</span>
+              <span class="terminal-status-ok">&bull; Terminal POS Conectado y Listo</span>
             </div>
+          </div>
+        }
+
+        <!-- Sección Específica de JUNAEB (App Ticket Junaeb QR) -->
+        @if (selectedMethod() === 'junaeb') {
+          <div class="junaeb-section">
+            <div class="junaeb-header-card">
+              <div class="junaeb-badge-row">
+                <span class="junaeb-brand">🎓 App Ticket Junaeb &bull; Beca BAES</span>
+                <span class="junaeb-app-pill">QR Dinámico</span>
+              </div>
+              <p class="junaeb-instructions">
+                El estudiante debe abrir la <strong>App Ticket Junaeb</strong> en su teléfono y generar el <strong>código QR de pago</strong>.
+                Escanea el QR presentado por el cliente desde el dispositivo móvil del local o pistola lectora.
+              </p>
+            </div>
+
+            @if (!junaebQrScanned()) {
+              <!-- Estado 1: Visor de Escáner QR de móvil -->
+              <div class="qr-scanner-frame" [class.scanning]="isScanningJunaeb()">
+                <div class="qr-target-box">
+                  <div class="qr-corner top-left"></div>
+                  <div class="qr-corner top-right"></div>
+                  <div class="qr-corner bottom-left"></div>
+                  <div class="qr-corner bottom-right"></div>
+                  <div class="qr-phone-visual">📱</div>
+                  <span class="qr-prompt-text">
+                    @if (isScanningJunaeb()) {
+                      Escaneando código QR de la pantalla del cliente...
+                    } @else {
+                      Apunta al código QR en la pantalla del móvil del estudiante
+                    }
+                  </span>
+                </div>
+
+                <div class="scanner-actions">
+                  <button
+                    type="button"
+                    class="btn-simulate-scan"
+                    [disabled]="isScanningJunaeb()"
+                    (click)="simulateScanJunaebQr()"
+                  >
+                    @if (isScanningJunaeb()) {
+                      <span class="spinner-sm"></span> Procesando QR...
+                    } @else {
+                      📸 Simular Escaneo de QR del Estudiante
+                    }
+                  </button>
+
+                  <div class="manual-qr-entry">
+                    <span>O ingreso manual de código:</span>
+                    <div class="manual-input-group">
+                      <input
+                        type="text"
+                        [ngModel]="manualQrInput()"
+                        (ngModelChange)="manualQrInput.set($event)"
+                        placeholder="Código dinámico (ej. 849201)"
+                        (keydown.enter)="applyManualJunaebCode()"
+                      />
+                      <button type="button" class="btn-manual-val" (click)="applyManualJunaebCode()">Validar</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            } @else {
+              <!-- Estado 2: Estudiante y Saldo BAES Validado -->
+              <div class="junaeb-student-card">
+                <div class="student-status-header">
+                  <div class="verified-badge">
+                    <span class="check-circle">✓</span>
+                    <span>Código QR del Estudiante Validado</span>
+                  </div>
+                  <button type="button" class="btn-rescan" (click)="resetJunaebScan()" title="Escanear otro código">
+                    🔄 Re-escanear
+                  </button>
+                </div>
+
+                <div class="student-details-grid">
+                  <div class="detail-item">
+                    <span class="label">Estudiante Beneficiario:</span>
+                    <span class="value">{{ junaebStudent()?.nombre }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="label">RUT:</span>
+                    <span class="value font-mono">{{ junaebStudent()?.rut }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="label">Saldo Disponible Beca:</span>
+                    <span class="value text-success font-mono">{{ formatClp(junaebStudent()?.saldoDisponible || 0) }}</span>
+                  </div>
+                  <div class="detail-item">
+                    <span class="label">Autorización:</span>
+                    <span class="value text-muted font-mono">{{ junaebStudent()?.codigoAutorizacion }}</span>
+                  </div>
+                </div>
+
+                <div class="balance-deduction-banner">
+                  <div class="deduction-row">
+                    <span>Total compra en cafetería:</span>
+                    <span class="font-mono text-danger">- {{ formatClp(totalToPay) }}</span>
+                  </div>
+                  <div class="deduction-divider"></div>
+                  <div class="deduction-row font-bold">
+                    <span>Saldo restante en Beca BAES:</span>
+                    <span class="font-mono text-success">
+                      {{ formatClp((junaebStudent()?.saldoDisponible || 0) - totalToPay) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            }
           </div>
         }
       </div>
@@ -172,7 +281,7 @@
             </div>
             <div class="receipt-row text-muted text-xs">
               <span>Medio de Pago</span>
-              <span class="capitalize">{{ completedTicket()?.medioPago }}</span>
+              <span class="capitalize">{{ completedTicket()?.medioPago === 'junaeb' ? 'Ticket Junaeb (BAES App)' : completedTicket()?.medioPago }}</span>
             </div>
             @if (completedTicket()?.medioPago === 'efectivo') {
               <div class="receipt-row text-muted text-xs">
@@ -182,6 +291,20 @@
               <div class="receipt-row font-bold text-success">
                 <span>VUELTO ENTREGADO</span>
                 <span>{{ formatClp(completedTicket()?.vuelto || 0) }}</span>
+              </div>
+            }
+            @if (completedTicket()?.medioPago === 'junaeb') {
+              <div class="receipt-row text-muted text-xs">
+                <span>Beneficiario Junaeb</span>
+                <span>{{ completedTicket()?.titularJunaeb }}</span>
+              </div>
+              <div class="receipt-row text-muted text-xs">
+                <span>N° Autorización</span>
+                <span class="font-mono">{{ completedTicket()?.codigoAutorizacion }}</span>
+              </div>
+              <div class="receipt-row font-bold text-success text-xs">
+                <span>Saldo Restante Beca</span>
+                <span class="font-mono">{{ formatClp(completedTicket()?.saldoRestanteJunaeb || 0) }}</span>
               </div>
             }
           </div>

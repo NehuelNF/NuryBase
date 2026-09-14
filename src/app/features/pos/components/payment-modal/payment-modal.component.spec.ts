@@ -54,4 +54,23 @@ describe('PaymentModalComponent', () => {
     expect(component.amountReceived()).toBe(6500);
     expect(component.isPaymentValid()).toBe(true);
   });
+
+  it('should require Ticket Junaeb QR validation before confirming (Beca BAES)', () => {
+    const fixture = TestBed.createComponent(PaymentModalComponent);
+    const component = fixture.componentInstance;
+    component.totalToPay = 4500;
+    fixture.detectChanges();
+
+    component.setMethod('junaeb');
+    // Inicialmente no es válido hasta que el cliente presenta y valida su QR
+    expect(component.isPaymentValid()).toBe(false);
+
+    // Al validar el código de la App Ticket Junaeb
+    component.manualQrInput.set('849201');
+    component.applyManualJunaebCode();
+
+    expect(component.junaebQrScanned()).toBe(true);
+    expect(component.junaebStudent()).not.toBeNull();
+    expect(component.isPaymentValid()).toBe(true);
+  });
 });
