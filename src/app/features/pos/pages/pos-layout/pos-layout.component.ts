@@ -75,6 +75,11 @@ export class PosLayoutComponent implements OnDestroy {
     this.selectedCategoryId.set(catId);
   }
 
+  getCategoryCount(catId: number): number {
+    if (catId === 0) return this.catalog().length;
+    return this.catalog().filter((p) => p.categoriaId === catId).length;
+  }
+
   addProduct(product: PosProduct): void {
     this.posService.addToCart(product);
   }

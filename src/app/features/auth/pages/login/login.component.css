@@ -1,8 +1,11 @@
 :host {
   display: block;
-  min-height: 100vh;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
   background: radial-gradient(circle at top, #fef3c7 0%, #f8fafc 60%, #e2e8f0 100%);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 
 .login-page {
@@ -11,6 +14,7 @@
   justify-content: center;
   min-height: 100vh;
   padding: 1.5rem;
+  box-sizing: border-box;
 }
 
 .login-card {

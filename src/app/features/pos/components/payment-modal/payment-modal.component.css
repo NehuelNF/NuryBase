@@ -197,8 +197,9 @@
 .denom-label {
   font-size: 0.75rem;
   font-weight: 700;
-  color: #64748b;
+  color: #475569;
   text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .denom-buttons {
@@ -208,21 +209,24 @@
 }
 
 .btn-denom {
-  background: #f8fafc;
-  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  border: 1.5px solid #cbd5e1;
   color: #1e293b;
-  font-size: 0.85rem;
-  font-weight: 700;
-  padding: 0.45rem 0.75rem;
-  border-radius: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.88rem;
+  font-weight: 800;
+  padding: 0.5rem 0.85rem;
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
 .btn-denom:hover {
-  background: #fef3c7;
-  border-color: #fde68a;
-  color: #92400e;
+  transform: translateY(-1px);
+  border-color: #d97706;
+  background: #fffbeb;
+  color: #b45309;
 }
 
 /* Change Card */
@@ -231,35 +235,46 @@
   justify-content: space-between;
   align-items: center;
   padding: 1.1rem 1.35rem;
-  border-radius: 12px;
+  border-radius: 14px;
   border: 2px solid transparent;
+  transition: all 0.2s ease;
 }
 
 .change-card.valid-change {
   background: #f0fdf4;
-  border-color: #bbf7d0;
+  border-color: #86efac;
 }
 
 .change-card.invalid-change {
   background: #fef2f2;
-  border-color: #fecaca;
+  border-color: #fca5a5;
 }
 
 .change-title {
   display: block;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   font-weight: 700;
   color: #475569;
   margin-bottom: 0.25rem;
 }
 
 .change-amount {
-  font-size: 1.6rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.75rem;
   font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.change-amount.text-success {
+  color: #15803d;
+}
+
+.change-amount.text-danger {
+  color: #dc2626;
 }
 
 .change-icon {
-  font-size: 2rem;
+  font-size: 2.2rem;
 }
 
 /* POS Terminal Box */
