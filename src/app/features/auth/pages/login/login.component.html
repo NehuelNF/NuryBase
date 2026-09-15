@@ -1,17 +1,27 @@
 <div class="login-page">
-  <div class="login-card">
+  <aside class="login-story">
+    <div class="story-wordmark">nury’s</div>
+    <div class="story-copy">
+      <span class="story-eyebrow">El café de todos los días</span>
+      <h2>Un buen día<br />empieza <em>aquí.</em></h2>
+      <p>Detrás de cada café, un equipo que hace que todo funcione.</p>
+      <div class="coffee-art" aria-hidden="true"></div>
+    </div>
+    <div class="story-bottom">
+      <span>Santiago · Valparaíso</span><span>Ocho locales. Un mismo equipo.</span>
+    </div>
+  </aside>
+  <main class="login-card">
     <!-- Branding Header -->
     <div class="brand-header">
-      <div class="brand-icon">☕</div>
-      <h1>Nury's Cafetería</h1>
-      <p class="brand-subtitle">Punto de Venta &bull; Control de Turno &bull; Acceso Seguro</p>
-      <span class="tag-badge">H1.1 &bull; Autenticación de Usuarios</span>
+      <span class="eyebrow">NuryBase · Acceso del equipo</span>
+      <h1>Bienvenido de vuelta.</h1>
+      <p class="brand-subtitle">Ingresa tus datos para comenzar el turno.</p>
     </div>
 
     <!-- Mensaje de error si falla -->
     @if (errorMessage()) {
-      <div class="error-alert">
-        <span class="alert-icon">⚠️</span>
+      <div class="error-alert" role="alert">
         <span>{{ errorMessage() }}</span>
       </div>
     }
@@ -19,9 +29,8 @@
     <!-- Formulario de Login -->
     <form (ngSubmit)="onLogin()" class="login-form">
       <div class="form-group">
-        <label for="identificador">Identificador de Acceso (Correo o RUT)</label>
+        <label for="identificador">Correo o RUT</label>
         <div class="input-wrapper">
-          <span class="input-icon">👤</span>
           <input
             id="identificador"
             type="text"
@@ -38,7 +47,6 @@
       <div class="form-group">
         <label for="contrasena">Contraseña</label>
         <div class="input-wrapper">
-          <span class="input-icon">🔒</span>
           <input
             id="contrasena"
             type="password"
@@ -56,7 +64,7 @@
         @if (isLoading()) {
           <span class="spinner"></span> Validando credenciales...
         } @else {
-          Ingresar al Turno (POS) ➜
+          Comenzar turno →
         }
       </button>
     </form>
@@ -64,7 +72,7 @@
     <!-- Accesos rápidos de prueba para evaluación de mockup -->
     <div class="quick-access-section">
       <div class="quick-title">
-        <span>Accesos rápidos de prueba (Mockup H1.2):</span>
+        <span>Explorar con un perfil de demostración</span>
       </div>
 
       <div class="quick-users-list">
@@ -77,10 +85,10 @@
             [class.bodeguero]="u.rol === 'bodeguero'"
             (click)="selectQuickUser(u)"
           >
-            <div class="qu-role-tag">{{ u.rol | uppercase }}</div>
+            <div class="qu-role-tag">{{ u.nombre.charAt(0) }}</div>
             <div class="qu-info">
               <strong>{{ u.nombre }}</strong>
-              <small>{{ u.sucursalNombre }}</small>
+              <small>{{ u.rol | uppercase }} · {{ u.sucursalNombre }}</small>
             </div>
             <span class="qu-arrow">➜</span>
           </button>
@@ -90,7 +98,7 @@
 
     <!-- Footer -->
     <div class="login-footer">
-      <small>NuryBase &copy; 2026 &bull; Cadena de 8 cafeterías (Santiago y Valparaíso)</small>
+      <small>NuryBase © 2026 · Hecho para el equipo de Nury’s</small>
     </div>
-  </div>
+  </main>
 </div>

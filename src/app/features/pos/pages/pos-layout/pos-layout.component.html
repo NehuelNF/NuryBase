@@ -3,30 +3,37 @@
   <header class="pos-top-bar">
     <div class="pos-bar-left">
       <div class="brand-pos">
-        <div class="brand-coffee-icon">☕</div>
         <div class="brand-text-block">
           <div class="brand-title-row">
-            <span class="brand-name-bold">Nury's Cafetería</span>
-            <span class="brand-badge-pos">POS v1.0</span>
+            <span class="brand-name-bold">nury’s</span>
+            <span class="brand-badge-pos">Punto de venta</span>
           </div>
-          <span class="sub-badge">📍 {{ currentUser()?.sucursalNombre || 'Sucursal Providencia' }} &bull; Caja #01</span>
+          <span class="sub-badge"
+            >{{ currentUser()?.sucursalNombre || 'Sucursal Providencia' }} &bull; Caja #01</span
+          >
         </div>
       </div>
 
       <div class="shift-info">
         <span class="shift-dot-pulse"></span>
-        <span class="shift-text">Turno Activo &bull; <strong>{{ currentUser()?.nombre || 'Camila Rojas' }}</strong></span>
-        <span class="role-pill">{{ (currentUser()?.rol || 'cajero') | uppercase }}</span>
+        <span class="shift-text"
+          >Turno abierto · <strong>{{ currentUser()?.nombre || 'Camila Rojas' }}</strong></span
+        >
+        <span class="role-pill">{{ currentUser()?.rol || 'cajero' | uppercase }}</span>
       </div>
     </div>
 
     <div class="pos-bar-right">
       <div class="clock-display">
-        <span class="clock-icon">🕒</span>
         <span class="clock-time">{{ currentTime() }}</span>
       </div>
-      <button type="button" class="btn-logout" (click)="authService.logout()" title="Cerrar turno y salir de la sesión">
-        <span>Cerrar Sesión</span>
+      <button
+        type="button"
+        class="btn-logout"
+        (click)="authService.logout()"
+        title="Cerrar turno y salir de la sesión"
+      >
+        <span>Salir</span>
         <span class="logout-icon">⎋</span>
       </button>
     </div>
@@ -44,35 +51,47 @@
   <div class="pos-main-container">
     <!-- COLUMNA IZQUIERDA: CATÁLOGO Y BÚSQUEDA -->
     <main class="catalog-column">
+      <div class="catalog-heading">
+        <div>
+          <h1>¿Qué servimos hoy?</h1>
+          <p>Selecciona un producto para comenzar la venta.</p>
+        </div>
+        <span>{{ filteredCatalog().length }} productos disponibles</span>
+      </div>
       <!-- Toolbar de Búsqueda y Pistola Lectora (H2.1, H2.2, H2.3) -->
       <section class="search-toolbar">
         <div class="search-input-box">
-          <span class="search-icon">🔍</span>
+          <span class="search-icon" aria-hidden="true">⌕</span>
           <input
             type="text"
             [ngModel]="searchQuery()"
             (ngModelChange)="searchQuery.set($event)"
-            placeholder="Buscar por nombre, descripción o código (ej. espresso, muffin, NUR-101)..."
+            aria-label="Buscar productos"
+            placeholder="Buscar producto o código..."
           />
           @if (searchQuery()) {
-            <button type="button" class="btn-clear-search" (click)="searchQuery.set('')" title="Borrar búsqueda">✕</button>
+            <button
+              type="button"
+              class="btn-clear-search"
+              (click)="searchQuery.set('')"
+              title="Borrar búsqueda"
+            >
+              ✕
+            </button>
           }
         </div>
 
         <div class="barcode-input-box">
-          <span class="barcode-badge">
-            <span class="barcode-led"></span> Lector
-          </span>
+          <span class="barcode-badge"> <span class="barcode-led"></span> Lector </span>
           <input
             type="text"
             [ngModel]="quickBarcodeInput()"
             (ngModelChange)="quickBarcodeInput.set($event)"
             (keydown.enter)="onBarcodeScan()"
-            placeholder="Escanear / Código (ej. NUR-201)..."
+            aria-label="Código de barras o código interno"
+            placeholder="Escanear código..."
           />
-          <button type="button" class="btn-scan" (click)="onBarcodeScan()">
-            + Ingresar
-          </button>
+          <button type="button" class="btn-scan" (click)="onBarcodeScan()">+ Ingresar</button>
         </div>
       </section>
 
@@ -83,9 +102,9 @@
             type="button"
             class="category-btn"
             [class.active]="selectedCategoryId() === cat.id"
+            [attr.aria-pressed]="selectedCategoryId() === cat.id"
             (click)="selectCategory(cat.id)"
           >
-            <span class="cat-icon">{{ cat.icono }}</span>
             <span class="cat-name">{{ cat.nombre }}</span>
             <span class="cat-count-badge">{{ getCategoryCount(cat.id) }}</span>
           </button>
@@ -95,20 +114,51 @@
       <!-- Grilla de Productos del Catálogo -->
       @if (filteredCatalog().length === 0) {
         <div class="empty-catalog-state">
-          <span class="empty-cat-icon">🔍</span>
           <h3>No encontramos productos para "{{ searchQuery() }}"</h3>
           <p>Prueba con otro término o selecciona otra categoría.</p>
-          <button type="button" class="btn-reset-filters" (click)="searchQuery.set(''); selectCategory(0)">
+          <button
+            type="button"
+            class="btn-reset-filters"
+            (click)="searchQuery.set(''); selectCategory(0)"
+          >
             Ver Todos los Productos
           </button>
         </div>
       } @else {
         <div class="products-grid">
           @for (prod of filteredCatalog(); track prod.id) {
-            <article class="product-card" (click)="addProduct(prod)" tabindex="0" (keydown.enter)="addProduct(prod)">
+            <article class="product-card" (click)="addProduct(prod)">
               <div class="card-top">
                 <div class="product-icon-wrapper">
-                  <span class="product-icon">{{ prod.icono }}</span>
+                  <svg
+                    class="product-icon"
+                    viewBox="0 0 32 32"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    @switch (prod.categoriaId) {
+                      @case (1) {
+                        <path
+                          d="M7 12h16v8a7 7 0 0 1-7 7h-2a7 7 0 0 1-7-7zM23 14h2a4 4 0 0 1 0 8h-3M5 29h21M11 8V4m5 4V2m5 6V4"
+                        />
+                      }
+                      @case (2) {
+                        <path d="m4 21 12-14 12 14H4zm0 4h24M9 21l7-8 7 8M6 28h20" />
+                      }
+                      @case (3) {
+                        <path
+                          d="M6 16h20l-3 13H9L6 16zm1 0a5 5 0 0 1 3-9 6 6 0 0 1 12 0 5 5 0 0 1 3 9M12 20l1 6m7-6-1 6"
+                        />
+                      }
+                      @default {
+                        <path d="M8 10h16l-2 19H10L8 10zm9 0 3-7h5M9 17h14M7 10h18" />
+                      }
+                    }
+                  </svg>
                 </div>
                 <div class="badge-group">
                   <span class="code-pill">{{ prod.codigoInterno }}</span>
@@ -129,9 +179,9 @@
                   type="button"
                   class="btn-add-item"
                   (click)="$event.stopPropagation(); addProduct(prod)"
-                  title="Agregar a la comanda actual"
+                  [attr.aria-label]="'Agregar ' + prod.nombre"
                 >
-                  <span class="add-plus">+</span> Agregar
+                  <span class="add-plus" aria-hidden="true">+</span>
                 </button>
               </div>
             </article>
@@ -146,14 +196,21 @@
         <!-- Header de Comanda -->
         <div class="cart-header">
           <div class="cart-header-title">
-            <div class="cart-icon-bubble">🧾</div>
             <div>
-              <h2>Comanda Actual</h2>
-              <span class="cart-count">{{ totalItemsCount() }} {{ totalItemsCount() === 1 ? 'producto' : 'productos' }}</span>
+              <h2>Tu comanda</h2>
+              <span class="cart-count"
+                >{{ totalItemsCount() }}
+                {{ totalItemsCount() === 1 ? 'producto' : 'productos' }}</span
+              >
             </div>
           </div>
           @if (cart().length > 0) {
-            <button type="button" class="btn-clear-cart" (click)="posService.clearCart()" title="Vaciar todos los productos">
+            <button
+              type="button"
+              class="btn-clear-cart"
+              (click)="posService.clearCart()"
+              title="Vaciar todos los productos"
+            >
               Vaciar
             </button>
           }
@@ -163,9 +220,9 @@
         <div class="cart-items-list">
           @if (cart().length === 0) {
             <div class="empty-cart">
-              <div class="empty-cart-illustration">🛒</div>
-              <h4>Comanda Vacía</h4>
-              <p>Haz clic en los productos del catálogo o usa la pistola lectora para iniciar la venta.</p>
+              <div class="empty-cart-illustration" aria-hidden="true">n.</div>
+              <h4>Todo listo para empezar</h4>
+              <p>Agrega el primer producto y prepara algo rico.</p>
               <div class="quick-hints">
                 <span>💡 Tip: Puedes ingresar códigos como <strong>NUR-101</strong></span>
               </div>
@@ -175,17 +232,37 @@
               <div class="cart-item-row">
                 <div class="item-meta">
                   <span class="item-name">{{ item.producto.nombre }}</span>
-                  <span class="item-unit-price">{{ formatClp(item.producto.precioVenta) }} c/u &bull; {{ item.producto.codigoInterno }}</span>
+                  <span class="item-unit-price"
+                    >{{ formatClp(item.producto.precioVenta) }} c/u &bull;
+                    {{ item.producto.codigoInterno }}</span
+                  >
                 </div>
 
                 <div class="item-actions">
                   <div class="stepper">
-                    <button type="button" (click)="posService.updateQuantity(item.producto.id, -1)" title="Disminuir">-</button>
+                    <button
+                      type="button"
+                      (click)="posService.updateQuantity(item.producto.id, -1)"
+                      title="Disminuir"
+                    >
+                      -
+                    </button>
                     <span class="qty">{{ item.cantidad }}</span>
-                    <button type="button" (click)="posService.updateQuantity(item.producto.id, 1)" title="Aumentar">+</button>
+                    <button
+                      type="button"
+                      (click)="posService.updateQuantity(item.producto.id, 1)"
+                      title="Aumentar"
+                    >
+                      +
+                    </button>
                   </div>
                   <span class="item-subtotal">{{ formatClp(item.subtotal) }}</span>
-                  <button type="button" class="btn-remove" (click)="posService.removeFromCart(item.producto.id)" title="Quitar este producto">
+                  <button
+                    type="button"
+                    class="btn-remove"
+                    (click)="posService.removeFromCart(item.producto.id)"
+                    title="Quitar este producto"
+                  >
                     ✕
                   </button>
                 </div>
@@ -207,7 +284,7 @@
             </div>
             <div class="summary-line total-line">
               <div class="total-label-group">
-                <span class="total-title">TOTAL A PAGAR</span>
+                <span class="total-title">Total</span>
                 <span class="total-curr">Pesos Chilenos (CLP)</span>
               </div>
               <span class="grand-total font-mono">{{ formatClp(total()) }}</span>
@@ -221,8 +298,7 @@
             (click)="openPayment()"
           >
             <div class="btn-charge-left">
-              <span class="charge-icon">💰</span>
-              <span>Cobrar Venta</span>
+              <span>Continuar al pago</span>
             </div>
             <div class="btn-charge-right">
               <span class="charge-amount-badge">{{ formatClp(total()) }}</span>

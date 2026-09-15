@@ -1,13 +1,21 @@
 <div class="modal-overlay" (click)="close.emit()">
-  <div class="modal-window" (click)="$event.stopPropagation()">
+  <div
+    class="modal-window"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Pago de la venta"
+    (click)="$event.stopPropagation()"
+  >
     @if (!completedTicket()) {
       <!-- ESTADO 1: SELECCIÓN DE MEDIO DE PAGO Y CÁLCULO DE VUELTO (H2.4) -->
       <div class="modal-header">
         <div>
-          <span class="badge-tag">H2.4 &bull; Cobro en Caja</span>
-          <h2>Procesar Pago de Venta</h2>
+          <span class="badge-tag">Finalizar la comanda</span>
+          <h2>Un último paso.</h2>
         </div>
-        <button type="button" class="btn-close" (click)="close.emit()">✕</button>
+        <button type="button" class="btn-close" aria-label="Cerrar pago" (click)="close.emit()">
+          ✕
+        </button>
       </div>
 
       <div class="modal-body">
@@ -25,7 +33,7 @@
             [class.active]="selectedMethod() === 'efectivo'"
             (click)="setMethod('efectivo')"
           >
-            <span class="method-icon">💵</span>
+            <span class="method-icon" aria-hidden="true">$</span>
             <span class="method-name">Efectivo</span>
             <small>Con cálculo de vuelto</small>
           </button>
@@ -36,7 +44,7 @@
             [class.active]="selectedMethod() === 'tarjeta'"
             (click)="setMethod('tarjeta')"
           >
-            <span class="method-icon">💳</span>
+            <span class="method-icon" aria-hidden="true">▤</span>
             <span class="method-name">Tarjeta</span>
             <small>Débito / Crédito</small>
           </button>
@@ -47,7 +55,7 @@
             [class.active]="selectedMethod() === 'junaeb'"
             (click)="setMethod('junaeb')"
           >
-            <span class="method-icon">🎓</span>
+            <span class="method-icon" aria-hidden="true">J.</span>
             <span class="method-name">Beca Junaeb</span>
             <small>App Ticket Junaeb (QR)</small>
           </button>
@@ -57,15 +65,18 @@
         @if (selectedMethod() === 'efectivo') {
           <div class="cash-section">
             <div class="cash-input-group">
-              <label for="cashInput">Monto Recibido en Efectivo:</label>
+              <label for="cashInput">¿Con cuánto paga?</label>
               <div class="input-cash-wrapper">
                 <span class="currency-symbol">$</span>
                 <input
                   id="cashInput"
                   type="number"
-                  step="100"
+                  step="1"
+                  min="0"
+                  inputmode="numeric"
+                  [attr.aria-invalid]="paymentError() !== null"
                   [ngModel]="amountReceived()"
-                  (ngModelChange)="amountReceived.set(+$event)"
+                  (ngModelChange)="amountReceived.set($event == null || $event === '' ? NaN : +$event)"
                   placeholder="0"
                 />
                 <button type="button" class="btn-exact" (click)="setExactAmount()">
@@ -76,7 +87,7 @@
 
             <!-- Botones Rápidos de Billetes Chilenos -->
             <div class="denominations-group">
-              <span class="denom-label">Billetes chilenos rápidos:</span>
+              <span class="denom-label">Monto rápido</span>
               <div class="denom-buttons">
                 @for (d of quickCashButtons; track d) {
                   <button type="button" class="btn-denom" (click)="setCashAmount(d)">
@@ -97,12 +108,14 @@
                   <span class="change-title">Vuelto a entregar al cliente:</span>
                   <span class="change-amount text-success">{{ formatClp(changeDue()) }}</span>
                 } @else {
-                  <span class="change-title">Dinero insuficiente:</span>
-                  <span class="change-amount text-danger">Faltan {{ formatClp(changeDue() * -1) }}</span>
+                  <span class="change-title">Revisa el monto recibido:</span>
+                  <span class="change-amount text-danger"
+                    >{{ paymentError() }}</span
+                  >
                 }
               </div>
               <div class="change-icon">
-                {{ isPaymentValid() ? '✅' : '⚠️' }}
+                {{ isPaymentValid() ? '✓' : '−' }}
               </div>
             </div>
           </div>
@@ -111,13 +124,14 @@
         <!-- Sección Específica de TARJETA (Transbank) -->
         @if (selectedMethod() === 'tarjeta') {
           <div class="pos-terminal-box">
-            <div class="pos-terminal-icon">💳</div>
+            <div class="pos-terminal-icon" aria-hidden="true">▤</div>
             <div class="pos-terminal-details">
               <h4>Monto configurado en terminal Transbank: {{ formatClp(totalToPay) }}</h4>
               <p>
-                Solicite al cliente insertar, deslizar o acercar su tarjeta bancaria (Contactless) e ingresar PIN si corresponde.
+                Solicite al cliente insertar, deslizar o acercar su tarjeta bancaria (Contactless) e
+                ingresar PIN si corresponde.
               </p>
-              <span class="terminal-status-ok">&bull; Terminal POS Conectado y Listo</span>
+              <span class="terminal-status-ok">Vista de demostración · Terminal simulado</span>
             </div>
           </div>
         }
@@ -126,26 +140,28 @@
         @if (selectedMethod() === 'junaeb') {
           <div class="junaeb-simple-box">
             <div class="junaeb-instruction-header">
-              <span class="junaeb-phone-icon">📱</span>
+              <span class="junaeb-phone-icon" aria-hidden="true">J.</span>
               <div class="junaeb-text-block">
-                <h4>Instrucción de Cobro con Ticket Junaeb</h4>
+                <h4>Cobrar con Ticket Junaeb</h4>
                 <p>
-                  Escanee el código QR del cliente desde el dispositivo móvil del local con la <strong>App Ticket Junaeb</strong> por un total de <strong>{{ formatClp(totalToPay) }}</strong>.
+                  Escanee el código QR del cliente desde el dispositivo móvil del local con la
+                  <strong>App Ticket Junaeb</strong> por un total de
+                  <strong>{{ formatClp(totalToPay) }}</strong
+                  >.
                 </p>
               </div>
             </div>
 
             <div class="junaeb-action-area">
               @if (!junaebScanned()) {
-                <button
-                  type="button"
-                  class="btn-junaeb-ready"
-                  (click)="markJunaebAsScanned()"
-                >
+                <button type="button" class="btn-junaeb-ready" (click)="markJunaebAsScanned()">
                   <span class="btn-check-icon">✓</span>
                   <span>Listo / Escaneado</span>
                 </button>
-                <span class="junaeb-hint-text">Presione "Listo / Escaneado" una vez que la transacción se complete en la app del móvil.</span>
+                <span class="junaeb-hint-text"
+                  >Presione "Listo / Escaneado" una vez que la transacción se complete en la app del
+                  móvil.</span
+                >
               } @else {
                 <div class="junaeb-confirmed-badge">
                   <div class="badge-content">
@@ -155,7 +171,12 @@
                       <small>Cobro registrado correctamente desde el dispositivo móvil.</small>
                     </div>
                   </div>
-                  <button type="button" class="btn-undo-scan" (click)="resetJunaebScan()" title="Volver a escanear">
+                  <button
+                    type="button"
+                    class="btn-undo-scan"
+                    (click)="resetJunaebScan()"
+                    title="Volver a escanear"
+                  >
                     Cambiar
                   </button>
                 </div>
@@ -166,9 +187,7 @@
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn-cancel" (click)="close.emit()">
-          Volver a la venta
-        </button>
+        <button type="button" class="btn-cancel" (click)="close.emit()">Volver a la venta</button>
         <button
           type="button"
           class="btn-confirm-pay"
@@ -181,14 +200,16 @@
     } @else {
       <!-- ESTADO 2: COMPROBANTE DIGITAL EMITIDO (PREVIEW TICKET H2.6) -->
       <div class="ticket-view">
-        <div class="ticket-badge-ok">🎉 Venta Registrada con Éxito</div>
+        <div class="ticket-badge-ok">✓ Venta registrada</div>
         <div class="receipt-paper">
           <div class="receipt-header">
             <h3>Nury's Cafetería</h3>
             <p>{{ completedTicket()?.sucursalNombre }}</p>
             <p>RUT: 76.842.190-3</p>
-            <p>Folio: <strong>{{ completedTicket()?.ticketFolio }}</strong></p>
-            <p class="receipt-date">{{ completedTicket()?.fecha | date:'dd/MM/yyyy HH:mm:ss' }}</p>
+            <p>
+              Folio: <strong>{{ completedTicket()?.ticketFolio }}</strong>
+            </p>
+            <p class="receipt-date">{{ completedTicket()?.fecha | date: 'dd/MM/yyyy HH:mm:ss' }}</p>
             <p>Atendido por: {{ completedTicket()?.cajeroNombre }}</p>
           </div>
 
@@ -206,13 +227,25 @@
           <div class="receipt-divider">================================</div>
 
           <div class="receipt-totals">
+            <div class="receipt-row text-xs">
+              <span>Subtotal neto</span>
+              <span>{{ formatClp((completedTicket()?.total || 0) * 0.81) }}</span>
+            </div>
+            <div class="receipt-row text-xs">
+              <span>IVA (19% incluido)</span>
+              <span>{{ formatClp((completedTicket()?.total || 0) * 0.19) }}</span>
+            </div>
             <div class="receipt-row font-bold">
               <span>TOTAL PAGADO</span>
               <span>{{ formatClp(completedTicket()?.total || 0) }}</span>
             </div>
             <div class="receipt-row text-muted text-xs">
               <span>Medio de Pago</span>
-              <span class="capitalize">{{ completedTicket()?.medioPago === 'junaeb' ? 'Ticket Junaeb (BAES App)' : completedTicket()?.medioPago }}</span>
+              <span class="capitalize">{{
+                completedTicket()?.medioPago === 'junaeb'
+                  ? 'Ticket Junaeb (BAES App)'
+                  : completedTicket()?.medioPago
+              }}</span>
             </div>
             @if (completedTicket()?.medioPago === 'efectivo') {
               <div class="receipt-row text-muted text-xs">
@@ -246,13 +279,10 @@
         </div>
 
         <div class="ticket-actions">
-          <button type="button" class="btn-print" onclick="window.print()">
-            🖨️ Imprimir Ticket
-          </button>
-          <button type="button" class="btn-next-sale" (click)="onFinish()">
-            ➕ Iniciar Siguiente Venta
-          </button>
+          <button type="button" class="btn-print" (click)="printTicket()">Imprimir / PDF</button>
+          <button type="button" class="btn-next-sale" (click)="onFinish()">Nueva venta →</button>
         </div>
+        <p class="print-hint">Para guardar una copia, elige «Guardar como PDF» en el destino de impresión.</p>
       </div>
     }
   </div>

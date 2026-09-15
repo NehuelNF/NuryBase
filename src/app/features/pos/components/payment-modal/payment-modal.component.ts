@@ -16,11 +16,20 @@ export class PaymentModalComponent {
   private readonly posService = inject(PosService);
   private readonly authService = inject(AuthService);
 
-  @Input({ required: true }) totalToPay = 0;
+  private readonly paymentTotal = signal(0);
+  @Input({ required: true })
+  set totalToPay(value: number) {
+    if (value !== this.paymentTotal()) this.junaebScanned.set(false);
+    this.paymentTotal.set(value);
+  }
+  get totalToPay(): number {
+    return this.paymentTotal();
+  }
   @Output() close = new EventEmitter<void>();
   @Output() saleFinished = new EventEmitter<CompletedSale>();
 
   readonly selectedMethod = signal<PaymentMethod>('efectivo');
+  readonly NaN = Number.NaN;
   readonly amountReceived = signal<number>(0);
   readonly completedTicket = signal<CompletedSale | null>(null);
 
@@ -35,15 +44,28 @@ export class PaymentModalComponent {
     return this.amountReceived() - this.totalToPay;
   });
 
-  readonly isPaymentValid = computed(() => {
-    if (this.selectedMethod() === 'efectivo') {
-      return this.amountReceived() >= this.totalToPay;
+  readonly paymentError = computed(() => {
+    if (!Number.isSafeInteger(this.totalToPay) || this.totalToPay <= 0) {
+      return 'El total debe ser un monto válido mayor que cero.';
     }
-    if (this.selectedMethod() === 'junaeb') {
-      return this.junaebScanned();
+    switch (this.selectedMethod()) {
+      case 'efectivo':
+        if (!Number.isSafeInteger(this.amountReceived()) || this.amountReceived() < 0) {
+          return 'Ingresa un monto válido en pesos, sin decimales.';
+        }
+        if (this.amountReceived() < this.totalToPay) {
+          return `Faltan ${this.formatClp(this.totalToPay - this.amountReceived())}.`;
+        }
+        return null;
+      case 'tarjeta':
+        return null;
+      case 'junaeb':
+        return this.junaebScanned() ? null : 'Confirma el escaneo en Ticket Junaeb para continuar.';
+      default:
+        return 'Selecciona un medio de pago válido.';
     }
-    return true;
   });
+  readonly isPaymentValid = computed(() => !this.completedTicket() && this.paymentError() === null);
 
   ngOnInit(): void {
     // Por defecto inicializar monto recibido con el total
@@ -51,6 +73,7 @@ export class PaymentModalComponent {
   }
 
   setMethod(method: PaymentMethod): void {
+    if (method !== this.selectedMethod()) this.junaebScanned.set(false);
     this.selectedMethod.set(method);
     if (method !== 'efectivo') {
       this.amountReceived.set(this.totalToPay);
@@ -80,6 +103,7 @@ export class PaymentModalComponent {
 
   onConfirmPayment(): void {
     if (!this.isPaymentValid()) return;
+    if (this.posService.cart().length === 0 || this.posService.total() !== this.totalToPay) return;
 
     const user = this.authService.currentUser();
     const cajeroNombre = user ? user.nombre : 'Cajero Turno 1';
@@ -87,7 +111,7 @@ export class PaymentModalComponent {
 
     const sale = this.posService.completeSale(
       this.selectedMethod(),
-      this.amountReceived(),
+      this.selectedMethod() === 'efectivo' ? this.amountReceived() : this.totalToPay,
       cajeroNombre,
       sucursalNombre,
       this.selectedMethod() === 'junaeb'
@@ -103,6 +127,11 @@ export class PaymentModalComponent {
 
   onFinish(): void {
     this.close.emit();
+  }
+
+  printTicket(): void {
+    if (!this.completedTicket()) return;
+    window.print();
   }
 
   formatClp(amount: number): string {

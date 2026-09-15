@@ -51,9 +51,9 @@ export class PosLayoutComponent implements OnDestroy {
 
   // Catálogo filtrado por categoría y búsqueda de texto (H2.2)
   readonly filteredCatalog = computed<PosProduct[]>(() => {
-    let list = this.catalog();
+    let list = this.catalog().filter((p) => p.activo);
     const catId = this.selectedCategoryId();
-    const query = this.searchQuery().trim().toLowerCase();
+    const query = this.normalizeSearch(this.searchQuery());
 
     if (catId !== 0) {
       list = list.filter((p) => p.categoriaId === catId);
@@ -62,9 +62,9 @@ export class PosLayoutComponent implements OnDestroy {
     if (query) {
       list = list.filter(
         (p) =>
-          p.nombre.toLowerCase().includes(query) ||
-          p.codigoInterno.toLowerCase().includes(query) ||
-          p.descripcion.toLowerCase().includes(query)
+          [p.nombre, p.codigoInterno, p.codigoBarras, p.descripcion].some(
+            (value) => this.normalizeSearch(value).includes(query)
+          )
       );
     }
 
@@ -75,9 +75,12 @@ export class PosLayoutComponent implements OnDestroy {
     this.selectedCategoryId.set(catId);
   }
 
+  private normalizeSearch(value: string): string {
+    return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+  }
+
   getCategoryCount(catId: number): number {
-    if (catId === 0) return this.catalog().length;
-    return this.catalog().filter((p) => p.categoriaId === catId).length;
+    return this.catalog().filter((p) => p.activo && (catId === 0 || p.categoriaId === catId)).length;
   }
 
   addProduct(product: PosProduct): void {

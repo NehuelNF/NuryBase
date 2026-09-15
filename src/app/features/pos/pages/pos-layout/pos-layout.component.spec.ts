@@ -7,6 +7,48 @@ import { PosLayoutComponent } from './pos-layout.component';
 class DummyComponent {}
 
 describe('PosLayoutComponent', () => {
+  it('finds accented names with unaccented uppercase text', () => {
+    const component = TestBed.createComponent(PosLayoutComponent).componentInstance;
+    component.searchQuery.set('  CAFE  ');
+    expect(component.filteredCatalog().some((p) => p.nombre === 'Café Espresso Doble')).toBe(true);
+    component.searchQuery.set('sandwich');
+    expect(component.filteredCatalog()).toHaveLength(3);
+  });
+
+  it('searches barcode and combines search with category selection', () => {
+    const component = TestBed.createComponent(PosLayoutComponent).componentInstance;
+    const product = component.catalog()[0];
+    component.searchQuery.set(product.codigoBarras);
+    expect(component.filteredCatalog()).toEqual([product]);
+    component.selectCategory(2);
+    expect(component.filteredCatalog()).toEqual([]);
+    component.selectCategory(0);
+    expect(component.filteredCatalog()).toEqual([product]);
+  });
+
+  it('excludes inactive products from cards and category counts', () => {
+    const component = TestBed.createComponent(PosLayoutComponent).componentInstance;
+    const product = component.catalog()[0];
+    const initialCount = component.getCategoryCount(0);
+    const categoryCount = component.getCategoryCount(product.categoriaId);
+    component.posService.catalog.update((products) => products.map((p) =>
+      p.id === product.id ? { ...p, activo: false } : p));
+    expect(component.getCategoryCount(0)).toBe(initialCount - 1);
+    expect(component.getCategoryCount(product.categoriaId)).toBe(categoryCount - 1);
+    component.searchQuery.set(product.codigoInterno);
+    expect(component.filteredCatalog()).toEqual([]);
+  });
+
+  it('adds exactly one item through the accessible product button', () => {
+    const fixture = TestBed.createComponent(PosLayoutComponent);
+    fixture.detectChanges();
+    const button = fixture.nativeElement.querySelector('button[aria-label="Agregar Café Espresso Doble"]');
+    button.click();
+    expect(fixture.componentInstance.cart()).toHaveLength(1);
+    expect(fixture.componentInstance.cart()[0].cantidad).toBe(1);
+    expect(fixture.componentInstance.cart()[0].producto.nombre).toBe('Café Espresso Doble');
+    expect(fixture.componentInstance.total()).toBe(2600);
+  });
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [PosLayoutComponent],
