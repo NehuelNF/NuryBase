@@ -1,1 +1,93 @@
-/* You can add global styles to this file, and also import other style files */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+}
+html,
+body {
+  min-height: 100%;
+  background: #f5f3ed;
+  color: #292e27;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+button,
+input {
+  font: inherit;
+}
+button {
+  cursor: pointer;
+  touch-action: manipulation;
+}
+button:disabled {
+  cursor: not-allowed;
+}
+:focus-visible {
+  outline: 3px solid #a64d34;
+  outline-offset: 4px;
+}
+input {
+  min-width: 0;
+}
+::selection {
+  background: #dce2c9;
+}
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: #c8c9bd;
+  border-radius: 6px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Let the receipt flow across pages instead of printing a clipped POS modal. */
+@media print {
+  @page { margin: 12mm; }
+  body:has(.receipt-paper) { background: white; }
+  body:has(.receipt-paper) .pos-top-bar,
+  body:has(.receipt-paper) .pos-main-container,
+  body:has(.receipt-paper) .scanner-toast,
+  body:has(.receipt-paper) .ticket-badge-ok,
+  body:has(.receipt-paper) .ticket-actions,
+  body:has(.receipt-paper) .print-hint { display: none !important; }
+  body:has(.receipt-paper) app-root,
+  body:has(.receipt-paper) .app-viewport,
+  body:has(.receipt-paper) app-pos-layout,
+  body:has(.receipt-paper) .pos-screen,
+  body:has(.receipt-paper) app-payment-modal,
+  body:has(.receipt-paper) .modal-overlay,
+  body:has(.receipt-paper) .modal-window,
+  body:has(.receipt-paper) .ticket-view {
+    display: block !important;
+    position: static !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    width: auto !important;
+    max-width: none !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: 0 !important;
+    background: white !important;
+    box-shadow: none !important;
+  }
+  body:has(.receipt-paper) .receipt-paper {
+    width: 100%; max-width: 80mm; margin: 0 auto; padding: 0;
+    border: 0; box-shadow: none; color: black;
+  }
+  body:has(.receipt-paper) .receipt-paper * { color: black !important; }
+  body:has(.receipt-paper) .receipt-row { break-inside: avoid; }
+  body:has(.receipt-paper) .receipt-totals,
+  body:has(.receipt-paper) .receipt-footer { break-inside: avoid; }
+}
