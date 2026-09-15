@@ -1,0 +1,6 @@
+:host,
+.app-viewport {
+  display: block;
+  min-height: 100dvh;
+  width: 100%;
+}
