@@ -26,6 +26,11 @@ export const routes: Routes = [
         loadChildren: () =>
           import('./features/pos/pos.routes').then((m) => m.POS_ROUTES),
       },
+      {
+        path: 'caja',
+        loadChildren: () =>
+          import('./features/caja/caja.routes').then((m) => m.CAJA_ROUTES),
+      },
     ],
   },
   {

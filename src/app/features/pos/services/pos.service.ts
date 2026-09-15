@@ -276,4 +276,9 @@ export class PosService {
     this.clearCart();
     return sale;
   }
+
+  // Vacía el historial de ventas del turno tras un cierre de caja confirmado.
+  resetSalesHistory(): void {
+    this.salesHistory.set([]);
+  }
 }
