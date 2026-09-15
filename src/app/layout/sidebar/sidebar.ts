@@ -14,8 +14,8 @@ export class Sidebar {
   protected readonly collapsed = signal(this.readStoredState());
 
   protected readonly menuItems: MenuItem[] = [
-    { label: 'Home', icon: 'home', route: '/' },
-    { label: 'Punto de venta', icon: 'cart', route: '/punto-de-venta' },
+    { label: 'Home', icon: 'home', route: '/home' },
+    { label: 'Punto de venta', icon: 'cart', route: '/pos' },
     { label: 'Inventario', icon: 'box', route: '/inventario' },
     { label: 'Administración', icon: 'settings', route: '/administracion' },
   ];
@@ -32,9 +32,10 @@ export class Sidebar {
 
   private readStoredState(): boolean {
     try {
-      return localStorage.getItem(STORAGE_KEY) === 'true';
+      const stored = localStorage.getItem(STORAGE_KEY);
+      return stored === null ? true : stored === 'true';
     } catch {
-      return false;
+      return true;
     }
   }
 }

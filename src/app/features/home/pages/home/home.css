@@ -1,0 +1,29 @@
+:host {
+  display: block;
+  padding: 3rem;
+}
+
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #777d6c;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.home-placeholder h1 {
+  font: 400 34px Georgia, serif;
+  letter-spacing: -1px;
+  margin: 14px 0 8px;
+  color: #292e27;
+}
+
+.home-placeholder h1 em {
+  font-style: italic;
+  color: #566544;
+}
+
+.home-placeholder p {
+  color: #7d8276;
+  font-size: 14px;
+}

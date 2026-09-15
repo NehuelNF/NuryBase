@@ -1,0 +1,16 @@
+:host {
+  display: block;
+  height: 100dvh;
+}
+
+.main-layout {
+  display: flex;
+  height: 100%;
+}
+
+.main-layout-content {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  background: #f5f3ed;
+}
