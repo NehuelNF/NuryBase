@@ -19,7 +19,10 @@ export class PaymentModalComponent {
   private readonly paymentTotal = signal(0);
   @Input({ required: true })
   set totalToPay(value: number) {
-    if (value !== this.paymentTotal()) this.junaebScanned.set(false);
+    if (value !== this.paymentTotal()) {
+      this.junaebScanned.set(false);
+      this.cardPaymentReady.set(false);
+    }
     this.paymentTotal.set(value);
   }
   get totalToPay(): number {
@@ -38,6 +41,7 @@ export class PaymentModalComponent {
 
   // Estado específico para Beca Junaeb (App Ticket Junaeb)
   readonly junaebScanned = signal<boolean>(false);
+  readonly cardPaymentReady = signal<boolean>(false);
 
   readonly changeDue = computed(() => {
     if (this.selectedMethod() !== 'efectivo') return 0;
@@ -58,7 +62,9 @@ export class PaymentModalComponent {
         }
         return null;
       case 'tarjeta':
-        return null;
+        return this.cardPaymentReady()
+          ? null
+          : 'Confirma que el pago terminó correctamente en la máquina del local.';
       case 'junaeb':
         return this.junaebScanned() ? null : 'Confirma el escaneo en Ticket Junaeb para continuar.';
       default:
@@ -73,7 +79,10 @@ export class PaymentModalComponent {
   }
 
   setMethod(method: PaymentMethod): void {
-    if (method !== this.selectedMethod()) this.junaebScanned.set(false);
+    if (method !== this.selectedMethod()) {
+      this.junaebScanned.set(false);
+      this.cardPaymentReady.set(false);
+    }
     this.selectedMethod.set(method);
     if (method !== 'efectivo') {
       this.amountReceived.set(this.totalToPay);
@@ -101,6 +110,14 @@ export class PaymentModalComponent {
     this.junaebScanned.set(false);
   }
 
+  markCardPaymentAsReady(): void {
+    this.cardPaymentReady.set(true);
+  }
+
+  resetCardPayment(): void {
+    this.cardPaymentReady.set(false);
+  }
+
   onConfirmPayment(): void {
     if (!this.isPaymentValid()) return;
     if (this.posService.cart().length === 0 || this.posService.total() !== this.totalToPay) return;
@@ -118,7 +135,7 @@ export class PaymentModalComponent {
         ? {
             codigoAutorizacion: `JUN-${Math.floor(100000 + Math.random() * 900000)}`,
           }
-        : undefined
+        : undefined,
     );
 
     this.completedTicket.set(sale);

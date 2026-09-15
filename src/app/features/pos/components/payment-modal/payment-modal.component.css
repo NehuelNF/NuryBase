@@ -251,6 +251,56 @@
   color: #7e896f;
   margin-top: 12px;
 }
+.external-payment-action {
+  margin-top: -8px;
+}
+.external-payment-action > span {
+  display: block;
+  margin-top: 9px;
+  color: #7a826d;
+  font-size: 10px;
+  line-height: 1.6;
+}
+.btn-payment-ready {
+  width: 100%;
+  border: 0;
+  border-radius: 4px;
+  padding: 14px;
+  background: #4f683e;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+}
+.external-payment-confirmed {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 15px;
+  border: 1px solid #cbd8ba;
+  border-radius: 5px;
+  background: #edf2e5;
+}
+.external-payment-confirmed strong,
+.external-payment-confirmed small {
+  display: block;
+}
+.external-payment-confirmed strong {
+  font-size: 12px;
+}
+.external-payment-confirmed small {
+  margin-top: 3px;
+  color: #6f7e5e;
+  font-size: 10px;
+}
+.external-payment-confirmed button {
+  border: 1px solid #c2cfb1;
+  border-radius: 3px;
+  padding: 7px 9px;
+  background: transparent;
+  color: #5d714b;
+  font-size: 10px;
+}
 .junaeb-action-area {
   margin-top: 20px;
   padding-top: 18px;

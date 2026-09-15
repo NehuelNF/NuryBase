@@ -30,13 +30,16 @@ describe('PaymentModalComponent', () => {
       print.mockRestore();
     }
   });
-  it.each([NaN, Infinity, -1, 5000.5, Number.MAX_SAFE_INTEGER + 1])('rejects invalid cash: %s', async (amount) => {
-    const fixture = TestBed.createComponent(PaymentModalComponent);
-    fixture.componentInstance.totalToPay = 5000;
-    fixture.detectChanges();
-    fixture.componentInstance.setCashAmount(amount);
-    expect(fixture.componentInstance.isPaymentValid()).toBe(false);
-  });
+  it.each([NaN, Infinity, -1, 5000.5, Number.MAX_SAFE_INTEGER + 1])(
+    'rejects invalid cash: %s',
+    async (amount) => {
+      const fixture = TestBed.createComponent(PaymentModalComponent);
+      fixture.componentInstance.totalToPay = 5000;
+      fixture.detectChanges();
+      fixture.componentInstance.setCashAmount(amount);
+      expect(fixture.componentInstance.isPaymentValid()).toBe(false);
+    },
+  );
 
   it('revalidates the total and resets Junaeb approval when it changes', () => {
     const component = TestBed.createComponent(PaymentModalComponent).componentInstance;
@@ -67,6 +70,7 @@ describe('PaymentModalComponent', () => {
     const component = TestBed.createComponent(PaymentModalComponent).componentInstance;
     component.totalToPay = pos.total();
     component.setMethod('tarjeta');
+    component.markCardPaymentAsReady();
     component.onConfirmPayment();
     const sale = component.completedTicket();
     component.onConfirmPayment();
@@ -81,6 +85,7 @@ describe('PaymentModalComponent', () => {
     const component = TestBed.createComponent(PaymentModalComponent).componentInstance;
     component.totalToPay = 5000;
     component.setMethod('tarjeta');
+    component.markCardPaymentAsReady();
     component.onConfirmPayment();
     pos.addToCart(pos.catalog()[0]);
     component.onConfirmPayment();
@@ -136,7 +141,23 @@ describe('PaymentModalComponent', () => {
 
     component.setMethod('tarjeta');
     expect(component.amountReceived()).toBe(6500);
+    expect(component.isPaymentValid()).toBe(false);
+    component.markCardPaymentAsReady();
     expect(component.isPaymentValid()).toBe(true);
+  });
+
+  it('requires a fresh card confirmation after switching payment methods', () => {
+    const component = TestBed.createComponent(PaymentModalComponent).componentInstance;
+    component.totalToPay = 5000;
+    component.setMethod('tarjeta');
+    component.markCardPaymentAsReady();
+    expect(component.isPaymentValid()).toBe(true);
+
+    component.setMethod('efectivo');
+    component.setMethod('tarjeta');
+
+    expect(component.cardPaymentReady()).toBe(false);
+    expect(component.isPaymentValid()).toBe(false);
   });
 
   it('should require marking Junaeb as scanned before confirming', () => {

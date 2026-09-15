@@ -76,7 +76,9 @@
                   inputmode="numeric"
                   [attr.aria-invalid]="paymentError() !== null"
                   [ngModel]="amountReceived()"
-                  (ngModelChange)="amountReceived.set($event == null || $event === '' ? NaN : +$event)"
+                  (ngModelChange)="
+                    amountReceived.set($event == null || $event === '' ? NaN : +$event)
+                  "
                   placeholder="0"
                 />
                 <button type="button" class="btn-exact" (click)="setExactAmount()">
@@ -109,9 +111,7 @@
                   <span class="change-amount text-success">{{ formatClp(changeDue()) }}</span>
                 } @else {
                   <span class="change-title">Revisa el monto recibido:</span>
-                  <span class="change-amount text-danger"
-                    >{{ paymentError() }}</span
-                  >
+                  <span class="change-amount text-danger">{{ paymentError() }}</span>
                 }
               </div>
               <div class="change-icon">
@@ -133,6 +133,24 @@
               </p>
               <span class="terminal-status-ok">Vista de demostración · Terminal simulado</span>
             </div>
+          </div>
+          <div class="external-payment-action">
+            @if (!cardPaymentReady()) {
+              <button type="button" class="btn-payment-ready" (click)="markCardPaymentAsReady()">
+                ✓ Pago listo en la máquina
+              </button>
+              <span
+                >Confirma solo cuando la máquina del local indique que el pago fue aprobado.</span
+              >
+            } @else {
+              <div class="external-payment-confirmed" role="status">
+                <div>
+                  <strong>Pago confirmado</strong>
+                  <small>La venta ya puede registrarse.</small>
+                </div>
+                <button type="button" (click)="resetCardPayment()">Cambiar</button>
+              </div>
+            }
           </div>
         }
 
@@ -282,7 +300,9 @@
           <button type="button" class="btn-print" (click)="printTicket()">Imprimir / PDF</button>
           <button type="button" class="btn-next-sale" (click)="onFinish()">Nueva venta →</button>
         </div>
-        <p class="print-hint">Para guardar una copia, elige «Guardar como PDF» en el destino de impresión.</p>
+        <p class="print-hint">
+          Para guardar una copia, elige «Guardar como PDF» en el destino de impresión.
+        </p>
       </div>
     }
   </div>
