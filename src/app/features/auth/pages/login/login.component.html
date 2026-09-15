@@ -1,0 +1,104 @@
+<div class="login-page">
+  <aside class="login-story">
+    <div class="story-wordmark">nury’s</div>
+    <div class="story-copy">
+      <span class="story-eyebrow">El café de todos los días</span>
+      <h2>Un buen día<br />empieza <em>aquí.</em></h2>
+      <p>Detrás de cada café, un equipo que hace que todo funcione.</p>
+      <div class="coffee-art" aria-hidden="true"></div>
+    </div>
+    <div class="story-bottom">
+      <span>Santiago · Valparaíso</span><span>Ocho locales. Un mismo equipo.</span>
+    </div>
+  </aside>
+  <main class="login-card">
+    <!-- Branding Header -->
+    <div class="brand-header">
+      <span class="eyebrow">NuryBase · Acceso del equipo</span>
+      <h1>Bienvenido de vuelta.</h1>
+      <p class="brand-subtitle">Ingresa tus datos para comenzar el turno.</p>
+    </div>
+
+    <!-- Mensaje de error si falla -->
+    @if (errorMessage()) {
+      <div class="error-alert" role="alert">
+        <span>{{ errorMessage() }}</span>
+      </div>
+    }
+
+    <!-- Formulario de Login -->
+    <form (ngSubmit)="onLogin()" class="login-form">
+      <div class="form-group">
+        <label for="identificador">Correo o RUT</label>
+        <div class="input-wrapper">
+          <input
+            id="identificador"
+            type="text"
+            [ngModel]="identificador()"
+            (ngModelChange)="identificador.set($event)"
+            name="identificador"
+            placeholder="ej. c.rojas@nurys.cl"
+            required
+            autocomplete="username"
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="contrasena">Contraseña</label>
+        <div class="input-wrapper">
+          <input
+            id="contrasena"
+            type="password"
+            [ngModel]="contrasena()"
+            (ngModelChange)="contrasena.set($event)"
+            name="contrasena"
+            placeholder="••••••••"
+            required
+            autocomplete="current-password"
+          />
+        </div>
+      </div>
+
+      <button type="submit" class="btn-submit" [disabled]="isLoading()">
+        @if (isLoading()) {
+          <span class="spinner"></span> Validando credenciales...
+        } @else {
+          Comenzar turno →
+        }
+      </button>
+    </form>
+
+    <!-- Accesos rápidos de prueba para evaluación de mockup -->
+    <div class="quick-access-section">
+      <div class="quick-title">
+        <span>Explorar con un perfil de demostración</span>
+      </div>
+
+      <div class="quick-users-list">
+        @for (u of mockUsers; track u.id) {
+          <button
+            type="button"
+            class="quick-user-btn"
+            [class.cajero]="u.rol === 'cajero'"
+            [class.admin]="u.rol === 'admin'"
+            [class.bodeguero]="u.rol === 'bodeguero'"
+            (click)="selectQuickUser(u)"
+          >
+            <div class="qu-role-tag">{{ u.nombre.charAt(0) }}</div>
+            <div class="qu-info">
+              <strong>{{ u.nombre }}</strong>
+              <small>{{ u.rol | uppercase }} · {{ u.sucursalNombre }}</small>
+            </div>
+            <span class="qu-arrow">➜</span>
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="login-footer">
+      <small>NuryBase © 2026 · Hecho para el equipo de Nury’s</small>
+    </div>
+  </main>
+</div>

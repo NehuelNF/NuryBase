@@ -1,0 +1,289 @@
+<div class="modal-overlay" (click)="close.emit()">
+  <div
+    class="modal-window"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Pago de la venta"
+    (click)="$event.stopPropagation()"
+  >
+    @if (!completedTicket()) {
+      <!-- ESTADO 1: SELECCIÓN DE MEDIO DE PAGO Y CÁLCULO DE VUELTO (H2.4) -->
+      <div class="modal-header">
+        <div>
+          <span class="badge-tag">Finalizar la comanda</span>
+          <h2>Un último paso.</h2>
+        </div>
+        <button type="button" class="btn-close" aria-label="Cerrar pago" (click)="close.emit()">
+          ✕
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Resumen de Total a Pagar -->
+        <div class="total-banner">
+          <span class="total-label">Total a Pagar</span>
+          <span class="total-amount">{{ formatClp(totalToPay) }}</span>
+        </div>
+
+        <!-- Selector de Medio de Pago -->
+        <div class="methods-selector">
+          <button
+            type="button"
+            class="method-btn"
+            [class.active]="selectedMethod() === 'efectivo'"
+            (click)="setMethod('efectivo')"
+          >
+            <span class="method-icon" aria-hidden="true">$</span>
+            <span class="method-name">Efectivo</span>
+            <small>Con cálculo de vuelto</small>
+          </button>
+
+          <button
+            type="button"
+            class="method-btn"
+            [class.active]="selectedMethod() === 'tarjeta'"
+            (click)="setMethod('tarjeta')"
+          >
+            <span class="method-icon" aria-hidden="true">▤</span>
+            <span class="method-name">Tarjeta</span>
+            <small>Débito / Crédito</small>
+          </button>
+
+          <button
+            type="button"
+            class="method-btn"
+            [class.active]="selectedMethod() === 'junaeb'"
+            (click)="setMethod('junaeb')"
+          >
+            <span class="method-icon" aria-hidden="true">J.</span>
+            <span class="method-name">Beca Junaeb</span>
+            <small>App Ticket Junaeb (QR)</small>
+          </button>
+        </div>
+
+        <!-- Sección Específica de EFECTIVO -->
+        @if (selectedMethod() === 'efectivo') {
+          <div class="cash-section">
+            <div class="cash-input-group">
+              <label for="cashInput">¿Con cuánto paga?</label>
+              <div class="input-cash-wrapper">
+                <span class="currency-symbol">$</span>
+                <input
+                  id="cashInput"
+                  type="number"
+                  step="1"
+                  min="0"
+                  inputmode="numeric"
+                  [attr.aria-invalid]="paymentError() !== null"
+                  [ngModel]="amountReceived()"
+                  (ngModelChange)="amountReceived.set($event == null || $event === '' ? NaN : +$event)"
+                  placeholder="0"
+                />
+                <button type="button" class="btn-exact" (click)="setExactAmount()">
+                  Paga Justo
+                </button>
+              </div>
+            </div>
+
+            <!-- Botones Rápidos de Billetes Chilenos -->
+            <div class="denominations-group">
+              <span class="denom-label">Monto rápido</span>
+              <div class="denom-buttons">
+                @for (d of quickCashButtons; track d) {
+                  <button type="button" class="btn-denom" (click)="setCashAmount(d)">
+                    {{ formatClp(d) }}
+                  </button>
+                }
+              </div>
+            </div>
+
+            <!-- Recuadro Dinámico del Vuelto (Cálculo Inmediato) -->
+            <div
+              class="change-card"
+              [class.valid-change]="isPaymentValid()"
+              [class.invalid-change]="!isPaymentValid()"
+            >
+              <div class="change-info">
+                @if (isPaymentValid()) {
+                  <span class="change-title">Vuelto a entregar al cliente:</span>
+                  <span class="change-amount text-success">{{ formatClp(changeDue()) }}</span>
+                } @else {
+                  <span class="change-title">Revisa el monto recibido:</span>
+                  <span class="change-amount text-danger"
+                    >{{ paymentError() }}</span
+                  >
+                }
+              </div>
+              <div class="change-icon">
+                {{ isPaymentValid() ? '✓' : '−' }}
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Sección Específica de TARJETA (Transbank) -->
+        @if (selectedMethod() === 'tarjeta') {
+          <div class="pos-terminal-box">
+            <div class="pos-terminal-icon" aria-hidden="true">▤</div>
+            <div class="pos-terminal-details">
+              <h4>Monto configurado en terminal Transbank: {{ formatClp(totalToPay) }}</h4>
+              <p>
+                Solicite al cliente insertar, deslizar o acercar su tarjeta bancaria (Contactless) e
+                ingresar PIN si corresponde.
+              </p>
+              <span class="terminal-status-ok">Vista de demostración · Terminal simulado</span>
+            </div>
+          </div>
+        }
+
+        <!-- Sección Específica de JUNAEB (App Ticket Junaeb QR) -->
+        @if (selectedMethod() === 'junaeb') {
+          <div class="junaeb-simple-box">
+            <div class="junaeb-instruction-header">
+              <span class="junaeb-phone-icon" aria-hidden="true">J.</span>
+              <div class="junaeb-text-block">
+                <h4>Cobrar con Ticket Junaeb</h4>
+                <p>
+                  Escanee el código QR del cliente desde el dispositivo móvil del local con la
+                  <strong>App Ticket Junaeb</strong> por un total de
+                  <strong>{{ formatClp(totalToPay) }}</strong
+                  >.
+                </p>
+              </div>
+            </div>
+
+            <div class="junaeb-action-area">
+              @if (!junaebScanned()) {
+                <button type="button" class="btn-junaeb-ready" (click)="markJunaebAsScanned()">
+                  <span class="btn-check-icon">✓</span>
+                  <span>Listo / Escaneado</span>
+                </button>
+                <span class="junaeb-hint-text"
+                  >Presione "Listo / Escaneado" una vez que la transacción se complete en la app del
+                  móvil.</span
+                >
+              } @else {
+                <div class="junaeb-confirmed-badge">
+                  <div class="badge-content">
+                    <span class="badge-check">✓</span>
+                    <div>
+                      <strong>¡QR Escaneado con Éxito!</strong>
+                      <small>Cobro registrado correctamente desde el dispositivo móvil.</small>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    class="btn-undo-scan"
+                    (click)="resetJunaebScan()"
+                    title="Volver a escanear"
+                  >
+                    Cambiar
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-cancel" (click)="close.emit()">Volver a la venta</button>
+        <button
+          type="button"
+          class="btn-confirm-pay"
+          [disabled]="!isPaymentValid()"
+          (click)="onConfirmPayment()"
+        >
+          Confirmar Cobro {{ formatClp(totalToPay) }} ➜
+        </button>
+      </div>
+    } @else {
+      <!-- ESTADO 2: COMPROBANTE DIGITAL EMITIDO (PREVIEW TICKET H2.6) -->
+      <div class="ticket-view">
+        <div class="ticket-badge-ok">✓ Venta registrada</div>
+        <div class="receipt-paper">
+          <div class="receipt-header">
+            <h3>Nury's Cafetería</h3>
+            <p>{{ completedTicket()?.sucursalNombre }}</p>
+            <p>RUT: 76.842.190-3</p>
+            <p>
+              Folio: <strong>{{ completedTicket()?.ticketFolio }}</strong>
+            </p>
+            <p class="receipt-date">{{ completedTicket()?.fecha | date: 'dd/MM/yyyy HH:mm:ss' }}</p>
+            <p>Atendido por: {{ completedTicket()?.cajeroNombre }}</p>
+          </div>
+
+          <div class="receipt-divider">================================</div>
+
+          <div class="receipt-items">
+            @for (item of completedTicket()?.items; track item.producto.id) {
+              <div class="receipt-row">
+                <span>{{ item.cantidad }}x {{ item.producto.nombre }}</span>
+                <span>{{ formatClp(item.subtotal) }}</span>
+              </div>
+            }
+          </div>
+
+          <div class="receipt-divider">================================</div>
+
+          <div class="receipt-totals">
+            <div class="receipt-row text-xs">
+              <span>Subtotal neto</span>
+              <span>{{ formatClp((completedTicket()?.total || 0) * 0.81) }}</span>
+            </div>
+            <div class="receipt-row text-xs">
+              <span>IVA (19% incluido)</span>
+              <span>{{ formatClp((completedTicket()?.total || 0) * 0.19) }}</span>
+            </div>
+            <div class="receipt-row font-bold">
+              <span>TOTAL PAGADO</span>
+              <span>{{ formatClp(completedTicket()?.total || 0) }}</span>
+            </div>
+            <div class="receipt-row text-muted text-xs">
+              <span>Medio de Pago</span>
+              <span class="capitalize">{{
+                completedTicket()?.medioPago === 'junaeb'
+                  ? 'Ticket Junaeb (BAES App)'
+                  : completedTicket()?.medioPago
+              }}</span>
+            </div>
+            @if (completedTicket()?.medioPago === 'efectivo') {
+              <div class="receipt-row text-muted text-xs">
+                <span>Efectivo Recibido</span>
+                <span>{{ formatClp(completedTicket()?.montoRecibido || 0) }}</span>
+              </div>
+              <div class="receipt-row font-bold text-success">
+                <span>VUELTO ENTREGADO</span>
+                <span>{{ formatClp(completedTicket()?.vuelto || 0) }}</span>
+              </div>
+            }
+            @if (completedTicket()?.medioPago === 'junaeb') {
+              <div class="receipt-row text-muted text-xs">
+                <span>Estado Junaeb</span>
+                <span>Escaneado desde App Móvil (Listo)</span>
+              </div>
+              @if (completedTicket()?.codigoAutorizacion) {
+                <div class="receipt-row text-muted text-xs">
+                  <span>N° Autorización</span>
+                  <span class="font-mono">{{ completedTicket()?.codigoAutorizacion }}</span>
+                </div>
+              }
+            }
+          </div>
+
+          <div class="receipt-divider">================================</div>
+          <div class="receipt-footer">
+            <p>¡Gracias por su preferencia en Nury's!</p>
+            <small>Conserve este ticket para cualquier consulta.</small>
+          </div>
+        </div>
+
+        <div class="ticket-actions">
+          <button type="button" class="btn-print" (click)="printTicket()">Imprimir / PDF</button>
+          <button type="button" class="btn-next-sale" (click)="onFinish()">Nueva venta →</button>
+        </div>
+        <p class="print-hint">Para guardar una copia, elige «Guardar como PDF» en el destino de impresión.</p>
+      </div>
+    }
+  </div>
+</div>
