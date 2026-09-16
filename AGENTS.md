@@ -1,4 +1,4 @@
-﻿# AGENTS.md - Guía Operativa para Agentes de IA en NuryBase
+# AGENTS.md - Guía Operativa para Agentes de IA en NuryBase
 
 Este archivo contiene las directrices de arquitectura, reglas de negocio, flujo de trabajo y convenciones para cualquier modelo de Inteligencia Artificial (GPT-6 Astra, Claude Code, Cursor, Antigravity) que trabaje en este repositorio.
 
@@ -18,8 +18,9 @@ Antes de modificar cualquier interfaz, leer y aplicar [docs/GUIA-DE-DISENO.md](d
    - Correo: `pa.menares@duocuc.cl`
 3. **Formato de Commits (Conventional Commits):**
    - `feat: ...`, `fix: ...`, `style: ...`, `refactor: ...`, `test: ...`, `docs: ...`
-4. **Verificación Obligatoria antes de Commitear:**
-   - Pruebas unitarias: `npm test -- --watch=false` (deben pasar el 100% de los tests).
+4. **Verificación y Registro Obligatorio de Pruebas Unitarias:**
+   - Pruebas unitarias: `npm test -- --watch=false --reporters=verbose` (deben pasar el 100% de los tests).
+   - **Registro Permanente Obligatorio:** Siempre que se creen o ejecuten pruebas unitarias, es mandatorio registrar y mantener actualizado el inventario y resultado en `docs/qa/registro-pruebas-unitarias.md`. Ninguna IA o participante debe dar por concluida una tarea sin reflejar las pruebas ejecutadas en dicho archivo para consulta permanente del equipo.
    - Compilación: `npm run build` (debe compilar con 0 errores y 0 advertencias).
 
 ---
@@ -89,4 +90,4 @@ git status
 - **Login (`/login`):** Standalone component con Signals, validación de RUT/correo, selector rápido de usuarios demo (Camila Rojas - Cajera, Patricio Menares - Admin, Sebastián Vera - Bodeguero).
 - **POS (`/pos`):** Cabecera de turno con LED verde pulsante y reloj digital en vivo; buscador reactivo de texto + escáner de código de barras; pestañas de categorías con badges de conteo; grilla táctil de productos; comanda lateral con steppers (+ / -) y cobro.
 - **Modal de Pago:** Efectivo con vuelto, Tarjeta Transbank y Beca Junaeb simplificada. Previsualización de boleta electrónica digital.
-- **Tests:** 22 de 22 pruebas unitarias pasando.
+- **Tests:** 51 de 51 pruebas unitarias pasando (100% PASS). Registro detallado por módulo disponible en `docs/qa/registro-pruebas-unitarias.md`.
