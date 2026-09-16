@@ -137,4 +137,31 @@ describe('PosLayoutComponent', () => {
     expect(component.cart()).toHaveLength(0);
     expect(component.barcodeFeedback()).toContain('caja está cerrada');
   });
+
+  it('shows warning when attempting to logout with an open register and allows going to cierre de caja', () => {
+    const component = TestBed.createComponent(PosLayoutComponent).componentInstance;
+    expect(component.isRegisterOpen()).toBe(true);
+
+    component.requestLogout();
+    expect(component.showLogoutConfirm()).toBe(true);
+
+    component.cancelLogout();
+    expect(component.showLogoutConfirm()).toBe(false);
+
+    component.requestLogout();
+    component.goToCierreCaja();
+    expect(component.showLogoutConfirm()).toBe(false);
+  });
+
+  it('allows confirmed logout when requested', () => {
+    const component = TestBed.createComponent(PosLayoutComponent).componentInstance;
+    const logoutSpy = vi.spyOn(component.authService, 'logout').mockImplementation(() => {});
+
+    component.requestLogout();
+    expect(component.showLogoutConfirm()).toBe(true);
+
+    component.confirmLogout();
+    expect(logoutSpy).toHaveBeenCalled();
+    expect(component.showLogoutConfirm()).toBe(false);
+  });
 });

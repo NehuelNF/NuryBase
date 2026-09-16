@@ -1,6 +1,7 @@
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { AuthService } from '../../../auth/services/auth.service';
 import { PaymentModalComponent } from '../../components/payment-modal/payment-modal.component';
 import { CompletedSale, PosProduct } from '../../models/pos.model';
@@ -16,6 +17,7 @@ import { PosService } from '../../services/pos.service';
 export class PosLayoutComponent implements OnDestroy {
   readonly posService = inject(PosService);
   readonly authService = inject(AuthService);
+  private readonly router = inject(Router, { optional: true });
 
   readonly categories = this.posService.categories;
   readonly catalog = this.posService.catalog;
@@ -28,8 +30,9 @@ export class PosLayoutComponent implements OnDestroy {
   readonly searchQuery = signal<string>('');
   readonly quickBarcodeInput = signal<string>('');
   readonly barcodeFeedback = signal<string | null>(null);
-  readonly isRegisterOpen = signal(true);
+  readonly isRegisterOpen = this.posService.isRegisterOpen;
   readonly pendingRegisterAction = signal<'open' | 'close' | null>(null);
+  readonly showLogoutConfirm = signal<boolean>(false);
 
   // Control del modal de pago (H2.4)
   readonly isPaymentModalOpen = signal<boolean>(false);
@@ -135,6 +138,24 @@ export class PosLayoutComponent implements OnDestroy {
     if (!action) return;
     this.isRegisterOpen.set(action === 'open');
     this.pendingRegisterAction.set(null);
+  }
+
+  requestLogout(): void {
+    this.showLogoutConfirm.set(true);
+  }
+
+  cancelLogout(): void {
+    this.showLogoutConfirm.set(false);
+  }
+
+  confirmLogout(): void {
+    this.showLogoutConfirm.set(false);
+    this.authService.logout();
+  }
+
+  goToCierreCaja(): void {
+    this.showLogoutConfirm.set(false);
+    this.router?.navigate(['/caja']);
   }
 
   closePayment(): void {

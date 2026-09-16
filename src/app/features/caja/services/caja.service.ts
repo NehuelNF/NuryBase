@@ -81,6 +81,8 @@ export class CajaService {
 
     this.historialCierres.set([cierre, ...this.historialCierres()]);
     this.posService.resetSalesHistory();
+    this.posService.clearCart();
+    this.posService.closeRegister();
     return cierre;
   }
 }

@@ -22,6 +22,7 @@ export class PaymentModalComponent {
     if (value !== this.paymentTotal()) {
       this.junaebScanned.set(false);
       this.cardPaymentReady.set(false);
+      this.cashSelectionMade.set(false);
     }
     this.paymentTotal.set(value);
   }
@@ -39,12 +40,13 @@ export class PaymentModalComponent {
   // Denominaciones chilenas frecuentes para agilizar en caja
   readonly quickCashButtons = [1000, 2000, 5000, 10000, 20000];
 
-  // Estado específico para Beca Junaeb (App Ticket Junaeb)
+  // Estado específico para Beca Junaeb (App Ticket Junaeb) y Efectivo
   readonly junaebScanned = signal<boolean>(false);
   readonly cardPaymentReady = signal<boolean>(false);
+  readonly cashSelectionMade = signal<boolean>(false);
 
   readonly changeDue = computed(() => {
-    if (this.selectedMethod() !== 'efectivo') return 0;
+    if (this.selectedMethod() !== 'efectivo' || !this.cashSelectionMade()) return 0;
     return this.amountReceived() - this.totalToPay;
   });
 
@@ -54,6 +56,9 @@ export class PaymentModalComponent {
     }
     switch (this.selectedMethod()) {
       case 'efectivo':
+        if (!this.cashSelectionMade()) {
+          return 'Indica si el cliente paga justo o ingresa el monto recibido.';
+        }
         if (!Number.isSafeInteger(this.amountReceived()) || this.amountReceived() < 0) {
           return 'Ingresa un monto válido en pesos, sin decimales.';
         }
@@ -74,31 +79,50 @@ export class PaymentModalComponent {
   readonly isPaymentValid = computed(() => !this.completedTicket() && this.paymentError() === null);
 
   ngOnInit(): void {
-    // Por defecto inicializar monto recibido con el total
-    this.amountReceived.set(this.totalToPay);
+    // Al iniciar en efectivo, no se asume pago exacto hasta que el cajero lo indique
+    this.amountReceived.set(0);
+    this.cashSelectionMade.set(false);
   }
 
   setMethod(method: PaymentMethod): void {
     if (method !== this.selectedMethod()) {
       this.junaebScanned.set(false);
       this.cardPaymentReady.set(false);
+      this.cashSelectionMade.set(false);
     }
     this.selectedMethod.set(method);
     if (method !== 'efectivo') {
       this.amountReceived.set(this.totalToPay);
+    } else {
+      this.amountReceived.set(0);
     }
   }
 
   setExactAmount(): void {
     this.amountReceived.set(this.totalToPay);
+    this.cashSelectionMade.set(true);
   }
 
   setCashAmount(amount: number): void {
     this.amountReceived.set(amount);
+    this.cashSelectionMade.set(true);
+  }
+
+  onCashInputChange(value: string | number | null): void {
+    if (value === null || value === '' || Number.isNaN(+value)) {
+      this.amountReceived.set(NaN);
+      this.cashSelectionMade.set(false);
+      return;
+    }
+    const num = +value;
+    this.amountReceived.set(num);
+    this.cashSelectionMade.set(true);
   }
 
   addCash(amount: number): void {
-    this.amountReceived.set(this.amountReceived() + amount);
+    const current = Number.isSafeInteger(this.amountReceived()) ? this.amountReceived() : 0;
+    this.amountReceived.set(current + amount);
+    this.cashSelectionMade.set(true);
   }
 
   // Marcar como escaneado desde el dispositivo del local con la App Ticket Junaeb

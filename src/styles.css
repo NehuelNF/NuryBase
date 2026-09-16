@@ -50,44 +50,104 @@ input {
   }
 }
 
-/* Let the receipt flow across pages instead of printing a clipped POS modal. */
+/* Estilos de impresión: comprobante térmico limpio de 80mm sin sidebar ni modales */
 @media print {
-  @page { margin: 12mm; }
-  body:has(.receipt-paper) { background: white; }
-  body:has(.receipt-paper) .pos-top-bar,
-  body:has(.receipt-paper) .pos-main-container,
-  body:has(.receipt-paper) .scanner-toast,
-  body:has(.receipt-paper) .ticket-badge-ok,
-  body:has(.receipt-paper) .ticket-actions,
-  body:has(.receipt-paper) .print-hint { display: none !important; }
-  body:has(.receipt-paper) app-root,
-  body:has(.receipt-paper) .app-viewport,
-  body:has(.receipt-paper) app-pos-layout,
-  body:has(.receipt-paper) .pos-screen,
-  body:has(.receipt-paper) app-payment-modal,
-  body:has(.receipt-paper) .modal-overlay,
-  body:has(.receipt-paper) .modal-window,
-  body:has(.receipt-paper) .ticket-view {
+  @page {
+    margin: 8mm auto;
+    size: auto;
+  }
+
+  /* Ocultar elementos que no corresponden a la impresión del comprobante */
+  app-sidebar,
+  .sidebar,
+  aside,
+  .pos-top-bar,
+  .pos-main-container,
+  .scanner-toast,
+  .register-closed-banner,
+  .ticket-badge-ok,
+  .ticket-actions,
+  .print-hint,
+  .btn-close,
+  .modal-header,
+  .modal-footer,
+  .logout-confirm-overlay,
+  .register-confirm-overlay {
+    display: none !important;
+  }
+
+  html,
+  body {
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  app-root,
+  .main-layout,
+  .main-layout-content,
+  app-pos-layout,
+  .pos-screen,
+  app-payment-modal,
+  .modal-overlay,
+  .modal-window,
+  .ticket-view {
     display: block !important;
     position: static !important;
     height: auto !important;
     min-height: 0 !important;
     max-height: none !important;
-    width: auto !important;
+    width: 100% !important;
     max-width: none !important;
     overflow: visible !important;
     padding: 0 !important;
     margin: 0 !important;
-    border: 0 !important;
+    border: none !important;
     background: white !important;
     box-shadow: none !important;
   }
-  body:has(.receipt-paper) .receipt-paper {
-    width: 100%; max-width: 80mm; margin: 0 auto; padding: 0;
-    border: 0; box-shadow: none; color: black;
+
+  .receipt-paper {
+    display: block !important;
+    width: 100% !important;
+    max-width: 80mm !important;
+    margin: 0 auto !important;
+    padding: 8px 0 !important;
+    border: none !important;
+    border-top: none !important;
+    box-shadow: none !important;
+    background: white !important;
+    color: black !important;
+    font-size: 11pt !important;
+    line-height: 1.4 !important;
   }
-  body:has(.receipt-paper) .receipt-paper * { color: black !important; }
-  body:has(.receipt-paper) .receipt-row { break-inside: avoid; }
-  body:has(.receipt-paper) .receipt-totals,
-  body:has(.receipt-paper) .receipt-footer { break-inside: avoid; }
+
+  .receipt-paper * {
+    color: black !important;
+    background: transparent !important;
+  }
+
+  .receipt-divider {
+    font-size: 0 !important;
+    line-height: 0 !important;
+    height: 0 !important;
+    color: transparent !important;
+    border-top: 1px dashed black !important;
+    margin: 12px 0 !important;
+  }
+
+  .receipt-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .receipt-totals,
+  .receipt-footer {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
 }

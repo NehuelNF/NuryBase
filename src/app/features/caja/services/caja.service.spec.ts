@@ -31,6 +31,7 @@ describe('CajaService', () => {
     expect(pos.salesHistory()).toHaveLength(0);
     expect(caja.grandTotal()).toBe(0);
     expect(caja.historialCierres()).toContain(cierre);
+    expect(pos.isRegisterOpen()).toBe(false);
   });
 
   it('does not mix sales from a previous shift into the next closing', () => {

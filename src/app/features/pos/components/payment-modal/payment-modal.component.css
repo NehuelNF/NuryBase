@@ -157,6 +157,13 @@
   padding: 10px;
   font-size: 11px;
   color: #566948;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-exact:hover,
+.btn-exact.active {
+  background: #3d5334;
+  color: white;
 }
 .denom-buttons {
   display: flex;
@@ -171,9 +178,16 @@
   padding: 11px 8px;
   color: #5b6e49;
   font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 .btn-denom:hover {
   background: #edf1e3;
+}
+.btn-denom.active {
+  background: #3d5334;
+  color: white;
+  border-color: #3d5334;
 }
 .change-card {
   display: flex;

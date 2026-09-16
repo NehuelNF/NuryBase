@@ -70,6 +70,7 @@ describe('CierreCajaComponent', () => {
     expect(component.turnoCerrado()?.totalGeneral).toBe(2600 + 3200);
     expect(pos.salesHistory()).toHaveLength(0);
     expect(component.grandTotal()).toBe(0);
+    expect(pos.isRegisterOpen()).toBe(false);
   });
 
   it('cancels the confirm dialog without closing the shift', () => {

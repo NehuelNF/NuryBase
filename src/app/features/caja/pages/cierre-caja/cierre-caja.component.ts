@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { AuthService } from '../../../auth/services/auth.service';
 import { PAYMENT_METHOD_META, CierreCaja } from '../../models/caja.model';
 import { PaymentMethod } from '../../../pos/models/pos.model';
@@ -60,8 +61,11 @@ export class CierreCajaComponent {
     this.selectedMethod.set(null);
   }
 
+  private readonly router = inject(Router, { optional: true });
+
   volverAOperar(): void {
     this.turnoCerrado.set(null);
+    this.router?.navigate(['/pos']);
   }
 
   formatClp(amount: number): string {

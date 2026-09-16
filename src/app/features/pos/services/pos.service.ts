@@ -170,7 +170,18 @@ export class PosService {
   // Historial de ventas del turno activo
   readonly salesHistory = signal<CompletedSale[]>([]);
 
+  // Estado de apertura de caja (compartido entre POS y Cierre de Caja)
+  readonly isRegisterOpen = signal<boolean>(true);
+
   private ticketSequence = 1042;
+
+  openRegister(): void {
+    this.isRegisterOpen.set(true);
+  }
+
+  closeRegister(): void {
+    this.isRegisterOpen.set(false);
+  }
 
   addToCart(product: PosProduct): void {
     const current = this.cart();

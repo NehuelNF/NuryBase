@@ -646,6 +646,104 @@
   background: #3d5334;
   color: white;
 }
+.logout-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1250;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(31, 39, 30, 0.68);
+  backdrop-filter: blur(3px);
+}
+.logout-confirm-dialog {
+  width: min(100%, 440px);
+  padding: 30px;
+  border: 1px solid #dce0d3;
+  border-radius: 10px;
+  background: #fffefa;
+  box-shadow: 0 24px 70px rgba(31, 39, 30, 0.28);
+  text-align: center;
+}
+.logout-dialog-icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  font-size: 24px;
+}
+.logout-dialog-icon.warning {
+  background: #fdf3e7;
+  color: #b36715;
+}
+.logout-dialog-icon.info {
+  background: #edf1e7;
+  color: #4e653f;
+}
+.logout-dialog-eyebrow {
+  color: #7b826f;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.logout-confirm-dialog h2 {
+  margin-top: 8px;
+  color: #2f3b2b;
+  font-size: 23px;
+  font-weight: 700;
+}
+.logout-confirm-dialog > p:not(.logout-dialog-eyebrow) {
+  margin: 12px auto 0;
+  color: #727a68;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.logout-dialog-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 25px;
+}
+.logout-dialog-actions.vertical {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 25px;
+}
+.logout-dialog-actions button {
+  min-height: 44px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+}
+.btn-dialog-cierre {
+  background: #3d5334;
+  border: 1px solid #3d5334;
+  color: white;
+  width: 100%;
+  padding-inline: 16px;
+}
+.btn-dialog-cierre:hover {
+  background: #2c4323;
+}
+.logout-secondary-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+}
+.btn-dialog-force-logout {
+  background: transparent;
+  border: 1px solid #d99c9c;
+  color: #a33838;
+}
+.btn-dialog-force-logout:hover {
+  background: #fdf2f2;
+}
 @media (min-width: 1600px) {
   .products-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));

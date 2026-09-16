@@ -75,13 +75,16 @@
                   min="0"
                   inputmode="numeric"
                   [attr.aria-invalid]="paymentError() !== null"
-                  [ngModel]="amountReceived()"
-                  (ngModelChange)="
-                    amountReceived.set($event == null || $event === '' ? NaN : +$event)
-                  "
+                  [ngModel]="cashSelectionMade() && amountReceived() > 0 ? amountReceived() : ''"
+                  (ngModelChange)="onCashInputChange($event)"
                   placeholder="0"
                 />
-                <button type="button" class="btn-exact" (click)="setExactAmount()">
+                <button
+                  type="button"
+                  class="btn-exact"
+                  [class.active]="cashSelectionMade() && amountReceived() === totalToPay"
+                  (click)="setExactAmount()"
+                >
                   Paga Justo
                 </button>
               </div>
@@ -92,7 +95,12 @@
               <span class="denom-label">Monto rápido</span>
               <div class="denom-buttons">
                 @for (d of quickCashButtons; track d) {
-                  <button type="button" class="btn-denom" (click)="setCashAmount(d)">
+                  <button
+                    type="button"
+                    class="btn-denom"
+                    [class.active]="cashSelectionMade() && amountReceived() === d"
+                    (click)="setCashAmount(d)"
+                  >
                     {{ formatClp(d) }}
                   </button>
                 }

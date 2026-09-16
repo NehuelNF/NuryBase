@@ -15,6 +15,7 @@ describe('PaymentModalComponent', () => {
       pos.addToCart(pos.catalog()[0]);
       component.totalToPay = pos.total();
       fixture.detectChanges();
+      component.setExactAmount();
       component.onConfirmPayment();
       fixture.detectChanges();
       const receipt = fixture.nativeElement.querySelector('.receipt-paper');
@@ -29,6 +30,31 @@ describe('PaymentModalComponent', () => {
     } finally {
       print.mockRestore();
     }
+  });
+
+  it('requires explicit cash selection (exact amount or cash received) before confirming payment', () => {
+    const component = TestBed.createComponent(PaymentModalComponent).componentInstance;
+    component.totalToPay = 5000;
+    component.setMethod('efectivo');
+
+    // Inicialmente no es válido hasta que el cajero indique el monto
+    expect(component.isPaymentValid()).toBe(false);
+    expect(component.paymentError()).toContain('paga justo');
+
+    // Al seleccionar Paga Justo
+    component.setExactAmount();
+    expect(component.isPaymentValid()).toBe(true);
+    expect(component.changeDue()).toBe(0);
+
+    // Al cambiar de medio y volver a efectivo se requiere nueva confirmación
+    component.setMethod('tarjeta');
+    component.setMethod('efectivo');
+    expect(component.isPaymentValid()).toBe(false);
+
+    // Al seleccionar un billete suficiente
+    component.setCashAmount(10000);
+    expect(component.isPaymentValid()).toBe(true);
+    expect(component.changeDue()).toBe(5000);
   });
   it.each([NaN, Infinity, -1, 5000.5, Number.MAX_SAFE_INTEGER + 1])(
     'rejects invalid cash: %s',
