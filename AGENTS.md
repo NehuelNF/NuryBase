@@ -2,6 +2,10 @@
 
 Este archivo contiene las directrices de arquitectura, reglas de negocio, flujo de trabajo y convenciones para cualquier modelo de Inteligencia Artificial (GPT-6 Astra, Claude Code, Cursor, Antigravity) que trabaje en este repositorio.
 
+## Diseño compartido: lectura obligatoria
+
+Antes de modificar cualquier interfaz, leer y aplicar [docs/GUIA-DE-DISENO.md](docs/GUIA-DE-DISENO.md). Define tipografía, paleta, alineación, componentes y revisión visual de NuryBase para todos los participantes y sus IA. Verificar cambios visuales con sesión iniciada y en los anchos donde el elemento sea visible; entregar capturas reales para revisión remota.
+
 ---
 
 ## 1. REGLAS CRÍTICAS DEL REPOSITORIO (NO ROMPER)
@@ -74,7 +78,7 @@ git status
 - **Flujo de Pago Efectivo:**
   - Cálculo de vuelto en tiempo real y botones rápidos de billetes chilenos: `$1.000`, `$2.000`, `$5.000`, `$10.000`, `$20.000` y `Paga Justo`.
 - **Flujo de Pago Tarjeta:**
-  - Simulación de terminal Transbank / Redcompra Contactless con PIN.
+  - Cobro en terminal externo del local; el operador confirma el pago en NuryBase. No solicitar PIN ni datos de tarjeta, ni integrar una pasarela como parte del flujo actual.
 - **Base de Datos y Códigos de Producto:**
   - Basados en `A:\Descargas\nury_schema.sql`. Códigos internos formato `NUR-xxx` y códigos de barras EAN-13.
 
