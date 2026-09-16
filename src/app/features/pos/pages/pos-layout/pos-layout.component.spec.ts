@@ -31,8 +31,9 @@ describe('PosLayoutComponent', () => {
     const product = component.catalog()[0];
     const initialCount = component.getCategoryCount(0);
     const categoryCount = component.getCategoryCount(product.categoriaId);
-    component.posService.catalog.update((products) => products.map((p) =>
-      p.id === product.id ? { ...p, activo: false } : p));
+    component.posService.catalog.update((products) =>
+      products.map((p) => (p.id === product.id ? { ...p, activo: false } : p)),
+    );
     expect(component.getCategoryCount(0)).toBe(initialCount - 1);
     expect(component.getCategoryCount(product.categoriaId)).toBe(categoryCount - 1);
     component.searchQuery.set(product.codigoInterno);
@@ -42,7 +43,9 @@ describe('PosLayoutComponent', () => {
   it('adds exactly one item through the accessible product button', () => {
     const fixture = TestBed.createComponent(PosLayoutComponent);
     fixture.detectChanges();
-    const button = fixture.nativeElement.querySelector('button[aria-label="Agregar Café Espresso Doble"]');
+    const button = fixture.nativeElement.querySelector(
+      'button[aria-label="Agregar Café Espresso Doble"]',
+    );
     button.click();
     expect(fixture.componentInstance.cart()).toHaveLength(1);
     expect(fixture.componentInstance.cart()[0].cantidad).toBe(1);
@@ -79,8 +82,8 @@ describe('PosLayoutComponent', () => {
         (p) =>
           p.nombre.toLowerCase().includes('espresso') ||
           p.codigoInterno.toLowerCase().includes('espresso') ||
-          p.descripcion.toLowerCase().includes('espresso')
-      )
+          p.descripcion.toLowerCase().includes('espresso'),
+      ),
     ).toBe(true);
   });
 
@@ -93,5 +96,45 @@ describe('PosLayoutComponent', () => {
 
     expect(component.barcodeFeedback()).toContain('NUR-201');
     expect(component.cart().length).toBeGreaterThan(0);
+  });
+
+  it('asks for confirmation before closing and opening the register', () => {
+    const component = TestBed.createComponent(PosLayoutComponent).componentInstance;
+
+    expect(component.isRegisterOpen()).toBe(true);
+    component.requestRegisterChange();
+    expect(component.pendingRegisterAction()).toBe('close');
+
+    component.confirmRegisterChange();
+    expect(component.isRegisterOpen()).toBe(false);
+    expect(component.pendingRegisterAction()).toBeNull();
+
+    component.requestRegisterChange();
+    expect(component.pendingRegisterAction()).toBe('open');
+    component.confirmRegisterChange();
+    expect(component.isRegisterOpen()).toBe(true);
+  });
+
+  it('keeps the register state when the confirmation is cancelled', () => {
+    const component = TestBed.createComponent(PosLayoutComponent).componentInstance;
+
+    component.requestRegisterChange();
+    component.cancelRegisterChange();
+
+    expect(component.isRegisterOpen()).toBe(true);
+    expect(component.pendingRegisterAction()).toBeNull();
+  });
+
+  it('blocks product entry while the register is closed', () => {
+    const component = TestBed.createComponent(PosLayoutComponent).componentInstance;
+    const product = component.catalog()[0];
+    component.isRegisterOpen.set(false);
+
+    component.addProduct(product);
+    component.quickBarcodeInput.set(product.codigoInterno);
+    component.onBarcodeScan();
+
+    expect(component.cart()).toHaveLength(0);
+    expect(component.barcodeFeedback()).toContain('caja está cerrada');
   });
 });

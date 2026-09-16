@@ -17,9 +17,8 @@
   overflow: hidden;
 }
 .story-wordmark {
-  font:
-    italic 48px Georgia,
-    serif;
+  font-size: 48px;
+  font-weight: 750;
   letter-spacing: -3px;
 }
 .story-eyebrow {
@@ -31,9 +30,9 @@
   padding: 50px 0;
 }
 .story-copy h2 {
-  font:
-    400 clamp(48px, 5vw, 76px)/1.06 Georgia,
-    serif;
+  font-size: clamp(48px, 5vw, 76px);
+  font-weight: 650;
+  line-height: 1.06;
   letter-spacing: -3px;
   margin: 24px 0;
   max-width: 470px;
@@ -97,9 +96,8 @@
   margin-bottom: 34px;
 }
 .brand-header h1 {
-  font:
-    400 38px Georgia,
-    serif;
+  font-size: 38px;
+  font-weight: 650;
   letter-spacing: -1.3px;
   margin: 12px 0;
 }

@@ -15,15 +15,25 @@
       </div>
 
       <div class="shift-info">
-        <span class="shift-dot-pulse"></span>
+        <span class="shift-dot-pulse" [class.closed]="!isRegisterOpen()"></span>
         <span class="shift-text"
-          >Turno abierto · <strong>{{ currentUser()?.nombre || 'Camila Rojas' }}</strong></span
+          >Caja {{ isRegisterOpen() ? 'abierta' : 'cerrada' }} ·
+          <strong>{{ currentUser()?.nombre || 'Camila Rojas' }}</strong></span
         >
         <span class="role-pill">{{ currentUser()?.rol || 'cajero' | uppercase }}</span>
       </div>
     </div>
 
     <div class="pos-bar-right">
+      <button
+        type="button"
+        class="btn-register"
+        [class.open-register]="!isRegisterOpen()"
+        (click)="requestRegisterChange()"
+      >
+        <span class="register-status-dot"></span>
+        {{ isRegisterOpen() ? 'Cerrar caja' : 'Abrir caja' }}
+      </button>
       <div class="clock-display">
         <span class="clock-time">{{ currentTime() }}</span>
       </div>
@@ -47,6 +57,14 @@
     </div>
   }
 
+  @if (!isRegisterOpen()) {
+    <div class="register-closed-banner" role="status">
+      <strong>Caja cerrada</strong>
+      <span>Abre la caja para agregar productos y registrar ventas.</span>
+      <button type="button" (click)="requestRegisterChange()">Abrir caja</button>
+    </div>
+  }
+
   <!-- Layout Principal de 2 Columnas -->
   <div class="pos-main-container">
     <!-- COLUMNA IZQUIERDA: CATÁLOGO Y BÚSQUEDA -->
@@ -64,6 +82,7 @@
           <span class="search-icon" aria-hidden="true">⌕</span>
           <input
             type="text"
+            [disabled]="!isRegisterOpen()"
             [ngModel]="searchQuery()"
             (ngModelChange)="searchQuery.set($event)"
             aria-label="Buscar productos"
@@ -85,6 +104,7 @@
           <span class="barcode-badge"> <span class="barcode-led"></span> Lector </span>
           <input
             type="text"
+            [disabled]="!isRegisterOpen()"
             [ngModel]="quickBarcodeInput()"
             (ngModelChange)="quickBarcodeInput.set($event)"
             (keydown.enter)="onBarcodeScan()"
@@ -127,7 +147,12 @@
       } @else {
         <div class="products-grid">
           @for (prod of filteredCatalog(); track prod.id) {
-            <article class="product-card" (click)="addProduct(prod)">
+            <article
+              class="product-card"
+              [class.disabled]="!isRegisterOpen()"
+              [attr.aria-disabled]="!isRegisterOpen()"
+              (click)="isRegisterOpen() && addProduct(prod)"
+            >
               <div class="card-top">
                 <div class="product-icon-wrapper">
                   <svg
@@ -178,6 +203,7 @@
                 <button
                   type="button"
                   class="btn-add-item"
+                  [disabled]="!isRegisterOpen()"
                   (click)="$event.stopPropagation(); addProduct(prod)"
                   [attr.aria-label]="'Agregar ' + prod.nombre"
                 >
@@ -208,6 +234,7 @@
             <button
               type="button"
               class="btn-clear-cart"
+              [disabled]="!isRegisterOpen()"
               (click)="posService.clearCart()"
               title="Vaciar todos los productos"
             >
@@ -242,6 +269,7 @@
                   <div class="stepper">
                     <button
                       type="button"
+                      [disabled]="!isRegisterOpen()"
                       (click)="posService.updateQuantity(item.producto.id, -1)"
                       title="Disminuir"
                     >
@@ -250,6 +278,7 @@
                     <span class="qty">{{ item.cantidad }}</span>
                     <button
                       type="button"
+                      [disabled]="!isRegisterOpen()"
                       (click)="posService.updateQuantity(item.producto.id, 1)"
                       title="Aumentar"
                     >
@@ -260,6 +289,7 @@
                   <button
                     type="button"
                     class="btn-remove"
+                    [disabled]="!isRegisterOpen()"
                     (click)="posService.removeFromCart(item.producto.id)"
                     title="Quitar este producto"
                   >
@@ -294,7 +324,7 @@
           <button
             type="button"
             class="btn-charge"
-            [disabled]="total() === 0"
+            [disabled]="total() === 0 || !isRegisterOpen()"
             (click)="openPayment()"
           >
             <div class="btn-charge-left">
@@ -317,5 +347,40 @@
       (close)="closePayment()"
       (saleFinished)="onSaleFinished($event)"
     ></app-payment-modal>
+  }
+
+  @if (pendingRegisterAction(); as action) {
+    <div class="register-confirm-overlay" (click)="cancelRegisterChange()">
+      <section
+        class="register-confirm-dialog"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-label]="
+          action === 'open' ? 'Confirmar apertura de caja' : 'Confirmar cierre de caja'
+        "
+        (click)="$event.stopPropagation()"
+      >
+        <span class="register-dialog-icon" aria-hidden="true">{{
+          action === 'open' ? '↗' : '↘'
+        }}</span>
+        <p class="register-dialog-eyebrow">Control de caja</p>
+        <h2>{{ action === 'open' ? '¿Abrir la caja?' : '¿Cerrar la caja?' }}</h2>
+        <p>
+          {{
+            action === 'open'
+              ? 'Podrás agregar productos y registrar nuevas ventas.'
+              : 'La venta quedará bloqueada hasta que vuelvas a abrir la caja.'
+          }}
+        </p>
+        <div class="register-dialog-actions">
+          <button type="button" class="btn-dialog-cancel" (click)="cancelRegisterChange()">
+            Cancelar
+          </button>
+          <button type="button" class="btn-dialog-confirm" (click)="confirmRegisterChange()">
+            {{ action === 'open' ? 'Sí, abrir caja' : 'Sí, cerrar caja' }}
+          </button>
+        </div>
+      </section>
+    </div>
   }
 </div>

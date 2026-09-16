@@ -28,6 +28,8 @@ export class PosLayoutComponent implements OnDestroy {
   readonly searchQuery = signal<string>('');
   readonly quickBarcodeInput = signal<string>('');
   readonly barcodeFeedback = signal<string | null>(null);
+  readonly isRegisterOpen = signal(true);
+  readonly pendingRegisterAction = signal<'open' | 'close' | null>(null);
 
   // Control del modal de pago (H2.4)
   readonly isPaymentModalOpen = signal<boolean>(false);
@@ -60,11 +62,10 @@ export class PosLayoutComponent implements OnDestroy {
     }
 
     if (query) {
-      list = list.filter(
-        (p) =>
-          [p.nombre, p.codigoInterno, p.codigoBarras, p.descripcion].some(
-            (value) => this.normalizeSearch(value).includes(query)
-          )
+      list = list.filter((p) =>
+        [p.nombre, p.codigoInterno, p.codigoBarras, p.descripcion].some((value) =>
+          this.normalizeSearch(value).includes(query),
+        ),
       );
     }
 
@@ -76,19 +77,29 @@ export class PosLayoutComponent implements OnDestroy {
   }
 
   private normalizeSearch(value: string): string {
-    return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
+    return value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim()
+      .toLowerCase();
   }
 
   getCategoryCount(catId: number): number {
-    return this.catalog().filter((p) => p.activo && (catId === 0 || p.categoriaId === catId)).length;
+    return this.catalog().filter((p) => p.activo && (catId === 0 || p.categoriaId === catId))
+      .length;
   }
 
   addProduct(product: PosProduct): void {
+    if (!this.isRegisterOpen()) return;
     this.posService.addToCart(product);
   }
 
   // Entrada rápida por escáner de código de barras o código interno (H2.1 & H2.3)
   onBarcodeScan(): void {
+    if (!this.isRegisterOpen()) {
+      this.barcodeFeedback.set('❌ La caja está cerrada. Ábrela para registrar productos.');
+      return;
+    }
     const code = this.quickBarcodeInput().trim();
     if (!code) return;
 
@@ -106,9 +117,24 @@ export class PosLayoutComponent implements OnDestroy {
   }
 
   openPayment(): void {
-    if (this.total() > 0) {
+    if (this.isRegisterOpen() && this.total() > 0) {
       this.isPaymentModalOpen.set(true);
     }
+  }
+
+  requestRegisterChange(): void {
+    this.pendingRegisterAction.set(this.isRegisterOpen() ? 'close' : 'open');
+  }
+
+  cancelRegisterChange(): void {
+    this.pendingRegisterAction.set(null);
+  }
+
+  confirmRegisterChange(): void {
+    const action = this.pendingRegisterAction();
+    if (!action) return;
+    this.isRegisterOpen.set(action === 'open');
+    this.pendingRegisterAction.set(null);
   }
 
   closePayment(): void {
