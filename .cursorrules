@@ -18,6 +18,10 @@ Este archivo contiene las directrices de arquitectura, reglas de negocio, flujo 
    - Pruebas unitarias: `npm test -- --watch=false --reporters=verbose` (deben pasar el 100% de los tests).
    - **Registro Permanente Obligatorio:** Siempre que se creen o ejecuten pruebas unitarias, es mandatorio registrar y mantener actualizado el inventario y resultado en `docs/qa/registro-pruebas-unitarias.md`. Ninguna IA o participante debe dar por concluida una tarea sin reflejar las pruebas ejecutadas en dicho archivo para consulta permanente del equipo.
    - Compilación: `npm run build` (debe compilar con 0 errores y 0 advertencias).
+5. **Exclusividad de Archivos de IA y Regla de Integración con `develop`:**
+   - Los archivos `AGENTS.md`, `CLAUDE.md` y `.cursorrules` son de uso **estricta y exclusivamente personal para `Patricio_Branch`** (contienen credenciales, tokens de Trello y configuración del entorno de trabajo individual).
+   - Estos archivos fueron formalmente eliminados de la rama común `develop` y agregados al `.gitignore` de dicha rama.
+   - **PROHIBIDO TERMINANTEMENTE:** Cualquier modelo de IA o script que prepare un merge o Pull Request desde `Patricio_Branch` hacia `develop` debe **EXCLUIR** estos tres archivos. Nunca deben volver a comitearse ni empujarse a `develop`.
 
 ---
 
