@@ -18,42 +18,50 @@
   gap: 20px;
 }
 .pos-bar-left,
-.pos-bar-right,
-.brand-pos,
-.brand-title-row,
-.shift-info {
+.pos-bar-right {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 24px;
+}
+.brand-pos {
+  display: flex;
+  align-items: center;
+  gap: 18px;
 }
 .brand-name-bold {
-  font-size: 30px;
+  font-size: 29px;
   font-weight: 700;
   line-height: 1;
   letter-spacing: -1.5px;
+  color: #1a1e16;
+}
+.brand-context {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  border-left: 1px solid #d4d8ca;
+  padding-left: 18px;
 }
 .brand-badge-pos {
-  display: inline-flex;
-  align-items: center;
-  min-height: 22px;
   font-size: 10px;
-  line-height: 1;
+  font-weight: 700;
+  line-height: 1.1;
   color: #68735e;
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  border-left: 1px solid #d4d8ca;
-  padding-left: 18px;
-  transform: translateY(2px);
 }
 .sub-badge {
-  display: block;
-  margin-top: 3px;
   font-size: 11px;
+  line-height: 1.2;
   color: #787e70;
+  white-space: nowrap;
 }
 .shift-info {
+  display: flex;
+  align-items: center;
   gap: 8px;
-  border-left: 1px solid #e0e2d6;
+  border-left: 1px solid #d4d8ca;
   padding-left: 24px;
   font-size: 11px;
   color: #777e6f;
