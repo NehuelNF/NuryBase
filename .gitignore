@@ -42,3 +42,8 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# AI agent personal context files
+/AGENTS.md
+/CLAUDE.md
+/.cursorrules
