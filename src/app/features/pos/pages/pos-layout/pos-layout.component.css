@@ -29,15 +29,21 @@
 .brand-name-bold {
   font-size: 30px;
   font-weight: 700;
+  line-height: 1;
   letter-spacing: -1.5px;
 }
 .brand-badge-pos {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
   font-size: 10px;
+  line-height: 1;
   color: #68735e;
   letter-spacing: 1.5px;
   text-transform: uppercase;
   border-left: 1px solid #d4d8ca;
   padding-left: 18px;
+  transform: translateY(2px);
 }
 .sub-badge {
   display: block;
