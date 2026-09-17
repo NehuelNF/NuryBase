@@ -8,6 +8,7 @@ class DummyComponent {}
 
 describe('LoginComponent', () => {
   beforeEach(async () => {
+    sessionStorage.clear();
     await TestBed.configureTestingModule({
       imports: [LoginComponent],
       providers: [
@@ -21,27 +22,38 @@ describe('LoginComponent', () => {
 
   it('should create the login component', () => {
     const fixture = TestBed.createComponent(LoginComponent);
-    const component = fixture.componentInstance;
-    expect(component).toBeTruthy();
+    expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should validate empty credentials', () => {
+  it('should mark the form invalid when fields are empty', () => {
     const fixture = TestBed.createComponent(LoginComponent);
     const component = fixture.componentInstance;
 
-    component.identificador.set('');
-    component.contrasena.set('');
-    component.onLogin();
+    component.form.setValue({ identificadorAcceso: '', contrasena: '' });
 
-    expect(component.errorMessage()).toContain('ingresa tu identificador');
+    expect(component.form.invalid).toBe(true);
   });
 
-  it('should quick-select a user profile', () => {
+  it('should not call the auth service when the form is invalid', () => {
     const fixture = TestBed.createComponent(LoginComponent);
     const component = fixture.componentInstance;
-    const adminUser = component.mockUsers.find((u) => u.rol === 'admin')!;
+
+    component.form.setValue({ identificadorAcceso: '', contrasena: '' });
+    component.submit();
+
+    expect(component.errorMessage()).toBeNull();
+    expect(component.form.controls.identificadorAcceso.touched).toBe(true);
+  });
+
+  it('should quick-select a demo profile and fill the form', () => {
+    const fixture = TestBed.createComponent(LoginComponent);
+    const component = fixture.componentInstance;
+    const adminUser = component.demoAccounts.find((u) => u.rol === 'admin')!;
 
     component.selectQuickUser(adminUser);
-    expect(component.identificador()).toBe(adminUser.identificadorAcceso);
+
+    expect(component.form.controls.identificadorAcceso.value).toBe(
+      adminUser.identificadorAcceso,
+    );
   });
 });

@@ -14,3 +14,7 @@ export interface LoginCredentials {
   identificadorAcceso: string;
   contrasena: string;
 }
+
+export type LoginResult =
+  | { success: true; user: User }
+  | { success: false; message: string };
