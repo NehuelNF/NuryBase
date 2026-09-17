@@ -210,14 +210,18 @@ export class PosService {
     }
   }
 
-  addByCode(code: string): boolean {
+  findProductByCode(code: string): PosProduct | undefined {
     const normalized = code.trim().toLowerCase();
-    const found = this.catalog().find(
+    return this.catalog().find(
       (p) =>
-        p.codigoInterno.toLowerCase() === normalized ||
-        p.codigoBarras === normalized
+        p.activo &&
+        (p.codigoInterno.toLowerCase() === normalized ||
+          p.codigoBarras.toLowerCase() === normalized)
     );
+  }
 
+  addByCode(code: string): boolean {
+    const found = this.findProductByCode(code);
     if (found) {
       this.addToCart(found);
       return true;
@@ -269,7 +273,7 @@ export class PosService {
     const vuelto = Math.max(0, montoRecibido - totalVenta);
 
     const sale: CompletedSale = {
-      id: Date.now(),
+      id: Date.now() + this.ticketSequence,
       ticketFolio: `TK-${this.ticketSequence}`,
       fecha: new Date(),
       cajeroNombre,
@@ -282,11 +286,49 @@ export class PosService {
       codigoAutorizacion: extraDetails?.codigoAutorizacion,
       titularJunaeb: extraDetails?.titularJunaeb,
       saldoRestanteJunaeb: extraDetails?.saldoRestanteJunaeb,
+      estado: 'completada',
     };
 
     this.salesHistory.set([sale, ...this.salesHistory()]);
     this.clearCart();
     return sale;
+  }
+
+  // Anula una venta del turno activo, invalidando su monto y registrando el motivo
+  voidSale(
+    saleId: number,
+    motivo: string,
+    usuarioAnulacion?: string
+  ): { success: boolean; error?: string; sale?: CompletedSale } {
+    const trimmedMotivo = motivo.trim();
+    if (!trimmedMotivo) {
+      return { success: false, error: 'El motivo de anulación es obligatorio.' };
+    }
+
+    const currentSales = this.salesHistory();
+    const saleIndex = currentSales.findIndex((s) => s.id === saleId);
+    if (saleIndex === -1) {
+      return { success: false, error: 'La venta seleccionada no existe en el turno actual.' };
+    }
+
+    const targetSale = currentSales[saleIndex];
+    if (targetSale.estado === 'anulada') {
+      return { success: false, error: 'La venta ya se encuentra anulada.' };
+    }
+
+    const updatedSale: CompletedSale = {
+      ...targetSale,
+      estado: 'anulada',
+      motivoAnulacion: trimmedMotivo,
+      fechaAnulacion: new Date(),
+      usuarioAnulacion: usuarioAnulacion || targetSale.cajeroNombre,
+    };
+
+    const newHistory = [...currentSales];
+    newHistory[saleIndex] = updatedSale;
+    this.salesHistory.set(newHistory);
+
+    return { success: true, sale: updatedSale };
   }
 
   // Vacía el historial de ventas del turno tras un cierre de caja confirmado.

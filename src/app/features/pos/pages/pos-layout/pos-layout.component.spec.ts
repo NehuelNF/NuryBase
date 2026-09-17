@@ -164,4 +164,135 @@ describe('PosLayoutComponent', () => {
     expect(logoutSpy).toHaveBeenCalled();
     expect(component.showLogoutConfirm()).toBe(false);
   });
+
+  describe('H2.3: Fast code input and cart addition', () => {
+    it('adds product by internal code and provides formatted price feedback', () => {
+      const component = TestBed.createComponent(PosLayoutComponent).componentInstance;
+      const product = component.catalog()[0]; // NUR-101 Café Americano $2.200
+
+      component.quickBarcodeInput.set(product.codigoInterno);
+      component.onBarcodeScan();
+
+      expect(component.cart()).toHaveLength(1);
+      expect(component.cart()[0].producto.codigoInterno).toBe(product.codigoInterno);
+      expect(component.barcodeFeedback()).toContain(product.nombre);
+      expect(component.barcodeFeedback()).toContain('2.600');
+      expect(component.quickBarcodeInput()).toBe('');
+    });
+
+    it('shows error feedback when code does not match any product', () => {
+      const component = TestBed.createComponent(PosLayoutComponent).componentInstance;
+
+      component.quickBarcodeInput.set('CODIGO-INEXISTENTE');
+      component.onBarcodeScan();
+
+      expect(component.cart()).toHaveLength(0);
+      expect(component.barcodeFeedback()).toContain('no encontrado');
+      expect(component.quickBarcodeInput()).toBe('CODIGO-INEXISTENTE');
+    });
+  });
+
+  describe('H2.7: Shift sales history modal and filtering', () => {
+    it('manages modal open/close state and displays live counters', () => {
+      const component = TestBed.createComponent(PosLayoutComponent).componentInstance;
+
+      expect(component.isHistoryModalOpen()).toBe(false);
+      component.openSalesHistory();
+      expect(component.isHistoryModalOpen()).toBe(true);
+
+      component.closeSalesHistory();
+      expect(component.isHistoryModalOpen()).toBe(false);
+    });
+
+    it('filters sales history by query and payment method', () => {
+      const component = TestBed.createComponent(PosLayoutComponent).componentInstance;
+      const p1 = component.catalog()[0];
+      const p2 = component.catalog()[1];
+
+      // Completar 2 ventas
+      component.addProduct(p1);
+      component.posService.completeSale('efectivo', p1.precioVenta, 'Camila Rojas', 'Sucursal');
+      component.addProduct(p2);
+      component.posService.completeSale('tarjeta', p2.precioVenta, 'Camila Rojas', 'Sucursal');
+
+      expect(component.shiftActiveCount()).toBe(2);
+      expect(component.filteredShiftSales()).toHaveLength(2);
+
+      // Filtro por método de pago
+      component.historyMethodFilter.set('tarjeta');
+      expect(component.filteredShiftSales()).toHaveLength(1);
+      expect(component.filteredShiftSales()[0].medioPago).toBe('tarjeta');
+
+      // Restablecer método y filtrar por texto
+      component.historyMethodFilter.set('todos');
+      component.historySearchQuery.set(p1.nombre.toLowerCase());
+      expect(component.filteredShiftSales()).toHaveLength(1);
+      expect(component.filteredShiftSales()[0].items[0].producto.nombre).toBe(p1.nombre);
+    });
+  });
+
+  describe('H2.9: Sale voiding modal and workflow', () => {
+    it('blocks voiding when register is closed', () => {
+      const component = TestBed.createComponent(PosLayoutComponent).componentInstance;
+      const p = component.catalog()[0];
+      component.addProduct(p);
+      const sale = component.posService.completeSale('efectivo', p.precioVenta, 'Camila Rojas', 'Sucursal');
+
+      component.isRegisterOpen.set(false);
+      component.requestVoidSale(sale);
+
+      expect(component.selectedSaleToVoid()).toBeNull();
+      expect(component.barcodeFeedback()).toContain('caja cerrada');
+    });
+
+    it('opens void modal with sale details and allows selecting reason presets', () => {
+      const component = TestBed.createComponent(PosLayoutComponent).componentInstance;
+      const p = component.catalog()[0];
+      component.addProduct(p);
+      const sale = component.posService.completeSale('efectivo', p.precioVenta, 'Camila Rojas', 'Sucursal');
+
+      component.requestVoidSale(sale);
+      expect(component.selectedSaleToVoid()).not.toBeNull();
+      expect(component.selectedSaleToVoid()?.id).toBe(sale.id);
+
+      component.selectVoidReasonPreset('Error de digitación');
+      expect(component.voidReason()).toBe('Error de digitación');
+    });
+
+    it('validates mandatory reason and completes voiding flow', () => {
+      const component = TestBed.createComponent(PosLayoutComponent).componentInstance;
+      const p = component.catalog()[0];
+      component.addProduct(p);
+      const sale = component.posService.completeSale('efectivo', p.precioVenta, 'Camila Rojas', 'Sucursal');
+
+      component.requestVoidSale(sale);
+
+      // Intentar confirmar sin motivo
+      component.confirmVoidSale();
+      expect(component.voidError()).toContain('motivo');
+      expect(component.selectedSaleToVoid()).not.toBeNull();
+
+      // Proveer motivo y confirmar
+      component.selectVoidReasonPreset('Cliente desistió');
+      component.confirmVoidSale();
+
+      expect(component.selectedSaleToVoid()).toBeNull();
+      expect(component.shiftVoidedCount()).toBe(1);
+      expect(component.posService.salesHistory().find((s) => s.id === sale.id)?.estado).toBe('anulada');
+    });
+
+    it('cancels void modal without modifying sale status', () => {
+      const component = TestBed.createComponent(PosLayoutComponent).componentInstance;
+      const p = component.catalog()[0];
+      component.addProduct(p);
+      const sale = component.posService.completeSale('efectivo', p.precioVenta, 'Camila Rojas', 'Sucursal');
+
+      component.requestVoidSale(sale);
+      component.cancelVoidSale();
+
+      expect(component.selectedSaleToVoid()).toBeNull();
+      expect(component.posService.salesHistory().find((s) => s.id === sale.id)?.estado).toBe('completada');
+    });
+  });
 });
+

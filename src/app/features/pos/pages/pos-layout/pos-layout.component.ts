@@ -40,6 +40,16 @@ export class PosLayoutComponent implements OnDestroy {
   readonly isPaymentModalOpen = signal<boolean>(false);
   readonly lastCompletedSale = signal<CompletedSale | null>(null);
 
+  // Control del Historial de Ventas del Turno (H2.7)
+  readonly isHistoryModalOpen = signal<boolean>(false);
+  readonly historySearchQuery = signal<string>('');
+  readonly historyMethodFilter = signal<string>('todos');
+
+  // Control de Anulación de Ventas (H2.9)
+  readonly selectedSaleToVoid = signal<CompletedSale | null>(null);
+  readonly voidReason = signal<string>('');
+  readonly voidError = signal<string | null>(null);
+
   // Reloj digital en vivo
   readonly currentTime = signal<string>(new Date().toLocaleTimeString('es-CL'));
   private readonly timerId: ReturnType<typeof setInterval>;
@@ -86,6 +96,38 @@ export class PosLayoutComponent implements OnDestroy {
     return list;
   });
 
+  // Ventas del turno filtradas por búsqueda y medio de pago (H2.7)
+  readonly filteredShiftSales = computed<CompletedSale[]>(() => {
+    const query = this.historySearchQuery().trim().toLowerCase();
+    const method = this.historyMethodFilter();
+    return this.posService.salesHistory().filter((sale) => {
+      const matchMethod = method === 'todos' || sale.medioPago === method;
+      if (!matchMethod) return false;
+      if (!query) return true;
+      return (
+        sale.ticketFolio.toLowerCase().includes(query) ||
+        sale.medioPago.toLowerCase().includes(query) ||
+        (sale.motivoAnulacion && sale.motivoAnulacion.toLowerCase().includes(query)) ||
+        sale.items.some((i) => i.producto.nombre.toLowerCase().includes(query))
+      );
+    });
+  });
+
+  readonly shiftTotalRecaudado = computed<number>(() =>
+    this.posService
+      .salesHistory()
+      .filter((s) => s.estado !== 'anulada')
+      .reduce((sum, s) => sum + s.total, 0)
+  );
+
+  readonly shiftActiveCount = computed<number>(() =>
+    this.posService.salesHistory().filter((s) => s.estado !== 'anulada').length
+  );
+
+  readonly shiftVoidedCount = computed<number>(() =>
+    this.posService.salesHistory().filter((s) => s.estado === 'anulada').length
+  );
+
   selectCategory(catId: number): void {
     this.selectedCategoryId.set(catId);
   }
@@ -112,22 +154,90 @@ export class PosLayoutComponent implements OnDestroy {
   onBarcodeScan(): void {
     if (!this.isRegisterOpen()) {
       this.barcodeFeedback.set('❌ La caja está cerrada. Ábrela para registrar productos.');
+      setTimeout(() => this.barcodeFeedback.set(null), 3000);
       return;
     }
     const code = this.quickBarcodeInput().trim();
     if (!code) return;
 
-    const added = this.posService.addByCode(code);
-    if (added) {
-      this.barcodeFeedback.set(`✅ Código ${code.toUpperCase()} añadido al carrito.`);
+    const product = this.posService.findProductByCode(code);
+    if (product) {
+      this.posService.addToCart(product);
+      this.barcodeFeedback.set(
+        `✅ ${product.codigoInterno} · ${product.nombre} (${this.formatClp(product.precioVenta)}) añadido.`
+      );
       this.quickBarcodeInput.set('');
     } else {
-      this.barcodeFeedback.set(`❌ Código ${code.toUpperCase()} no encontrado en catálogo.`);
+      this.barcodeFeedback.set(`❌ Código "${code.toUpperCase()}" no encontrado en catálogo.`);
     }
 
     setTimeout(() => {
       this.barcodeFeedback.set(null);
-    }, 2500);
+    }, 3000);
+  }
+
+  // Historial del turno (H2.7)
+  openSalesHistory(): void {
+    this.isHistoryModalOpen.set(true);
+  }
+
+  closeSalesHistory(): void {
+    this.isHistoryModalOpen.set(false);
+  }
+
+  // Solicitud de anulación de venta (H2.9)
+  requestVoidSale(sale: CompletedSale): void {
+    if (!this.isRegisterOpen()) {
+      this.barcodeFeedback.set('❌ No se pueden anular ventas con la caja cerrada.');
+      setTimeout(() => this.barcodeFeedback.set(null), 3500);
+      return;
+    }
+    this.selectedSaleToVoid.set(sale);
+    this.voidReason.set('');
+    this.voidError.set(null);
+  }
+
+  cancelVoidSale(): void {
+    this.selectedSaleToVoid.set(null);
+    this.voidReason.set('');
+    this.voidError.set(null);
+  }
+
+  selectVoidReasonPreset(reason: string): void {
+    this.voidReason.set(reason);
+    this.voidError.set(null);
+  }
+
+  confirmVoidSale(): void {
+    if (!this.isRegisterOpen()) {
+      this.voidError.set('No se puede anular la venta porque la caja se encuentra cerrada.');
+      return;
+    }
+
+    const sale = this.selectedSaleToVoid();
+    if (!sale) return;
+
+    const reason = this.voidReason().trim();
+    if (!reason) {
+      this.voidError.set('Por favor, indica un motivo de anulación obligatorio.');
+      return;
+    }
+
+    const result = this.posService.voidSale(
+      sale.id,
+      reason,
+      this.currentUser()?.nombre
+    );
+
+    if (result.success) {
+      this.barcodeFeedback.set(`✅ Venta ${sale.ticketFolio} anulada. Stock restituido.`);
+      setTimeout(() => this.barcodeFeedback.set(null), 3500);
+      this.selectedSaleToVoid.set(null);
+      this.voidReason.set('');
+      this.voidError.set(null);
+    } else {
+      this.voidError.set(result.error || 'Error al anular la venta.');
+    }
   }
 
   openPayment(): void {

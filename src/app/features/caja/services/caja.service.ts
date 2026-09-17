@@ -19,9 +19,11 @@ export class CajaService {
   // Cierres de caja confirmados (queda disponible para un futuro historial de cierres)
   readonly historialCierres = signal<CierreCaja[]>([]);
 
-  // Recaudado por método de pago en el turno activo
+  // Recaudado por método de pago en el turno activo (excluye ventas anuladas - H2.9)
   readonly summaryByMethod = computed<PaymentMethodSummary[]>(() => {
-    const sales = this.posService.salesHistory();
+    const sales = this.posService
+      .salesHistory()
+      .filter((sale) => sale.estado !== 'anulada');
 
     return (Object.keys(PAYMENT_METHOD_META) as PaymentMethod[]).map((key) => {
       const salesForMethod = sales.filter((sale) => sale.medioPago === key);
@@ -39,11 +41,15 @@ export class CajaService {
     this.summaryByMethod().reduce((sum, method) => sum + method.total, 0)
   );
 
-  readonly hayVentasEnElTurno = computed(() => this.posService.salesHistory().length > 0);
+  readonly hayVentasEnElTurno = computed(
+    () => this.posService.salesHistory().some((s) => s.estado !== 'anulada')
+  );
 
-  // Productos vendidos con un método de pago específico, agrupados y sumados
+  // Productos vendidos con un método de pago específico, agrupados y sumados (excluye anuladas)
   productosPorMedioPago(medioPago: PaymentMethod): ProductoVendido[] {
-    const sales = this.posService.salesHistory().filter((sale) => sale.medioPago === medioPago);
+    const sales = this.posService
+      .salesHistory()
+      .filter((sale) => sale.medioPago === medioPago && sale.estado !== 'anulada');
     const acumulado = new Map<number, ProductoVendido>();
 
     for (const venta of sales) {
@@ -68,6 +74,9 @@ export class CajaService {
   // Confirma el cierre de turno: guarda una foto del desglose y vacía el historial del POS
   cerrarTurno(cajeroNombre: string, sucursalNombre: string): CierreCaja {
     const desglose = this.summaryByMethod();
+    const ventasActivas = this.posService
+      .salesHistory()
+      .filter((s) => s.estado !== 'anulada').length;
 
     const cierre: CierreCaja = {
       id: this.cierreSequence++,
@@ -75,7 +84,7 @@ export class CajaService {
       cajeroNombre,
       sucursalNombre,
       totalGeneral: this.grandTotal(),
-      ventasTotales: this.posService.salesHistory().length,
+      ventasTotales: ventasActivas,
       desglose,
     };
 

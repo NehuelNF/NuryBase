@@ -25,6 +25,18 @@
     <div class="pos-bar-right">
       <button
         type="button"
+        class="btn-history"
+        (click)="openSalesHistory()"
+        title="Consultar historial de ventas del turno activo"
+      >
+        <span class="history-icon" aria-hidden="true">📋</span>
+        <span>Historial</span>
+        @if (posService.salesHistory().length > 0) {
+          <span class="history-badge-count">{{ posService.salesHistory().length }}</span>
+        }
+      </button>
+      <button
+        type="button"
         class="btn-register"
         [class.open-register]="!isRegisterOpen()"
         (click)="requestRegisterChange()"
@@ -428,6 +440,311 @@
             </button>
           </div>
         }
+      </section>
+    </div>
+  }
+
+  <!-- Modal de Historial de Ventas del Turno (H2.7) -->
+  @if (isHistoryModalOpen()) {
+    <div class="history-overlay" (click)="closeSalesHistory()">
+      <section
+        class="history-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="historyModalTitle"
+        (click)="$event.stopPropagation()"
+      >
+        <header class="history-dialog-header">
+          <div>
+            <span class="history-eyebrow">Turno actual · {{ currentUser()?.nombre || 'Camila Rojas' }}</span>
+            <h2 id="historyModalTitle">Historial de ventas del turno</h2>
+          </div>
+          <button
+            type="button"
+            class="btn-close-history"
+            (click)="closeSalesHistory()"
+            aria-label="Cerrar historial de ventas"
+          >
+            ✕
+          </button>
+        </header>
+
+        <!-- Métricas rápidas del turno -->
+        <div class="history-metrics-bar">
+          <div class="metric-box">
+            <span class="metric-label">Recaudación activa</span>
+            <strong class="metric-value">{{ formatClp(shiftTotalRecaudado()) }}</strong>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Ventas completadas</span>
+            <strong class="metric-value positive">{{ shiftActiveCount() }}</strong>
+          </div>
+          <div class="metric-box">
+            <span class="metric-label">Ventas anuladas</span>
+            <strong class="metric-value negative">{{ shiftVoidedCount() }}</strong>
+          </div>
+        </div>
+
+        <!-- Filtros del historial -->
+        <div class="history-filters-bar">
+          <div class="history-search-input">
+            <span class="search-icon" aria-hidden="true">⌕</span>
+            <input
+              type="text"
+              [ngModel]="historySearchQuery()"
+              (ngModelChange)="historySearchQuery.set($event)"
+              placeholder="Buscar por folio (ej: TK-1043), producto o medio..."
+              aria-label="Filtrar historial de ventas"
+            />
+            @if (historySearchQuery()) {
+              <button
+                type="button"
+                class="btn-clear-search"
+                (click)="historySearchQuery.set('')"
+                title="Limpiar filtro"
+              >
+                ✕
+              </button>
+            }
+          </div>
+
+          <div class="history-method-selector">
+            <button
+              type="button"
+              class="btn-method-tab"
+              [class.active]="historyMethodFilter() === 'todos'"
+              (click)="historyMethodFilter.set('todos')"
+            >
+              Todos
+            </button>
+            <button
+              type="button"
+              class="btn-method-tab"
+              [class.active]="historyMethodFilter() === 'efectivo'"
+              (click)="historyMethodFilter.set('efectivo')"
+            >
+              💵 Efectivo
+            </button>
+            <button
+              type="button"
+              class="btn-method-tab"
+              [class.active]="historyMethodFilter() === 'tarjeta'"
+              (click)="historyMethodFilter.set('tarjeta')"
+            >
+              💳 Tarjeta
+            </button>
+            <button
+              type="button"
+              class="btn-method-tab"
+              [class.active]="historyMethodFilter() === 'junaeb'"
+              (click)="historyMethodFilter.set('junaeb')"
+            >
+              🎓 Junaeb
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabla o estado vacío -->
+        <div class="history-table-wrapper">
+          @if (filteredShiftSales().length === 0) {
+            <div class="empty-history-state">
+              <span class="empty-icon" aria-hidden="true">🧾</span>
+              <h3>No hay ventas registradas</h3>
+              <p>
+                @if (historySearchQuery() || historyMethodFilter() !== 'todos') {
+                  No se encontraron ventas para los filtros aplicados.
+                } @else {
+                  Aún no se han completado transacciones durante este turno activo.
+                }
+              </p>
+            </div>
+          } @else {
+            <table class="history-table">
+              <thead>
+                <tr>
+                  <th>Folio / Hora</th>
+                  <th>Medio de pago</th>
+                  <th>Detalle de productos</th>
+                  <th>Total</th>
+                  <th>Estado</th>
+                  <th class="actions-col">Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (sale of filteredShiftSales(); track sale.id) {
+                  <tr [class.row-anulada]="sale.estado === 'anulada'">
+                    <td class="folio-cell">
+                      <strong class="folio-text">{{ sale.ticketFolio }}</strong>
+                      <span class="time-text">{{ sale.fecha | date: 'HH:mm:ss' }}</span>
+                    </td>
+                    <td>
+                      <span class="payment-badge" [attr.data-method]="sale.medioPago">
+                        @switch (sale.medioPago) {
+                          @case ('efectivo') { 💵 Efectivo }
+                          @case ('tarjeta') { 💳 Tarjeta }
+                          @case ('junaeb') { 🎓 Junaeb }
+                        }
+                      </span>
+                    </td>
+                    <td class="products-cell">
+                      <ul class="sale-items-summary">
+                        @for (item of sale.items; track item.producto.id) {
+                          <li>
+                            <span class="item-qty">{{ item.cantidad }}x</span>
+                            <span class="item-name">{{ item.producto.nombre }}</span>
+                            <span class="item-sub">{{ formatClp(item.subtotal) }}</span>
+                          </li>
+                        }
+                      </ul>
+                    </td>
+                    <td class="total-cell">
+                      <strong [class.strike-total]="sale.estado === 'anulada'">
+                        {{ formatClp(sale.total) }}
+                      </strong>
+                    </td>
+                    <td>
+                      @if (sale.estado === 'anulada') {
+                        <span class="status-badge status-voided" title="Motivo: {{ sale.motivoAnulacion }}">
+                          ❌ Anulada
+                        </span>
+                        @if (sale.motivoAnulacion) {
+                          <span class="void-reason-note">{{ sale.motivoAnulacion }}</span>
+                        }
+                      } @else {
+                        <span class="status-badge status-completed">
+                          ✓ Completada
+                        </span>
+                      }
+                    </td>
+                    <td class="actions-col">
+                      @if (sale.estado !== 'anulada') {
+                        <button
+                          type="button"
+                          class="btn-void-action"
+                          (click)="requestVoidSale(sale)"
+                          title="Anular venta y restituir stock"
+                        >
+                          Anular venta
+                        </button>
+                      } @else {
+                        <span class="voided-muted-label">Sin acciones</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </div>
+      </section>
+    </div>
+  }
+
+  <!-- Modal de Confirmación de Anulación de Venta (H2.9) -->
+  @if (selectedSaleToVoid(); as sale) {
+    <div class="void-confirm-overlay" (click)="cancelVoidSale()">
+      <section
+        class="void-confirm-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="voidModalTitle"
+        (click)="$event.stopPropagation()"
+      >
+        <span class="void-dialog-icon" aria-hidden="true">⚠️</span>
+        <p class="void-dialog-eyebrow">Operación crítica de caja</p>
+        <h2 id="voidModalTitle">¿Deseas anular la venta {{ sale.ticketFolio }}?</h2>
+
+        <div class="void-warning-banner">
+          <p>
+            Esta acción <strong>invalidará el registro monetario</strong> de esta venta en el turno y
+            <strong>restituirá el stock</strong> de los productos. La venta no se contabilizará en la cuadratura de caja.
+          </p>
+        </div>
+
+        <div class="void-sale-preview">
+          <div class="void-preview-row">
+            <span>Folio:</span>
+            <strong>{{ sale.ticketFolio }}</strong>
+          </div>
+          <div class="void-preview-row">
+            <span>Hora:</span>
+            <span>{{ sale.fecha | date: 'HH:mm:ss' }}</span>
+          </div>
+          <div class="void-preview-row">
+            <span>Medio de pago:</span>
+            <span>{{ sale.medioPago | uppercase }}</span>
+          </div>
+          <div class="void-preview-row highlight">
+            <span>Monto a anular:</span>
+            <strong>{{ formatClp(sale.total) }}</strong>
+          </div>
+          <div class="void-preview-items">
+            <span class="items-title">Productos a restituir:</span>
+            <ul>
+              @for (item of sale.items; track item.producto.id) {
+                <li>{{ item.cantidad }}x {{ item.producto.nombre }} ({{ formatClp(item.subtotal) }})</li>
+              }
+            </ul>
+          </div>
+        </div>
+
+        <div class="void-reason-group">
+          <label for="voidReasonInput">Motivo de anulación <span class="required">*</span></label>
+          <div class="void-preset-chips">
+            <button
+              type="button"
+              class="btn-preset-chip"
+              [class.active]="voidReason() === 'Error de digitación de productos'"
+              (click)="selectVoidReasonPreset('Error de digitación de productos')"
+            >
+              Error digitación
+            </button>
+            <button
+              type="button"
+              class="btn-preset-chip"
+              [class.active]="voidReason() === 'Cliente desiste de la compra'"
+              (click)="selectVoidReasonPreset('Cliente desiste de la compra')"
+            >
+              Cliente desiste
+            </button>
+            <button
+              type="button"
+              class="btn-preset-chip"
+              [class.active]="voidReason() === 'Producto devuelto o defectuoso'"
+              (click)="selectVoidReasonPreset('Producto devuelto o defectuoso')"
+            >
+              Producto devuelto
+            </button>
+            <button
+              type="button"
+              class="btn-preset-chip"
+              [class.active]="voidReason() === 'Cambio de medio de pago solicitado'"
+              (click)="selectVoidReasonPreset('Cambio de medio de pago solicitado')"
+            >
+              Cambio de medio
+            </button>
+          </div>
+          <input
+            id="voidReasonInput"
+            type="text"
+            class="void-reason-field"
+            [ngModel]="voidReason()"
+            (ngModelChange)="voidReason.set($event); voidError.set(null)"
+            placeholder="Especifica el motivo de la anulación..."
+          />
+          @if (voidError()) {
+            <p class="void-error-message">{{ voidError() }}</p>
+          }
+        </div>
+
+        <div class="void-dialog-actions">
+          <button type="button" class="btn-void-cancel" (click)="cancelVoidSale()">
+            Cancelar
+          </button>
+          <button type="button" class="btn-void-confirm" (click)="confirmVoidSale()">
+            Confirmar anulación
+          </button>
+        </div>
       </section>
     </div>
   }

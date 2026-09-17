@@ -39,4 +39,8 @@ export interface CompletedSale {
   codigoAutorizacion?: string;
   titularJunaeb?: string;
   saldoRestanteJunaeb?: number;
+  estado?: 'completada' | 'anulada';
+  motivoAnulacion?: string;
+  fechaAnulacion?: Date;
+  usuarioAnulacion?: string;
 }

@@ -11,8 +11,8 @@ Este documento mantiene el registro histórico y actualizado de todas las prueba
 - **Rama:** `Patricio_Branch`
 - **Entorno:** Vitest 4.1 / Angular 22 / Node 24
 - **Total suites (archivos):** 10 aprobadas (100%)
-- **Total pruebas ejecutadas:** 53 aprobadas (100%)
-- **Tiempo de ejecución:** 7.20 segundos
+- **Total pruebas ejecutadas:** 69 aprobadas (100%)
+- **Tiempo de ejecución:** 11.36 segundos
 - **Resultado:** ✅ PASSED (0 fallos, 0 omitidas)
 
 ---
@@ -21,8 +21,8 @@ Este documento mantiene el registro histórico y actualizado de todas las prueba
 
 ### 1. Punto de Venta (POS) y Catálogo de Productos
 **Archivos:**
-- `src/app/features/pos/pages/pos-layout/pos-layout.component.spec.ts` (12 pruebas)
-- `src/app/features/pos/services/pos.service.spec.ts` (5 pruebas)
+- `src/app/features/pos/pages/pos-layout/pos-layout.component.spec.ts` (18 pruebas)
+- `src/app/features/pos/services/pos.service.spec.ts` (10 pruebas)
 
 | ID | Suite | Caso de Prueba / Criterio | Estado |
 | :--- | :--- | :--- | :--- |
@@ -38,11 +38,22 @@ Este documento mantiene el registro histórico y actualizado de todas las prueba
 | **POS-10** | `PosLayoutComponent` | Bloqueo estricto del ingreso de productos cuando la caja está cerrada | ✅ PASS |
 | **POS-11** | `PosLayoutComponent` | Alerta de seguridad al intentar salir con caja abierta y opción de ir a cuadratura | ✅ PASS |
 | **POS-12** | `PosLayoutComponent` | Cierre de sesión exitoso una vez confirmado en el modal | ✅ PASS |
-| **POS-13** | `PosService` | Creación y provisión correcta del servicio `PosService` | ✅ PASS |
-| **POS-14** | `PosService` | Existencia de catálogo inicial con códigos internos formato `NUR-xxx` (H2.3) | ✅ PASS |
-| **POS-15** | `PosService` | Adición a comanda, acumulación de cantidades y cálculo neto/IVA/total | ✅ PASS |
-| **POS-16** | `PosService` | Búsqueda y adición por código interno o código de barras EAN-13 (H2.1 & H2.3) | ✅ PASS |
-| **POS-17** | `PosService` | Completar venta, generación de folio `TK-x` y cálculo exacto de vuelto (H2.4) | ✅ PASS |
+| **POS-13** | `PosLayoutComponent` | **[H2.3]** Entrada rápida por código interno y adición con feedback de precio formateado | ✅ PASS |
+| **POS-14** | `PosLayoutComponent` | **[H2.3]** Manejo y feedback de error cuando el código ingresado no existe | ✅ PASS |
+| **POS-15** | `PosLayoutComponent` | **[H2.7]** Control de apertura/cierre de modal de historial del turno y contadores vivos | ✅ PASS |
+| **POS-16** | `PosLayoutComponent` | **[H2.7]** Filtro dinámico del historial por texto/folio y por medio de pago (Efectivo/Tarjeta/Junaeb) | ✅ PASS |
+| **POS-17** | `PosLayoutComponent` | **[H2.9]** Bloqueo de solicitud de anulación si la caja registradora se encuentra cerrada | ✅ PASS |
+| **POS-18** | `PosLayoutComponent` | **[H2.9]** Modal de anulación con previsualización de venta, presets de motivos y validación obligatoria | ✅ PASS |
+| **POS-19** | `PosService` | Creación y provisión correcta del servicio `PosService` | ✅ PASS |
+| **POS-20** | `PosService` | Existencia de catálogo inicial con códigos internos formato `NUR-xxx` (H2.3) | ✅ PASS |
+| **POS-21** | `PosService` | Adición a comanda, acumulación de cantidades y cálculo neto/IVA/total | ✅ PASS |
+| **POS-22** | `PosService` | Búsqueda y adición por código interno o código de barras EAN-13 (H2.1 & H2.3) | ✅ PASS |
+| **POS-23** | `PosService` | Completar venta, generación de folio `TK-x` y cálculo exacto de vuelto (H2.4) | ✅ PASS |
+| **POS-24** | `PosService` | **[H2.3]** Búsqueda de productos por código interno insensible a mayúsculas/minúsculas | ✅ PASS |
+| **POS-25** | `PosService` | **[H2.3]** Retorno `undefined` ante códigos internos inexistentes | ✅ PASS |
+| **POS-26** | `PosService` | **[H2.9]** Anulación de venta con registro de motivo, marca de tiempo y usuario responsable | ✅ PASS |
+| **POS-27** | `PosService` | **[H2.9]** Rechazo de anulación si no se proporciona un motivo obligatorio | ✅ PASS |
+| **POS-28** | `PosService` | **[H2.9]** Prevención de re-anulación sobre ventas que ya fueron anuladas | ✅ PASS |
 
 **Archivo:** `src/app/core/api/productos-api.service.spec.ts` (2 pruebas)
 
@@ -75,13 +86,14 @@ Este documento mantiene el registro histórico y actualizado de todas las prueba
 | **PAY-15** | `PaymentModalComponent` | Asignación automática del monto exacto al seleccionar pago con tarjeta | ✅ PASS |
 | **PAY-16** | `PaymentModalComponent` | Exige nueva confirmación de máquina de tarjeta tras alternar medios | ✅ PASS |
 | **PAY-17** | `PaymentModalComponent` | Exige pulsar `✓ Listo / Escaneado` antes de confirmar venta con Beca Junaeb | ✅ PASS |
+| **PAY-18** | `PaymentModalComponent` | Cierre o reseteo limpio del modal de pago | ✅ PASS |
 
 ---
 
 ### 3. Gestión y Cierre de Caja
 **Archivos:**
 - `src/app/features/caja/pages/cierre-caja/cierre-caja.component.spec.ts` (5 pruebas)
-- `src/app/features/caja/services/caja.service.spec.ts` (2 pruebas)
+- `src/app/features/caja/services/caja.service.spec.ts` (5 pruebas)
 
 | ID | Suite | Caso de Prueba / Criterio | Estado |
 | :--- | :--- | :--- | :--- |
@@ -92,6 +104,9 @@ Este documento mantiene el registro histórico y actualizado de todas las prueba
 | **CAJ-05** | `CierreCajaComponent` | Cancelación del diálogo sin alterar el estado del turno | ✅ PASS |
 | **CAJ-06** | `CajaService` | Cierre de turno con snapshot inmutable de totales y vaciado de ventas activas | ✅ PASS |
 | **CAJ-07** | `CajaService` | Aislamiento estricto: no mezcla ventas de turnos previos en un nuevo cierre | ✅ PASS |
+| **CAJ-08** | `CajaService` | **[H2.9]** Exclusión estricta de ventas anuladas de `summaryByMethod`, `grandTotal` y del cierre de caja | ✅ PASS |
+| **CAJ-09** | `CajaService` | **[H2.9]** Exclusión de productos pertenecientes a ventas anuladas en `productosPorMedioPago` | ✅ PASS |
+| **CAJ-10** | `CajaService` | **[H2.9]** Detección de `hayVentasEnElTurno` en falso si todas las ventas fueron anuladas | ✅ PASS |
 
 ---
 
