@@ -98,7 +98,7 @@ describe('PosLayoutComponent', () => {
     expect(component.cart().length).toBeGreaterThan(0);
   });
 
-  it('asks for confirmation before closing and opening the register', () => {
+  it('asks for confirmation before pausing and resuming the register', () => {
     const component = TestBed.createComponent(PosLayoutComponent).componentInstance;
 
     expect(component.isRegisterOpen()).toBe(true);
@@ -125,7 +125,7 @@ describe('PosLayoutComponent', () => {
     expect(component.pendingRegisterAction()).toBeNull();
   });
 
-  it('blocks product entry while the register is closed', () => {
+  it('blocks product entry while the register is paused', () => {
     const component = TestBed.createComponent(PosLayoutComponent).componentInstance;
     const product = component.catalog()[0];
     component.isRegisterOpen.set(false);
@@ -135,7 +135,18 @@ describe('PosLayoutComponent', () => {
     component.onBarcodeScan();
 
     expect(component.cart()).toHaveLength(0);
-    expect(component.barcodeFeedback()).toContain('caja está cerrada');
+    expect(component.barcodeFeedback()).toContain('caja está en pausa');
+  });
+
+  it('allows navigating to cierre de caja directly from register pause dialog', () => {
+    const component = TestBed.createComponent(PosLayoutComponent).componentInstance;
+    const navigateSpy = vi.spyOn((component as any).router, 'navigate');
+
+    component.requestRegisterChange();
+    expect(component.pendingRegisterAction()).toBe('close');
+
+    component.goToCierreCaja();
+    expect(navigateSpy).toHaveBeenCalledWith(['/caja']);
   });
 
   it('shows warning when attempting to logout with an open register and allows going to cierre de caja', () => {
@@ -232,7 +243,7 @@ describe('PosLayoutComponent', () => {
   });
 
   describe('H2.9: Sale voiding modal and workflow', () => {
-    it('blocks voiding when register is closed', () => {
+    it('blocks voiding when register is paused', () => {
       const component = TestBed.createComponent(PosLayoutComponent).componentInstance;
       const p = component.catalog()[0];
       component.addProduct(p);
@@ -242,7 +253,7 @@ describe('PosLayoutComponent', () => {
       component.requestVoidSale(sale);
 
       expect(component.selectedSaleToVoid()).toBeNull();
-      expect(component.barcodeFeedback()).toContain('caja cerrada');
+      expect(component.barcodeFeedback()).toContain('caja en pausa');
     });
 
     it('opens void modal with sale details and allows selecting reason presets', () => {

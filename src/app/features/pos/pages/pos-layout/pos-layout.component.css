@@ -76,7 +76,8 @@
   border-radius: 50%;
   background: #697e51;
 }
-.shift-dot-pulse.closed {
+.shift-dot-pulse.closed,
+.shift-dot-pulse.paused {
   background: #aa6952;
 }
 .role-pill {
@@ -110,11 +111,16 @@
   color: #8b513d;
   font-size: 12px;
   font-weight: 600;
+  cursor: pointer;
 }
-.btn-register.open-register {
+.btn-register.open-register,
+.btn-register.resume-register {
   border-color: #bdcab0;
   background: #eef2e8;
   color: #49613a;
+}
+.register-btn-icon {
+  font-size: 11px;
 }
 .register-status-dot {
   width: 7px;
@@ -630,11 +636,23 @@
   gap: 10px;
   margin-top: 25px;
 }
+.register-dialog-actions.has-cierre-btn {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 25px;
+}
+.register-secondary-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
 .register-dialog-actions button {
   min-height: 44px;
   border-radius: 4px;
   font-size: 12px;
   font-weight: 650;
+  cursor: pointer;
 }
 .btn-dialog-cancel {
   border: 1px solid #d8ddcf;

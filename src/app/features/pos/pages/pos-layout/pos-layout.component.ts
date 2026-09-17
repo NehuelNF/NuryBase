@@ -153,7 +153,7 @@ export class PosLayoutComponent implements OnDestroy {
   // Entrada rápida por escáner de código de barras o código interno (H2.1 & H2.3)
   onBarcodeScan(): void {
     if (!this.isRegisterOpen()) {
-      this.barcodeFeedback.set('❌ La caja está cerrada. Ábrela para registrar productos.');
+      this.barcodeFeedback.set('❌ La caja está en pausa. Reanúdala para registrar productos.');
       setTimeout(() => this.barcodeFeedback.set(null), 3000);
       return;
     }
@@ -188,7 +188,7 @@ export class PosLayoutComponent implements OnDestroy {
   // Solicitud de anulación de venta (H2.9)
   requestVoidSale(sale: CompletedSale): void {
     if (!this.isRegisterOpen()) {
-      this.barcodeFeedback.set('❌ No se pueden anular ventas con la caja cerrada.');
+      this.barcodeFeedback.set('❌ No se pueden anular ventas con la caja en pausa.');
       setTimeout(() => this.barcodeFeedback.set(null), 3500);
       return;
     }
@@ -210,7 +210,7 @@ export class PosLayoutComponent implements OnDestroy {
 
   confirmVoidSale(): void {
     if (!this.isRegisterOpen()) {
-      this.voidError.set('No se puede anular la venta porque la caja se encuentra cerrada.');
+      this.voidError.set('No se puede anular la venta porque la caja se encuentra en pausa.');
       return;
     }
 

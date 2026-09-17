@@ -1,4 +1,4 @@
-﻿# Registro de Pruebas y Criterios de Aceptación — H2.3, H2.7 y H2.9
+# Registro de Pruebas y Criterios de Aceptación — H2.3, H2.7 y H2.9
 
 Fecha: 16 de septiembre de 2026  
 Rama: `Patricio_Branch`  
@@ -91,9 +91,21 @@ Permitir anular ventas completadas del turno activo de forma segura, solicitando
 
 ---
 
-## 4. Estado Final de Verificación
+## 4. Clarificación Operativa: Pausa de Caja vs Cierre de Turno
 
-- **Pruebas unitarias totales:** 69/69 aprobadas (100% de éxito).
+Para evitar ambigüedades en el flujo del punto de venta:
+1. **Pausa / Reanudación de Caja:**
+   - La acción en la cabecera del POS se renombró a **"Pausar caja"** / **"Reanudar caja"**.
+   - Permite al cajero bloquear temporalmente el ingreso de productos y escaneo sin alterar las ventas del turno ni resetear la contabilidad.
+   - El diálogo de confirmación incluye acceso directo: **"Ir a Cierre y Cuadratura de Turno →"** para guiar al usuario si su intención real es finalizar el turno.
+2. **Cierre de Turno y Cuadratura (`/caja`):**
+   - Es el cierre formal del turno contable, donde se consolida el snapshot inmutable de recaudación, se archiva el desglose por medio de pago y se reinicia el historial a $0 para el siguiente cajero/turno.
+
+---
+
+## 5. Estado Final de Verificación
+
+- **Pruebas unitarias totales:** 70/70 aprobadas (100% de éxito).
 - **Compilación de producción:** `ng build` exitoso con tamaño de bundle inicial de 277 kB (límite budget: 500 kB).
 - **Cumplimiento de diseño:** `docs/GUIA-DE-DISENO.md` aplicado rigurosamente.
 - **Aislamiento de ramas:** Archivos personales de IA (`AGENTS.md`, `CLAUDE.md`, `.cursorrules`) preservados en `Patricio_Branch` y excluidos de `develop`.

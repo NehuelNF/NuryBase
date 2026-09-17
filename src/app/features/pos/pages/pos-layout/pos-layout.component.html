@@ -13,9 +13,9 @@
       </div>
 
       <div class="shift-info">
-        <span class="shift-dot-pulse" [class.closed]="!isRegisterOpen()"></span>
+        <span class="shift-dot-pulse" [class.paused]="!isRegisterOpen()"></span>
         <span class="shift-text"
-          >Caja {{ isRegisterOpen() ? 'abierta' : 'cerrada' }} ·
+          >Caja {{ isRegisterOpen() ? 'activa' : 'en pausa' }} ·
           <strong>{{ currentUser()?.nombre || 'Camila Rojas' }}</strong></span
         >
         <span class="role-pill">{{ currentUser()?.rol || 'cajero' | uppercase }}</span>
@@ -38,11 +38,13 @@
       <button
         type="button"
         class="btn-register"
-        [class.open-register]="!isRegisterOpen()"
+        [class.resume-register]="!isRegisterOpen()"
         (click)="requestRegisterChange()"
+        [title]="isRegisterOpen() ? 'Pausar temporalmente las ventas en la caja (no cierra el turno)' : 'Reanudar ventas en la caja'"
       >
         <span class="register-status-dot"></span>
-        {{ isRegisterOpen() ? 'Cerrar caja' : 'Abrir caja' }}
+        <span class="register-btn-icon" aria-hidden="true">{{ isRegisterOpen() ? '⏸' : '▶' }}</span>
+        <span>{{ isRegisterOpen() ? 'Pausar caja' : 'Reanudar caja' }}</span>
       </button>
       <div class="clock-display">
         <span class="clock-time">{{ currentTime() }}</span>
@@ -69,9 +71,9 @@
 
   @if (!isRegisterOpen()) {
     <div class="register-closed-banner" role="status">
-      <strong>Caja cerrada</strong>
-      <span>Abre la caja para agregar productos y registrar ventas.</span>
-      <button type="button" (click)="requestRegisterChange()">Abrir caja</button>
+      <strong>Caja en pausa</strong>
+      <span>Reanuda la caja para agregar productos y registrar ventas en el turno actual.</span>
+      <button type="button" (click)="requestRegisterChange()">Reanudar caja</button>
     </div>
   }
 
@@ -366,29 +368,43 @@
         role="dialog"
         aria-modal="true"
         [attr.aria-label]="
-          action === 'open' ? 'Confirmar apertura de caja' : 'Confirmar cierre de caja'
+          action === 'open' ? 'Confirmar reanudación de caja' : 'Confirmar pausa de caja'
         "
         (click)="$event.stopPropagation()"
       >
         <span class="register-dialog-icon" aria-hidden="true">{{
-          action === 'open' ? '↗' : '↘'
+          action === 'open' ? '▶' : '⏸'
         }}</span>
         <p class="register-dialog-eyebrow">Control de caja</p>
-        <h2>{{ action === 'open' ? '¿Abrir la caja?' : '¿Cerrar la caja?' }}</h2>
+        <h2>{{ action === 'open' ? '¿Reanudar operaciones de caja?' : '¿Pausar operaciones de caja?' }}</h2>
         <p>
           {{
             action === 'open'
-              ? 'Podrás agregar productos y registrar nuevas ventas.'
-              : 'La venta quedará bloqueada hasta que vuelvas a abrir la caja.'
+              ? 'Podrás continuar registrando productos y cobrando en el turno actual.'
+              : 'La venta quedará bloqueada temporalmente hasta que la reanudes. Tus ventas y turno se conservan intactos. Si deseas cerrar el turno formalmente, debes ir a Cierre de Caja.'
           }}
         </p>
-        <div class="register-dialog-actions">
-          <button type="button" class="btn-dialog-cancel" (click)="cancelRegisterChange()">
-            Cancelar
-          </button>
-          <button type="button" class="btn-dialog-confirm" (click)="confirmRegisterChange()">
-            {{ action === 'open' ? 'Sí, abrir caja' : 'Sí, cerrar caja' }}
-          </button>
+        <div class="register-dialog-actions" [class.has-cierre-btn]="action === 'close'">
+          @if (action === 'close') {
+            <button type="button" class="btn-dialog-cierre" (click)="goToCierreCaja()">
+              Ir a Cierre y Cuadratura de Turno →
+            </button>
+            <div class="register-secondary-row">
+              <button type="button" class="btn-dialog-cancel" (click)="cancelRegisterChange()">
+                Cancelar
+              </button>
+              <button type="button" class="btn-dialog-confirm" (click)="confirmRegisterChange()">
+                Sí, pausar caja
+              </button>
+            </div>
+          } @else {
+            <button type="button" class="btn-dialog-cancel" (click)="cancelRegisterChange()">
+              Cancelar
+            </button>
+            <button type="button" class="btn-dialog-confirm" (click)="confirmRegisterChange()">
+              Sí, reanudar caja
+            </button>
+          }
         </div>
       </section>
     </div>

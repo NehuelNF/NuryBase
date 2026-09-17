@@ -7,12 +7,12 @@ Este documento mantiene el registro histórico y actualizado de todas las prueba
 
 ## 📊 Resumen de Última Ejecución
 
-- **Fecha de ejecución:** 16 de septiembre de 2026
+- **Fecha de ejecución:** 17 de septiembre de 2026
 - **Rama:** `Patricio_Branch`
 - **Entorno:** Vitest 4.1 / Angular 22 / Node 24
 - **Total suites (archivos):** 10 aprobadas (100%)
-- **Total pruebas ejecutadas:** 69 aprobadas (100%)
-- **Tiempo de ejecución:** 11.36 segundos
+- **Total pruebas ejecutadas:** 70 aprobadas (100%)
+- **Tiempo de ejecución:** 13.84 segundos
 - **Resultado:** ✅ PASSED (0 fallos, 0 omitidas)
 
 ---
@@ -21,7 +21,7 @@ Este documento mantiene el registro histórico y actualizado de todas las prueba
 
 ### 1. Punto de Venta (POS) y Catálogo de Productos
 **Archivos:**
-- `src/app/features/pos/pages/pos-layout/pos-layout.component.spec.ts` (18 pruebas)
+- `src/app/features/pos/pages/pos-layout/pos-layout.component.spec.ts` (19 pruebas)
 - `src/app/features/pos/services/pos.service.spec.ts` (10 pruebas)
 
 | ID | Suite | Caso de Prueba / Criterio | Estado |
@@ -33,27 +33,28 @@ Este documento mantiene el registro histórico y actualizado de todas las prueba
 | **POS-05** | `PosLayoutComponent` | Inicialización y montaje correcto del componente POS Layout | ✅ PASS |
 | **POS-06** | `PosLayoutComponent` | Filtrado dinámico del catálogo según texto ingresado (H2.2) | ✅ PASS |
 | **POS-07** | `PosLayoutComponent` | Adición automática de producto al carrito por código de barras o interno (H2.1 & H2.3) | ✅ PASS |
-| **POS-08** | `PosLayoutComponent` | Diálogo de confirmación antes de abrir o cerrar caja | ✅ PASS |
+| **POS-08** | `PosLayoutComponent` | Diálogo de confirmación antes de pausar o reanudar caja | ✅ PASS |
 | **POS-09** | `PosLayoutComponent` | Conservación del estado de caja cuando se cancela la acción | ✅ PASS |
-| **POS-10** | `PosLayoutComponent` | Bloqueo estricto del ingreso de productos cuando la caja está cerrada | ✅ PASS |
-| **POS-11** | `PosLayoutComponent` | Alerta de seguridad al intentar salir con caja abierta y opción de ir a cuadratura | ✅ PASS |
-| **POS-12** | `PosLayoutComponent` | Cierre de sesión exitoso una vez confirmado en el modal | ✅ PASS |
-| **POS-13** | `PosLayoutComponent` | **[H2.3]** Entrada rápida por código interno y adición con feedback de precio formateado | ✅ PASS |
-| **POS-14** | `PosLayoutComponent` | **[H2.3]** Manejo y feedback de error cuando el código ingresado no existe | ✅ PASS |
-| **POS-15** | `PosLayoutComponent` | **[H2.7]** Control de apertura/cierre de modal de historial del turno y contadores vivos | ✅ PASS |
-| **POS-16** | `PosLayoutComponent` | **[H2.7]** Filtro dinámico del historial por texto/folio y por medio de pago (Efectivo/Tarjeta/Junaeb) | ✅ PASS |
-| **POS-17** | `PosLayoutComponent` | **[H2.9]** Bloqueo de solicitud de anulación si la caja registradora se encuentra cerrada | ✅ PASS |
-| **POS-18** | `PosLayoutComponent` | **[H2.9]** Modal de anulación con previsualización de venta, presets de motivos y validación obligatoria | ✅ PASS |
-| **POS-19** | `PosService` | Creación y provisión correcta del servicio `PosService` | ✅ PASS |
-| **POS-20** | `PosService` | Existencia de catálogo inicial con códigos internos formato `NUR-xxx` (H2.3) | ✅ PASS |
-| **POS-21** | `PosService` | Adición a comanda, acumulación de cantidades y cálculo neto/IVA/total | ✅ PASS |
-| **POS-22** | `PosService` | Búsqueda y adición por código interno o código de barras EAN-13 (H2.1 & H2.3) | ✅ PASS |
-| **POS-23** | `PosService` | Completar venta, generación de folio `TK-x` y cálculo exacto de vuelto (H2.4) | ✅ PASS |
-| **POS-24** | `PosService` | **[H2.3]** Búsqueda de productos por código interno insensible a mayúsculas/minúsculas | ✅ PASS |
-| **POS-25** | `PosService` | **[H2.3]** Retorno `undefined` ante códigos internos inexistentes | ✅ PASS |
-| **POS-26** | `PosService` | **[H2.9]** Anulación de venta con registro de motivo, marca de tiempo y usuario responsable | ✅ PASS |
-| **POS-27** | `PosService` | **[H2.9]** Rechazo de anulación si no se proporciona un motivo obligatorio | ✅ PASS |
-| **POS-28** | `PosService` | **[H2.9]** Prevención de re-anulación sobre ventas que ya fueron anuladas | ✅ PASS |
+| **POS-10** | `PosLayoutComponent` | Bloqueo estricto del ingreso de productos cuando la caja está en pausa | ✅ PASS |
+| **POS-11** | `PosLayoutComponent` | Navegación directa a Cierre de Turno y Cuadratura desde el diálogo de pausa de caja | ✅ PASS |
+| **POS-12** | `PosLayoutComponent` | Alerta de seguridad al intentar salir con caja abierta y opción de ir a cuadratura | ✅ PASS |
+| **POS-13** | `PosLayoutComponent` | Cierre de sesión exitoso una vez confirmado en el modal | ✅ PASS |
+| **POS-14** | `PosLayoutComponent` | **[H2.3]** Entrada rápida por código interno y adición con feedback de precio formateado | ✅ PASS |
+| **POS-15** | `PosLayoutComponent` | **[H2.3]** Manejo y feedback de error cuando el código ingresado no existe | ✅ PASS |
+| **POS-16** | `PosLayoutComponent` | **[H2.7]** Control de apertura/cierre de modal de historial del turno y contadores vivos | ✅ PASS |
+| **POS-17** | `PosLayoutComponent` | **[H2.7]** Filtro dinámico del historial por texto/folio y por medio de pago (Efectivo/Tarjeta/Junaeb) | ✅ PASS |
+| **POS-18** | `PosLayoutComponent` | **[H2.9]** Bloqueo de solicitud de anulación si la caja registradora se encuentra en pausa | ✅ PASS |
+| **POS-19** | `PosLayoutComponent` | **[H2.9]** Modal de anulación con previsualización de venta, presets de motivos y validación obligatoria | ✅ PASS |
+| **POS-20** | `PosService` | Creación y provisión correcta del servicio `PosService` | ✅ PASS |
+| **POS-21** | `PosService` | Existencia de catálogo inicial con códigos internos formato `NUR-xxx` (H2.3) | ✅ PASS |
+| **POS-22** | `PosService` | Adición a comanda, acumulación de cantidades y cálculo neto/IVA/total | ✅ PASS |
+| **POS-23** | `PosService` | Búsqueda y adición por código interno o código de barras EAN-13 (H2.1 & H2.3) | ✅ PASS |
+| **POS-24** | `PosService` | Completar venta, generación de folio `TK-x` y cálculo exacto de vuelto (H2.4) | ✅ PASS |
+| **POS-25** | `PosService` | **[H2.3]** Búsqueda de productos por código interno insensible a mayúsculas/minúsculas | ✅ PASS |
+| **POS-26** | `PosService` | **[H2.3]** Retorno `undefined` ante códigos internos inexistentes | ✅ PASS |
+| **POS-27** | `PosService` | **[H2.9]** Anulación de venta con registro de motivo, marca de tiempo y usuario responsable | ✅ PASS |
+| **POS-28** | `PosService` | **[H2.9]** Rechazo de anulación si no se proporciona un motivo obligatorio | ✅ PASS |
+| **POS-29** | `PosService` | **[H2.9]** Prevención de re-anulación sobre ventas que ya fueron anuladas | ✅ PASS |
 
 **Archivo:** `src/app/core/api/productos-api.service.spec.ts` (2 pruebas)
 

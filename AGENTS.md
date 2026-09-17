@@ -95,4 +95,4 @@ git status
 - **POS (`/pos`):** Cabecera de turno con LED verde pulsante y reloj digital en vivo; buscador reactivo de texto + escáner de código de barras; pestañas de categorías con badges de conteo; grilla táctil de productos; comanda lateral con steppers (+ / -) y cobro.
 - **Modal de Pago:** Efectivo con vuelto, Tarjeta Transbank y Beca Junaeb simplificada. Previsualización de boleta electrónica digital.
 - **Historial y Anulación (H2.7 & H2.9):** Modal completo de historial de ventas del turno con filtros por texto/folio y medio de pago; diálogo seguro de anulación con motivo obligatorio, previsualización de ítems y restitución contable.
-- **Tests:** 69 de 69 pruebas unitarias pasando (100% PASS). Registro detallado por módulo disponible en `docs/qa/registro-pruebas-unitarias.md`.
+- **Tests:** 70 de 70 pruebas unitarias pasando (100% PASS). Registro detallado por módulo disponible en `docs/qa/registro-pruebas-unitarias.md`.
