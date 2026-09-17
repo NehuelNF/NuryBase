@@ -43,6 +43,8 @@ __screenshots__/
 .DS_Store
 Thumbs.db
 
+# Environment variables
+/infra/.env.local
 # AI agent personal context files
 /AGENTS.md
 /CLAUDE.md

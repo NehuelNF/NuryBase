@@ -1,4 +1,4 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { inject, Injectable, computed, signal } from '@angular/core';
 import {
   CartItem,
   CompletedSale,
@@ -6,11 +6,69 @@ import {
   PosCategory,
   PosProduct,
 } from '../models/pos.model';
+import { ProductosApiService, ProductoApi } from '../../../core/api/productos-api.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PosService {
+
+  private readonly productosApi = inject(ProductosApiService);
+
+  cargarCatalogoDesdeApi(): void {
+    this.productosApi.listar().subscribe({
+      next: (productos) => {
+        this.catalog.set(productos.map((producto) => this.adaptarProducto(producto)));
+      },
+      error: (error) => {
+        console.error('No se pudo cargar el catálogo desde PostgREST', error);
+      },
+    });
+  }
+
+  private adaptarProducto(producto: ProductoApi): PosProduct {
+    const categoria = (producto.categoria ?? '').toLowerCase();
+
+    let categoriaId = 0;
+    let icono = '🛍️';
+
+    if (categoria.includes('café') || categoria.includes('cafe')) {
+      categoriaId = 1;
+      icono = '☕';
+    } else if (categoria.includes('sandwich') || categoria.includes('sándwich')) {
+      categoriaId = 2;
+      icono = '🥪';
+    } else if (
+      categoria.includes('dulce') ||
+      categoria.includes('pastel') ||
+      categoria.includes('boll')
+    ) {
+      categoriaId = 3;
+      icono = '🥐';
+    } else if (
+      categoria.includes('bebida') ||
+      categoria.includes('jugo') ||
+      categoria.includes('coca')
+    ) {
+      categoriaId = 4;
+      icono = '🥤';
+    }
+
+    return {
+      id: producto.id,
+      nombre: producto.nombre,
+      categoriaId,
+      categoriaNombre: producto.categoria ?? 'Otros',
+      codigoInterno: `NUR-${String(producto.id).padStart(3, '0')}`,
+      codigoBarras: producto.codigo_barras ?? '',
+      precioVenta: Number(producto.precio_venta),
+      icono,
+      descripcion: '',
+      activo: producto.activo,
+    };
+  }
+
+
   // Categorías de productos del Punto de Venta
   readonly categories: PosCategory[] = [
     { id: 0, nombre: 'Todos', icono: '✨' },
