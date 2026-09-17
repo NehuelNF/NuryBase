@@ -19,7 +19,7 @@
       <p class="brand-subtitle">Ingresa tus datos para comenzar el turno.</p>
     </div>
 
-    <!-- Mensaje de error si falla -->
+    <!-- Mensaje de error si falla (credenciales inválidas) -->
     @if (errorMessage()) {
       <div class="error-alert" role="alert">
         <span>{{ errorMessage() }}</span>
@@ -27,37 +27,43 @@
     }
 
     <!-- Formulario de Login -->
-    <form (ngSubmit)="onLogin()" class="login-form">
+    <form [formGroup]="form" (ngSubmit)="submit()" class="login-form" novalidate>
       <div class="form-group">
-        <label for="identificador">Correo o RUT</label>
-        <div class="input-wrapper">
+        <label for="identificadorAcceso">Correo o RUT</label>
+        <div class="input-wrapper" [class.invalid]="form.controls.identificadorAcceso.invalid && form.controls.identificadorAcceso.touched">
           <input
-            id="identificador"
+            id="identificadorAcceso"
             type="text"
-            [ngModel]="identificador()"
-            (ngModelChange)="identificador.set($event)"
-            name="identificador"
+            formControlName="identificadorAcceso"
             placeholder="ej. c.rojas@nurys.cl"
-            required
             autocomplete="username"
           />
         </div>
+        @if (form.controls.identificadorAcceso.invalid && form.controls.identificadorAcceso.touched) {
+          <p class="field-error">El usuario es obligatorio.</p>
+        }
       </div>
 
       <div class="form-group">
         <label for="contrasena">Contraseña</label>
-        <div class="input-wrapper">
+        <div class="input-wrapper" [class.invalid]="form.controls.contrasena.invalid && form.controls.contrasena.touched">
           <input
             id="contrasena"
             type="password"
-            [ngModel]="contrasena()"
-            (ngModelChange)="contrasena.set($event)"
-            name="contrasena"
+            formControlName="contrasena"
             placeholder="••••••••"
-            required
             autocomplete="current-password"
           />
         </div>
+        @if (form.controls.contrasena.invalid && form.controls.contrasena.touched) {
+          <p class="field-error">
+            @if (form.controls.contrasena.hasError('required')) {
+              La contraseña es obligatoria.
+            } @else if (form.controls.contrasena.hasError('minlength')) {
+              La contraseña debe tener al menos 4 caracteres.
+            }
+          </p>
+        }
       </div>
 
       <button type="submit" class="btn-submit" [disabled]="isLoading()">
@@ -76,7 +82,7 @@
       </div>
 
       <div class="quick-users-list">
-        @for (u of mockUsers; track u.id) {
+        @for (u of demoAccounts; track u.id) {
           <button
             type="button"
             class="quick-user-btn"

@@ -1,49 +1,77 @@
-import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { UpperCasePipe } from '@angular/common';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { User } from '../../models/auth.model';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [ReactiveFormsModule, UpperCasePipe],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
 })
 export class LoginComponent {
+  private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
-  readonly mockUsers = this.authService.mockUsers;
+  /** Cuentas de demostración (sin contraseña) para los accesos rápidos. */
+  readonly demoAccounts = this.authService.demoAccounts;
 
-  readonly identificador = signal<string>('c.rojas@nurys.cl');
-  readonly contrasena = signal<string>('1234');
   readonly errorMessage = signal<string | null>(null);
-  readonly isLoading = signal<boolean>(false);
+  readonly isLoading = signal(false);
 
-  onLogin(): void {
+  /**
+   * H1.1 — criterio 4: los campos se validan a nivel de código, no pueden
+   * quedar nulos ni vacíos. `nonNullable` evita que los controles sean
+   * `string | null`, y los Validators rechazan vacío/espacios y
+   * contraseñas demasiado cortas antes de siquiera intentar el login.
+   */
+  readonly form = this.fb.nonNullable.group({
+    identificadorAcceso: ['', [Validators.required, requiredTrimmedValidator]],
+    contrasena: ['', [Validators.required, Validators.minLength(4)]],
+  });
+
+  submit(): void {
     this.errorMessage.set(null);
 
-    if (!this.identificador().trim() || !this.contrasena().trim()) {
-      this.errorMessage.set('Por favor ingresa tu identificador (correo o RUT) y contraseña.');
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
       return;
     }
 
     this.isLoading.set(true);
+    const credentials = this.form.getRawValue();
 
+    // Simula la latencia de una llamada real, y deja el punto único donde
+    // más adelante se reemplaza por una petición HTTP al backend.
     setTimeout(() => {
-      const success = this.authService.login(this.identificador(), this.contrasena());
+      const result = this.authService.login(credentials);
       this.isLoading.set(false);
 
-      if (!success) {
-        this.errorMessage.set('Credenciales inválidas. Usa uno de los accesos de prueba o revisa tu contraseña.');
+      if (!result.success) {
+        this.errorMessage.set(result.message);
+        return;
       }
-    }, 400);
+
+      const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/pos';
+      this.router.navigateByUrl(returnUrl);
+    }, 300);
   }
 
+  /** Autocompleta el formulario con una cuenta de demo y lo envía. */
   selectQuickUser(user: User): void {
-    this.identificador.set(user.identificadorAcceso);
-    this.contrasena.set('1234');
-    this.authService.loginAs(user);
+    this.form.setValue({
+      identificadorAcceso: user.identificadorAcceso,
+      contrasena: '1234',
+    });
+    this.submit();
   }
+}
+
+function requiredTrimmedValidator(control: { value: string }) {
+  return control.value?.trim().length > 0 ? null : { required: true };
 }

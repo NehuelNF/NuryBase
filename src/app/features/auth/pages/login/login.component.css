@@ -246,3 +246,14 @@
     padding: 32px 24px;
   }
 }
+
+/* Validación de campos (H1.1) */
+.input-wrapper.invalid input {
+  border-color: #873c28;
+  outline: 2px solid #f8e7e1;
+}
+.field-error {
+  color: #873c28;
+  font-size: 12px;
+  margin: 6px 0 0 0;
+}
