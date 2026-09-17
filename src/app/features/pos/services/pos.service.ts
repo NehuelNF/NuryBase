@@ -18,6 +18,7 @@ export class PosService {
     { id: 2, nombre: 'Sándwiches', icono: '🥪' },
     { id: 3, nombre: 'Bollería & Dulces', icono: '🥐' },
     { id: 4, nombre: 'Bebidas Frías', icono: '🥤' },
+    { id: 5, nombre: 'Otros', icono: '◉' },
   ];
 
   // Catálogo de productos basado en nury_schema.sql con códigos internos y de barras

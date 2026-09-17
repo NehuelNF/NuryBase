@@ -3,6 +3,7 @@ import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../auth/services/auth.service';
+import { ProductosApiService } from '../../../../core/api/productos-api.service';
 import { PaymentModalComponent } from '../../components/payment-modal/payment-modal.component';
 import { CompletedSale, PosProduct } from '../../models/pos.model';
 import { PosService } from '../../services/pos.service';
@@ -18,6 +19,7 @@ export class PosLayoutComponent implements OnDestroy {
   readonly posService = inject(PosService);
   readonly authService = inject(AuthService);
   private readonly router = inject(Router, { optional: true });
+  private readonly productosApi = inject(ProductosApiService, { optional: true });
 
   readonly categories = this.posService.categories;
   readonly catalog = this.posService.catalog;
@@ -46,6 +48,15 @@ export class PosLayoutComponent implements OnDestroy {
     this.timerId = setInterval(() => {
       this.currentTime.set(new Date().toLocaleTimeString('es-CL'));
     }, 1000);
+
+    this.productosApi?.listarActivos().subscribe({
+      next: (products) => {
+        if (products.length > 0) this.posService.catalog.set(products);
+      },
+      error: () => {
+        // El catálogo local permanece disponible si PostgREST no responde.
+      },
+    });
   }
 
   ngOnDestroy(): void {
