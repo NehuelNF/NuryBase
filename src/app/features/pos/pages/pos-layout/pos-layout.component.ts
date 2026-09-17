@@ -1,5 +1,5 @@
 import { CommonModule, DecimalPipe } from '@angular/common';
-import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../auth/services/auth.service';
@@ -14,7 +14,11 @@ import { PosService } from '../../services/pos.service';
   templateUrl: './pos-layout.component.html',
   styleUrl: './pos-layout.component.css',
 })
-export class PosLayoutComponent implements OnDestroy {
+
+
+
+export class PosLayoutComponent implements OnInit, OnDestroy {
+
   readonly posService = inject(PosService);
   readonly authService = inject(AuthService);
   private readonly router = inject(Router, { optional: true });
@@ -46,6 +50,10 @@ export class PosLayoutComponent implements OnDestroy {
     this.timerId = setInterval(() => {
       this.currentTime.set(new Date().toLocaleTimeString('es-CL'));
     }, 1000);
+  }
+
+  ngOnInit(): void {
+    this.posService.cargarCatalogoDesdeApi();
   }
 
   ngOnDestroy(): void {
