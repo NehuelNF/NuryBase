@@ -10,9 +10,9 @@ Este documento mantiene el registro histórico y actualizado de todas las prueba
 - **Fecha de ejecución:** 16 de septiembre de 2026
 - **Rama:** `Patricio_Branch`
 - **Entorno:** Vitest 4.1 / Angular 22 / Node 24
-- **Total suites (archivos):** 9 aprobadas (100%)
-- **Total pruebas ejecutadas:** 51 aprobadas (100%)
-- **Tiempo de ejecución:** ~13.1 segundos
+- **Total suites (archivos):** 10 aprobadas (100%)
+- **Total pruebas ejecutadas:** 53 aprobadas (100%)
+- **Tiempo de ejecución:** 7.20 segundos
 - **Resultado:** ✅ PASSED (0 fallos, 0 omitidas)
 
 ---
@@ -43,6 +43,13 @@ Este documento mantiene el registro histórico y actualizado de todas las prueba
 | **POS-15** | `PosService` | Adición a comanda, acumulación de cantidades y cálculo neto/IVA/total | ✅ PASS |
 | **POS-16** | `PosService` | Búsqueda y adición por código interno o código de barras EAN-13 (H2.1 & H2.3) | ✅ PASS |
 | **POS-17** | `PosService` | Completar venta, generación de folio `TK-x` y cálculo exacto de vuelto (H2.4) | ✅ PASS |
+
+**Archivo:** `src/app/core/api/productos-api.service.spec.ts` (2 pruebas)
+
+| ID | Suite | Caso de Prueba / Criterio | Estado |
+| :--- | :--- | :--- | :--- |
+| **API-01** | `ProductosApiService` | Consulta de productos activos a PostgREST con selección y orden esperados | ✅ PASS |
+| **API-02** | `ProductosApiService` | Mapeo de categorías de base de datos a categorías del POS y generación de códigos internos `NUR-xxx` | ✅ PASS |
 
 ---
 

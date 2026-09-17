@@ -94,4 +94,4 @@ git status
 - **Login (`/login`):** Standalone component con Signals, validación de RUT/correo, selector rápido de usuarios demo (Camila Rojas - Cajera, Patricio Menares - Admin, Sebastián Vera - Bodeguero).
 - **POS (`/pos`):** Cabecera de turno con LED verde pulsante y reloj digital en vivo; buscador reactivo de texto + escáner de código de barras; pestañas de categorías con badges de conteo; grilla táctil de productos; comanda lateral con steppers (+ / -) y cobro.
 - **Modal de Pago:** Efectivo con vuelto, Tarjeta Transbank y Beca Junaeb simplificada. Previsualización de boleta electrónica digital.
-- **Tests:** 51 de 51 pruebas unitarias pasando (100% PASS). Registro detallado por módulo disponible en `docs/qa/registro-pruebas-unitarias.md`.
+- **Tests:** 53 de 53 pruebas unitarias pasando (100% PASS). Registro detallado por módulo disponible en `docs/qa/registro-pruebas-unitarias.md`.
