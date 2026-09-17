@@ -45,3 +45,7 @@ Thumbs.db
 
 # Environment variables
 /infra/.env.local
+# AI agent personal context files
+/AGENTS.md
+/CLAUDE.md
+/.cursorrules
