@@ -1,1 +1,153 @@
-/* You can add global styles to this file, and also import other style files */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+}
+html,
+body {
+  min-height: 100%;
+  background: #f5f3ed;
+  color: #292e27;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+button,
+input {
+  font: inherit;
+}
+button {
+  cursor: pointer;
+  touch-action: manipulation;
+}
+button:disabled {
+  cursor: not-allowed;
+}
+:focus-visible {
+  outline: 3px solid #a64d34;
+  outline-offset: 4px;
+}
+input {
+  min-width: 0;
+}
+::selection {
+  background: #dce2c9;
+}
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-thumb {
+  background: #c8c9bd;
+  border-radius: 6px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Estilos de impresión: comprobante térmico limpio de 80mm sin sidebar ni modales */
+@media print {
+  @page {
+    margin: 8mm auto;
+    size: auto;
+  }
+
+  /* Ocultar elementos que no corresponden a la impresión del comprobante */
+  app-sidebar,
+  .sidebar,
+  aside,
+  .pos-top-bar,
+  .pos-main-container,
+  .scanner-toast,
+  .register-closed-banner,
+  .ticket-badge-ok,
+  .ticket-actions,
+  .print-hint,
+  .btn-close,
+  .modal-header,
+  .modal-footer,
+  .logout-confirm-overlay,
+  .register-confirm-overlay {
+    display: none !important;
+  }
+
+  html,
+  body {
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  app-root,
+  .main-layout,
+  .main-layout-content,
+  app-pos-layout,
+  .pos-screen,
+  app-payment-modal,
+  .modal-overlay,
+  .modal-window,
+  .ticket-view {
+    display: block !important;
+    position: static !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    width: 100% !important;
+    max-width: none !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    background: white !important;
+    box-shadow: none !important;
+  }
+
+  .receipt-paper {
+    display: block !important;
+    width: 100% !important;
+    max-width: 80mm !important;
+    margin: 0 auto !important;
+    padding: 8px 0 !important;
+    border: none !important;
+    border-top: none !important;
+    box-shadow: none !important;
+    background: white !important;
+    color: black !important;
+    font-size: 11pt !important;
+    line-height: 1.4 !important;
+  }
+
+  .receipt-paper * {
+    color: black !important;
+    background: transparent !important;
+  }
+
+  .receipt-divider {
+    font-size: 0 !important;
+    line-height: 0 !important;
+    height: 0 !important;
+    color: transparent !important;
+    border-top: 1px dashed black !important;
+    margin: 12px 0 !important;
+  }
+
+  .receipt-row {
+    display: flex !important;
+    justify-content: space-between !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .receipt-totals,
+  .receipt-footer {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+}
