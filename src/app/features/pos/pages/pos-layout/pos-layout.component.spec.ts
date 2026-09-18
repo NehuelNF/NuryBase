@@ -1,10 +1,41 @@
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { NEVER } from 'rxjs';
+import { ProductosApiService } from '../../../../core/api/productos-api.service';
+import { PosProduct } from '../../models/pos.model';
+import { PosService } from '../../services/pos.service';
 import { PosLayoutComponent } from './pos-layout.component';
 
 @Component({ standalone: true, template: '' })
 class DummyComponent {}
+
+const TEST_PRODUCTS: PosProduct[] = [
+  {
+    id: 1,
+    nombre: 'Café Espresso Doble',
+    categoriaId: 1,
+    categoriaNombre: 'Cafetería',
+    codigoInterno: 'NUR-101',
+    codigoBarras: '7801234501018',
+    precioVenta: 2600,
+    icono: '☕',
+    descripcion: 'Producto exclusivo para pruebas.',
+    activo: true,
+  },
+  ...[201, 202, 203].map((code, index) => ({
+    id: index + 2,
+    nombre: ['Sándwich Ave Palta', 'Sándwich Mechada Luco', 'Sándwich Jamón Queso'][index],
+    categoriaId: 2,
+    categoriaNombre: 'Sándwiches',
+    codigoInterno: `NUR-${code}`,
+    codigoBarras: `780123450${code}`,
+    precioVenta: 4000 + index * 500,
+    icono: '🥪',
+    descripcion: 'Producto exclusivo para pruebas.',
+    activo: true,
+  })),
+];
 
 describe('PosLayoutComponent', () => {
   it('finds accented names with unaccented uppercase text', () => {
@@ -56,12 +87,17 @@ describe('PosLayoutComponent', () => {
     await TestBed.configureTestingModule({
       imports: [PosLayoutComponent],
       providers: [
+        { provide: ProductosApiService, useValue: { listar: () => NEVER } },
         provideRouter([
           { path: 'login', component: DummyComponent },
           { path: 'pos', component: DummyComponent },
         ]),
       ],
     }).compileComponents();
+
+    const posService = TestBed.inject(PosService);
+    posService.catalog.set(TEST_PRODUCTS.map((product) => ({ ...product })));
+    posService.clearCart();
   });
 
   it('should create the pos layout component', () => {
