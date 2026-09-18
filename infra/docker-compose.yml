@@ -15,6 +15,7 @@ services:
       - ../database/seed/carga_proveedores_nury.sql:/docker-entrypoint-initdb.d/03_proveedores.sql:ro
       - ../database/local/04_roles.sql:/docker-entrypoint-initdb.d/04_roles.sql:ro
       - ../database/local/05_sucursal.sql:/docker-entrypoint-initdb.d/05_sucursal.sql:ro
+      - ../database/local/06_auth.sql:/docker-entrypoint-initdb.d/06_auth.sql:ro
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
       interval: 5s
@@ -31,6 +32,7 @@ services:
       PGRST_DB_URI: postgres://authenticator:postgrest_local_only@postgres:5432/${POSTGRES_DB}
       PGRST_DB_SCHEMAS: public
       PGRST_DB_ANON_ROLE: web_anon
+      PGRST_JWT_SECRET: ${PGRST_JWT_SECRET:-nurybase-dev-jwt-secret-change-me}
       PGRST_SERVER_PORT: 3000
       PGRST_SERVER_CORS_ALLOWED_ORIGINS: http://localhost:4200
     ports:

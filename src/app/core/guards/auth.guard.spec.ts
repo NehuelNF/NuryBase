@@ -1,6 +1,9 @@
 import { Component } from '@angular/core';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { AuthService } from '../../features/auth/services/auth.service';
 import { authGuard } from './auth.guard';
 
@@ -10,6 +13,7 @@ class DummyComponent {}
 describe('authGuard', () => {
   let router: Router;
   let authService: AuthService;
+  let http: HttpTestingController;
 
   beforeEach(() => {
     sessionStorage.clear();
@@ -19,10 +23,13 @@ describe('authGuard', () => {
           { path: 'pos', component: DummyComponent },
           { path: 'login', component: DummyComponent },
         ]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
       ],
     });
     router = TestBed.inject(Router);
     authService = TestBed.inject(AuthService);
+    http = TestBed.inject(HttpTestingController);
   });
 
   function runGuard() {
@@ -37,16 +44,26 @@ describe('authGuard', () => {
     expect(result).not.toBe(true);
   });
 
-  it('allows access when there is a valid session', () => {
-    authService.login({ identificadorAcceso: 'c.rojas@nurys.cl', contrasena: '1234' });
+  it('allows access when there is a valid session', async () => {
+    const login = firstValueFrom(authService.login({ identificadorAcceso: 'c.rojas@nurys.cl', contrasena: '1234' }));
+    http.expectOne('http://localhost:3000/rpc/login').flush({
+      token: 'signed.jwt.token',
+      user: { id: 1, nombre: 'Camila Rojas V.', identificadorAcceso: 'c.rojas@nurys.cl', rol: 'cajero', sucursalId: 1, sucursalNombre: 'Nury Providencia', activo: true },
+    });
+    await login;
 
     const result = runGuard();
 
     expect(result).toBe(true);
   });
 
-  it('blocks access again right after logout (H1.1 criterio 3)', () => {
-    authService.login({ identificadorAcceso: 'c.rojas@nurys.cl', contrasena: '1234' });
+  it('blocks access again right after logout (H1.1 criterio 3)', async () => {
+    const login = firstValueFrom(authService.login({ identificadorAcceso: 'c.rojas@nurys.cl', contrasena: '1234' }));
+    http.expectOne('http://localhost:3000/rpc/login').flush({
+      token: 'signed.jwt.token',
+      user: { id: 1, nombre: 'Camila Rojas V.', identificadorAcceso: 'c.rojas@nurys.cl', rol: 'cajero', sucursalId: 1, sucursalNombre: 'Nury Providencia', activo: true },
+    });
+    await login;
     expect(runGuard()).toBe(true);
 
     authService.logout();

@@ -46,10 +46,7 @@ export class LoginComponent {
     this.isLoading.set(true);
     const credentials = this.form.getRawValue();
 
-    // Simula la latencia de una llamada real, y deja el punto único donde
-    // más adelante se reemplaza por una petición HTTP al backend.
-    setTimeout(() => {
-      const result = this.authService.login(credentials);
+    this.authService.login(credentials).subscribe((result) => {
       this.isLoading.set(false);
 
       if (!result.success) {
@@ -59,7 +56,7 @@ export class LoginComponent {
 
       const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/pos';
       this.router.navigateByUrl(returnUrl);
-    }, 300);
+    });
   }
 
   /** Autocompleta el formulario con una cuenta de demo y lo envía. */

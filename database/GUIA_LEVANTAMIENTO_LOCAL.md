@@ -63,7 +63,8 @@ database/
 │   └── carga_proveedores_nury.sql
 └── local/
     ├── 04_roles.sql
-    └── 05_sucursal.sql
+    ├── 05_sucursal.sql
+    └── 06_auth.sql
 ```
 
 También debe existir:
@@ -83,6 +84,7 @@ Test-Path .\infra\docker-compose.yml
 Test-Path .\database\schema_nury.sql
 Test-Path .\database\local\04_roles.sql
 Test-Path .\database\local\05_sucursal.sql
+Test-Path .\database\local\06_auth.sql
 ```
 
 Todos deben devolver `True`.
@@ -95,6 +97,7 @@ Crear únicamente `infra/.env.local` con este contenido:
 POSTGRES_DB=nury
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres_local_only
+PGRST_JWT_SECRET=nurybase-dev-jwt-secret-change-me
 ```
 
 Este archivo es solo para desarrollo local y no debe subirse al repositorio. Debe estar incluido en `.gitignore`:
@@ -125,6 +128,7 @@ services:
       - ../database/seed/carga_proveedores_nury.sql:/docker-entrypoint-initdb.d/03_proveedores.sql:ro
       - ../database/local/04_roles.sql:/docker-entrypoint-initdb.d/04_roles.sql:ro
       - ../database/local/05_sucursal.sql:/docker-entrypoint-initdb.d/05_sucursal.sql:ro
+      - ../database/local/06_auth.sql:/docker-entrypoint-initdb.d/06_auth.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
@@ -141,6 +145,7 @@ services:
       PGRST_DB_URI: postgres://authenticator:postgrest_local_only@postgres:5432/${POSTGRES_DB}
       PGRST_DB_SCHEMAS: public
       PGRST_DB_ANON_ROLE: web_anon
+      PGRST_JWT_SECRET: ${PGRST_JWT_SECRET:-nurybase-dev-jwt-secret-change-me}
       PGRST_SERVER_PORT: 3000
       PGRST_SERVER_CORS_ALLOWED_ORIGINS: http://localhost:4200
     ports:
@@ -164,9 +169,10 @@ Los siguientes archivos ya vienen incluidos en el proyecto y no deben crearse nu
 ```text
 database/local/04_roles.sql
 database/local/05_sucursal.sql
+database/local/06_auth.sql
 ```
 
-`04_roles.sql` crea los roles necesarios para PostgREST y `05_sucursal.sql` crea la sucursal local inicial. Docker los ejecutará automáticamente mediante `docker-compose.yml`.
+`04_roles.sql` crea los roles necesarios para PostgREST, `05_sucursal.sql` crea la sucursal local inicial y `06_auth.sql` instala el login JWT y las cuentas de desarrollo. Docker los ejecutará automáticamente mediante `docker-compose.yml`.
 
 ## 7. Permisos locales de PostgREST
 
@@ -175,6 +181,12 @@ El contenido de `database/local/04_roles.sql` ya está versionado. Estos permiso
 ## 8. Sucursal inicial
 
 El archivo `database/local/05_sucursal.sql` ya está versionado y será ejecutado automáticamente después del esquema y los seeds.
+
+Las cuentas locales usan la contraseña `1234`:
+
+- `c.rojas@nurys.cl`
+- `pa.menares@duocuc.cl`
+- `s.vera@nurys.cl`
 
 ## 9. Iniciar la base y PostgREST
 

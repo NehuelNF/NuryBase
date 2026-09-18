@@ -1,5 +1,8 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { Observable, catchError, map, of } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 import { LoginCredentials, LoginResult, User } from '../models/auth.model';
 
 const SESSION_STORAGE_KEY = 'nury_session';
@@ -11,27 +14,28 @@ interface StoredSession {
   expiresAt: number;
 }
 
+interface LoginApiResponse {
+  token: string;
+  user: User;
+}
+
 /**
  * H1.1 — Autenticación de usuarios.
  *
- * TODO(backend): hoy no existe un endpoint real de login. Según
- * database/local/04_roles.sql y infra/docker-compose.yml, el backend es
- * PostgREST directo sobre PostgreSQL, pero todavía falta la función SQL de
- * login (validar password_hash) y la emisión de un JWT (PGRST_JWT_SECRET).
- * Mientras eso no exista, `mockUsers` es la única "base de datos" de
- * credenciales disponible. El resto del ciclo de vida de la sesión (token,
- * expiración, logout, guard) ya funciona de verdad y no depende de esto:
- * cuando exista POST /rpc/login, solo hay que reemplazar el cuerpo de
- * `login()` por una llamada HTTP real.
+ * Autenticación contra el RPC `public.login` expuesto por PostgREST. La
+ * contraseña se valida dentro de PostgreSQL y el backend devuelve un JWT.
  */
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly mockUsers: ReadonlyArray<User & { contrasena: string }> = [
+  private readonly http = inject(HttpClient);
+  private readonly loginUrl = `${environment.apiUrl}/rpc/login`;
+
+  /** Perfiles de acceso rápido de desarrollo; las credenciales se validan en la API. */
+  readonly demoAccounts: ReadonlyArray<User> = [
     {
       id: 1,
       nombre: 'Camila Rojas V.',
       identificadorAcceso: 'c.rojas@nurys.cl',
-      contrasena: '1234',
       rol: 'cajero',
       sucursalId: 1,
       sucursalNombre: 'Nury Providencia',
@@ -41,7 +45,6 @@ export class AuthService {
       id: 2,
       nombre: 'Patricio Menares H.',
       identificadorAcceso: 'pa.menares@duocuc.cl',
-      contrasena: '1234',
       rol: 'admin',
       sucursalId: 1,
       sucursalNombre: 'Casa Central (Todas)',
@@ -51,18 +54,12 @@ export class AuthService {
       id: 3,
       nombre: 'Sebastián Vera M.',
       identificadorAcceso: 's.vera@nurys.cl',
-      contrasena: '1234',
       rol: 'bodeguero',
       sucursalId: 1,
       sucursalNombre: 'Bodega Central Santiago',
       activo: true,
     },
   ];
-
-  /** Cuentas de demostración sin la contraseña, para mostrar en el login. */
-  readonly demoAccounts: ReadonlyArray<User> = this.mockUsers.map(
-    ({ contrasena: _contrasena, ...user }) => user,
-  );
 
   private readonly tokenSignal = signal<string | null>(null);
   readonly currentUser = signal<User | null>(null);
@@ -81,33 +78,34 @@ export class AuthService {
    * Cumple H1.1: rechaza campos vacíos/nulos, rechaza credenciales
    * incorrectas con un mensaje claro, y solo deja pasar con datos válidos.
    */
-  login(credentials: LoginCredentials): LoginResult {
+  login(credentials: LoginCredentials): Observable<LoginResult> {
     const identificadorAcceso = credentials.identificadorAcceso?.trim() ?? '';
     const contrasena = credentials.contrasena ?? '';
 
     if (!identificadorAcceso || !contrasena) {
-      return {
+      return of({
         success: false,
         message: 'El usuario y la contraseña son obligatorios.',
-      };
+      });
     }
 
-    const match = this.mockUsers.find(
-      (u) =>
-        u.identificadorAcceso.toLowerCase() === identificadorAcceso.toLowerCase() &&
-        u.contrasena === contrasena,
-    );
-
-    if (!match || !match.activo) {
-      return {
-        success: false,
-        message: 'Usuario o contraseña incorrectos.',
-      };
-    }
-
-    const { contrasena: _contrasena, ...user } = match;
-    this.startSession(user);
-    return { success: true, user };
+    return this.http
+      .post<LoginApiResponse>(this.loginUrl, {
+        p_identificador: identificadorAcceso,
+        p_contrasena: contrasena,
+      })
+      .pipe(
+        map(({ token, user }) => {
+          this.startSession(token, user);
+          return { success: true, user } as LoginResult;
+        }),
+        catchError(() =>
+          of({
+            success: false,
+            message: 'Usuario o contraseña incorrectos.',
+          } as LoginResult),
+        ),
+      );
   }
 
   /**
@@ -134,8 +132,7 @@ export class AuthService {
     return this.tokenSignal();
   }
 
-  private startSession(user: User): void {
-    const token = this.generateLocalToken();
+  private startSession(token: string, user: User): void {
     const expiresAt = Date.now() + SESSION_TTL_MS;
 
     this.tokenSignal.set(token);
@@ -179,12 +176,4 @@ export class AuthService {
     }
   }
 
-  /**
-   * TODO(backend): identificador local, no un JWT firmado. Alcanza para
-   * que el guard y el interceptor sepan si "hay sesión" en el navegador,
-   * pero no reemplaza la validación real del servidor.
-   */
-  private generateLocalToken(): string {
-    return `${Date.now()}.${Math.random().toString(36).slice(2)}`;
-  }
 }
