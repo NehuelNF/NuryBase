@@ -133,6 +133,7 @@ export class AuthService {
   }
 
   private startSession(token: string, user: User): void {
+    token = this.normalizeToken(token);
     const expiresAt = Date.now() + SESSION_TTL_MS;
 
     this.tokenSignal.set(token);
@@ -169,11 +170,17 @@ export class AuthService {
         return;
       }
 
-      this.tokenSignal.set(stored.token);
+      const token = this.normalizeToken(stored.token);
+      this.tokenSignal.set(token);
       this.currentUser.set(stored.user);
     } catch {
       sessionStorage.removeItem(SESSION_STORAGE_KEY);
     }
+  }
+
+  /** JWT sin saltos de línea, necesarios para poder enviarlo como header HTTP. */
+  private normalizeToken(token: string): string {
+    return token.replace(/\s+/g, '');
   }
 
 }

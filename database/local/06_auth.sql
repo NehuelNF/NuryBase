@@ -49,14 +49,16 @@ BEGIN
         'iat', v_now
     )::text;
 
-    v_token := replace(replace(replace(encode(convert_to(v_header, 'UTF8'), 'base64'), '+', '-'), '/', '_'), '=', '')
+    -- PostgreSQL inserta saltos de línea en base64 cuando la salida supera
+    -- 76 caracteres. Deben eliminarse porque un JWT va en un header HTTP.
+    v_token := replace(replace(replace(replace(encode(convert_to(v_header, 'UTF8'), 'base64'), E'\n', ''), '+', '-'), '/', '_'), '=', '')
         || '.'
-        || replace(replace(replace(encode(convert_to(v_payload, 'UTF8'), 'base64'), '+', '-'), '/', '_'), '=', '')
+        || replace(replace(replace(replace(encode(convert_to(v_payload, 'UTF8'), 'base64'), E'\n', ''), '+', '-'), '/', '_'), '=', '')
         || '.'
         || replace(replace(replace(encode(hmac(
-            replace(replace(replace(encode(convert_to(v_header, 'UTF8'), 'base64'), '+', '-'), '/', '_'), '=', '')
+            replace(replace(replace(replace(encode(convert_to(v_header, 'UTF8'), 'base64'), E'\n', ''), '+', '-'), '/', '_'), '=', '')
             || '.'
-            || replace(replace(replace(encode(convert_to(v_payload, 'UTF8'), 'base64'), '+', '-'), '/', '_'), '=', ''),
+            || replace(replace(replace(replace(encode(convert_to(v_payload, 'UTF8'), 'base64'), E'\n', ''), '+', '-'), '/', '_'), '=', ''),
             v_secret,
             'sha256'
         ), 'base64'), '+', '-'), '/', '_'), '=', '');
