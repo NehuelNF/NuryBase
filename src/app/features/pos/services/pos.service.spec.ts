@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
-import { NEVER } from 'rxjs';
+import { NEVER, of } from 'rxjs';
 import { ProductosApiService } from '../../../core/api/productos-api.service';
+import { VentasApiService } from '../../../core/api/ventas-api.service';
 import { PosProduct } from '../models/pos.model';
 import { PosService } from './pos.service';
 
@@ -24,6 +25,7 @@ describe('PosService', () => {
     TestBed.configureTestingModule({
       providers: [
         { provide: ProductosApiService, useValue: { listar: () => NEVER } },
+        { provide: VentasApiService, useValue: { registrar: () => of(999) } },
       ],
     });
     service = TestBed.inject(PosService);
@@ -67,9 +69,19 @@ describe('PosService', () => {
     service.addToCart(product);
     const total = service.total();
 
-    const sale = service.completeSale('efectivo', total + 2000, 'Camila Rojas', 'Nury Providencia');
-    expect(sale.vuelto).toBe(2000);
-    expect(sale.medioPago).toBe('efectivo');
+    let sale: import('../models/pos.model').CompletedSale | undefined;
+    service
+      .completeSale(
+        'efectivo',
+        total + 2000,
+        { id: 1, nombre: 'Camila Rojas' },
+        { id: 1, nombre: 'Nury Providencia' },
+      )
+      .subscribe((result) => (sale = result));
+
+    expect(sale?.id).toBe(999); // 999 es el id que devuelve el mock de VentasApiService
+    expect(sale?.vuelto).toBe(2000);
+    expect(sale?.medioPago).toBe('efectivo');
     expect(service.cart().length).toBe(0);
     expect(service.salesHistory().length).toBe(1);
   });

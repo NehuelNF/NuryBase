@@ -1,4 +1,5 @@
 import { inject, Injectable, computed, signal } from '@angular/core';
+import { Observable, map, tap, timeout } from 'rxjs';
 import {
   CartItem,
   CompletedSale,
@@ -7,6 +8,7 @@ import {
   PosProduct,
 } from '../models/pos.model';
 import { ProductosApiService, ProductoApi } from '../../../core/api/productos-api.service';
+import { VentasApiService } from '../../../core/api/ventas-api.service';
 
 @Injectable({
   providedIn: 'root',
@@ -14,6 +16,7 @@ import { ProductosApiService, ProductoApi } from '../../../core/api/productos-ap
 export class PosService {
 
   private readonly productosApi = inject(ProductosApiService);
+  private readonly ventasApi = inject(VentasApiService);
 
   cargarCatalogoDesdeApi(): void {
     this.productosApi.listar().subscribe({
@@ -98,8 +101,6 @@ export class PosService {
   // Estado de apertura de caja (compartido entre POS y Cierre de Caja)
   readonly isRegisterOpen = signal<boolean>(true);
 
-  private ticketSequence = 1042;
-
   openRegister(): void {
     this.isRegisterOpen.set(true);
   }
@@ -177,40 +178,62 @@ export class PosService {
     this.cart.set([]);
   }
 
+  /**
+   * Registra la venta contra PostgREST (fn_registrar_venta) y, solo si la
+   * base confirma que quedó guardada, arma el ticket y actualiza el
+   * historial local. Si falla, el carrito NO se vacía, para que el cajero
+   * pueda reintentar sin perder lo que ya había cobrado.
+   */
   completeSale(
     medioPago: PaymentMethod,
     montoRecibido: number,
-    cajeroNombre: string,
-    sucursalNombre: string,
+    cajero: { id: number; nombre: string },
+    sucursal: { id: number; nombre: string },
     extraDetails?: {
       codigoAutorizacion?: string;
       titularJunaeb?: string;
       saldoRestanteJunaeb?: number;
     }
-  ): CompletedSale {
-    this.ticketSequence++;
+  ): Observable<CompletedSale> {
+    const items = this.cart();
     const totalVenta = this.total();
     const vuelto = Math.max(0, montoRecibido - totalVenta);
 
-    const sale: CompletedSale = {
-      id: Date.now(),
-      ticketFolio: `TK-${this.ticketSequence}`,
-      fecha: new Date(),
-      cajeroNombre,
-      sucursalNombre,
-      medioPago,
-      total: totalVenta,
-      montoRecibido,
-      vuelto,
-      items: [...this.cart()],
-      codigoAutorizacion: extraDetails?.codigoAutorizacion,
-      titularJunaeb: extraDetails?.titularJunaeb,
-      saldoRestanteJunaeb: extraDetails?.saldoRestanteJunaeb,
-    };
-
-    this.salesHistory.set([sale, ...this.salesHistory()]);
-    this.clearCart();
-    return sale;
+    return this.ventasApi
+      .registrar({
+        p_sucursal_id: sucursal.id,
+        p_cajero_id: cajero.id,
+        p_medio_pago: medioPago,
+        p_items: items.map((item) => ({
+          producto: item.producto.nombre,
+          cantidad: item.cantidad,
+          precio_unitario: item.producto.precioVenta,
+        })),
+      })
+      .pipe(
+        // Si PostgREST no responde en 15s (backend caído, colgado o sin red),
+        // cortamos la espera acá para no dejar al cajero atrapado en "Guardando venta...".
+        timeout(15000),
+        map((ventaId): CompletedSale => ({
+          id: ventaId,
+          ticketFolio: `TK-${ventaId}`,
+          fecha: new Date(),
+          cajeroNombre: cajero.nombre,
+          sucursalNombre: sucursal.nombre,
+          medioPago,
+          total: totalVenta,
+          montoRecibido,
+          vuelto,
+          items,
+          codigoAutorizacion: extraDetails?.codigoAutorizacion,
+          titularJunaeb: extraDetails?.titularJunaeb,
+          saldoRestanteJunaeb: extraDetails?.saldoRestanteJunaeb,
+        })),
+        tap((sale) => {
+          this.salesHistory.set([sale, ...this.salesHistory()]);
+          this.clearCart();
+        }),
+      );
   }
 
   // Vacía el historial de ventas del turno tras un cierre de caja confirmado.

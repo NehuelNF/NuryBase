@@ -212,15 +212,27 @@
         }
       </div>
 
+      @if (saveError()) {
+        <div class="save-error-banner" role="alert">
+          {{ saveError() }}
+        </div>
+      }
+
       <div class="modal-footer">
-        <button type="button" class="btn-cancel" (click)="close.emit()">Volver a la venta</button>
+        <button type="button" class="btn-cancel" (click)="close.emit()" [disabled]="saving()">
+          Volver a la venta
+        </button>
         <button
           type="button"
           class="btn-confirm-pay"
-          [disabled]="!isPaymentValid()"
+          [disabled]="!isPaymentValid() || saving()"
           (click)="onConfirmPayment()"
         >
-          Confirmar Cobro {{ formatClp(totalToPay) }} ➜
+          @if (saving()) {
+            Guardando venta...
+          } @else {
+            Confirmar Cobro {{ formatClp(totalToPay) }} ➜
+          }
         </button>
       </div>
     } @else {
