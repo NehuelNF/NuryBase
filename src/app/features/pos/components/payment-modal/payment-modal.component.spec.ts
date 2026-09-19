@@ -1,9 +1,53 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { NEVER, of } from 'rxjs';
 import { PaymentModalComponent } from './payment-modal.component';
 import { PosService } from '../../services/pos.service';
+import { ProductosApiService } from '../../../../core/api/productos-api.service';
+import { VentasApiService } from '../../../../core/api/ventas-api.service';
+import { PosProduct } from '../../models/pos.model';
+import { AuthService } from '../../../auth/services/auth.service';
+import { User } from '../../../auth/models/auth.model';
+
+const TEST_PRODUCT: PosProduct = {
+  id: 1,
+  nombre: 'Café Espresso Doble',
+  categoriaId: 1,
+  categoriaNombre: 'Cafetería',
+  codigoInterno: 'NUR-101',
+  codigoBarras: '7801234501018',
+  precioVenta: 2600,
+  icono: '☕',
+  descripcion: 'Producto exclusivo para pruebas.',
+  activo: true,
+};
+
+const TEST_USER: User = {
+  id: 1,
+  nombre: 'Camila Rojas',
+  identificadorAcceso: 'c.rojas@nurys.cl',
+  rol: 'cajero',
+  sucursalId: 1,
+  sucursalNombre: 'Nury Providencia',
+  activo: true,
+};
 
 describe('PaymentModalComponent', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [PaymentModalComponent],
+      providers: [
+        provideRouter([]),
+        { provide: ProductosApiService, useValue: { listar: () => NEVER } },
+        { provide: VentasApiService, useValue: { registrar: () => of(999) } },
+        { provide: AuthService, useValue: { currentUser: () => TEST_USER } },
+      ],
+    }).compileComponents();
+    const pos = TestBed.inject(PosService);
+    pos.catalog.set([TEST_PRODUCT]);
+    pos.clearCart();
+  });
+
   it('prints only after a sale, keeping its receipt and sale history intact', () => {
     const print = vi.spyOn(window, 'print').mockImplementation(() => {});
     try {
@@ -117,12 +161,6 @@ describe('PaymentModalComponent', () => {
     component.onConfirmPayment();
     expect(pos.salesHistory()).toHaveLength(0);
     expect(component.completedTicket()).toBeNull();
-  });
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [PaymentModalComponent],
-      providers: [provideRouter([])],
-    }).compileComponents();
   });
 
   it('should create the payment modal', () => {

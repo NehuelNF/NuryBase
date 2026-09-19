@@ -62,6 +62,25 @@
   flex-direction: column;
   gap: 18px;
 }
+
+.save-error-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0 30px 16px;
+  padding: 13px 16px;
+  border: 1px solid #e3c6a8;
+  border-radius: 5px;
+  background: #f7ece0;
+  color: #8a4f2c;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.save-error-banner::before {
+  content: '⚠';
+  font-size: 14px;
+  line-height: 1.4;
+}
 .total-banner {
   display: flex;
   align-items: center;
@@ -480,6 +499,9 @@
   .modal-footer,
   .ticket-view {
     padding: 20px;
+  }
+  .save-error-banner {
+    margin: 0 20px 16px;
   }
   .modal-footer {
     flex-direction: column-reverse;

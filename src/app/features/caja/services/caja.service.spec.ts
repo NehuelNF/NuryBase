@@ -1,6 +1,37 @@
 import { TestBed } from '@angular/core/testing';
+import { NEVER, of } from 'rxjs';
+import { ProductosApiService } from '../../../core/api/productos-api.service';
+import { VentasApiService } from '../../../core/api/ventas-api.service';
+import { PosProduct } from '../../pos/models/pos.model';
 import { PosService } from '../../pos/services/pos.service';
 import { CajaService } from './caja.service';
+
+const TEST_PRODUCTS: PosProduct[] = [
+  {
+    id: 1,
+    nombre: 'Café Espresso Doble',
+    categoriaId: 1,
+    categoriaNombre: 'Cafetería',
+    codigoInterno: 'NUR-101',
+    codigoBarras: '7801234501018',
+    precioVenta: 2600,
+    icono: '☕',
+    descripcion: 'Producto exclusivo para pruebas.',
+    activo: true,
+  },
+  {
+    id: 2,
+    nombre: 'Cappuccino Italiano',
+    categoriaId: 1,
+    categoriaNombre: 'Cafetería',
+    codigoInterno: 'NUR-102',
+    codigoBarras: '7801234501025',
+    precioVenta: 3200,
+    icono: '☕',
+    descripcion: 'Producto exclusivo para pruebas.',
+    activo: true,
+  },
+];
 
 describe('CajaService', () => {
   function chargeSale(
@@ -12,8 +43,27 @@ describe('CajaService', () => {
     for (let i = 0; i < cantidad; i++) {
       pos.addToCart(pos.catalog()[productIndex]);
     }
-    return pos.completeSale(medioPago, pos.total(), 'Camila Rojas', 'Sucursal Providencia');
+    return pos
+      .completeSale(
+        medioPago,
+        pos.total(),
+        { id: 1, nombre: 'Camila Rojas' },
+        { id: 1, nombre: 'Sucursal Providencia' },
+      )
+      .subscribe();
   }
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: ProductosApiService, useValue: { listar: () => NEVER } },
+        { provide: VentasApiService, useValue: { registrar: () => of(999) } },
+      ],
+    });
+    const pos = TestBed.inject(PosService);
+    pos.catalog.set(TEST_PRODUCTS);
+    pos.clearCart();
+  });
 
   it('closes the shift with a snapshot of the totals and resets the sales history', () => {
     const pos = TestBed.inject(PosService);
