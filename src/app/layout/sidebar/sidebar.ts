@@ -1,5 +1,6 @@
-import { Component, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { AuthService } from '../../features/auth/services/auth.service';
 import { MenuItem } from '../../shared/models/menu-item';
 
 const STORAGE_KEY = 'nurybase.sidebar.collapsed';
@@ -11,16 +12,26 @@ const STORAGE_KEY = 'nurybase.sidebar.collapsed';
   templateUrl: './sidebar.html',
 })
 export class Sidebar {
+  private readonly authService = inject(AuthService);
   protected readonly collapsed = signal(this.readStoredState());
 
   protected readonly menuItems: MenuItem[] = [
-    { label: 'Home', icon: 'home', route: '/home' },
-    { label: 'Punto de venta', icon: 'cart', route: '/pos' },
-    { label: 'Caja', icon: 'cash', route: '/caja' },
-    { label: 'Maestro Productos', icon: 'box', route: '/product-master' },
-    { label: 'Inventario', icon: 'box', route: '/inventario' },
-    { label: 'Administración', icon: 'settings', route: '/administracion' },
+    { label: 'Home', icon: 'home', route: '/home', allowedRoles: ['admin', 'cajero', 'bodeguero'] },
+    { label: 'Punto de venta', icon: 'cart', route: '/pos', allowedRoles: ['admin', 'cajero'] },
+    { label: 'Caja', icon: 'cash', route: '/caja', allowedRoles: ['admin', 'cajero'] },
+    { label: 'Maestro Productos', icon: 'box', route: '/product-master', allowedRoles: ['admin', 'bodeguero'] },
+    { label: 'Inventario', icon: 'box', route: '/inventario', allowedRoles: ['admin', 'bodeguero'] },
+    { label: 'Administración', icon: 'settings', route: '/administracion', allowedRoles: ['admin'] },
   ];
+
+  /**
+   * El rol proviene de `public.login()` en PostgreSQL a través de PostgREST.
+   * Los accesos no autorizados no se renderizan en el menú.
+   */
+  protected readonly visibleMenuItems = computed(() => {
+    const role = this.authService.currentUser()?.rol;
+    return role ? this.menuItems.filter((item) => item.allowedRoles.includes(role)) : [];
+  });
 
   protected toggle(): void {
     const next = !this.collapsed();

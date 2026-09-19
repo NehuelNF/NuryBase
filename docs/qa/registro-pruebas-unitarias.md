@@ -8,12 +8,12 @@ Este documento mantiene el inventario y resultado real de las pruebas ejecutadas
 - **Rama:** `Patricio2_branch`
 - **Entorno:** Angular 22.1 / Vitest 4.1.11 / Node 24
 - **Suites:** 11 aprobadas de 11
-- **Pruebas:** 63 aprobadas de 63
-- **Duración:** 7.36 segundos
+- **Pruebas:** 69 aprobadas de 69
+- **Duración:** 8.30 segundos
 - **Resultado:** PASS, 0 fallos y 0 omitidas
 - **Comando:** `npm test -- --watch=false --reporters=verbose`
 - **Build:** `npm run build` aprobado, 0 errores y 0 advertencias
-- **Validación manual:** aprobada por Patricio el 19 de septiembre de 2026
+- **Validación manual:** AuthGuard y Roles UI aprobados por Patricio el 19 de septiembre de 2026
 
 > El registro anterior indicaba 70 pruebas en `Patricio_Branch`. La rama actual contiene 63; las pruebas y la implementación anterior de anulación no están presentes y esa tarea volvió a quedar pendiente.
 
@@ -23,7 +23,7 @@ Este documento mantiene el inventario y resultado real de las pruebas ejecutadas
 | --- | ---: | --- |
 | `src/app/app.spec.ts` | 2 | PASS |
 | `src/app/core/guards/auth.guard.spec.ts` | 4 | PASS |
-| `src/app/features/auth/pages/login/login.component.spec.ts` | 6 | PASS |
+| `src/app/features/auth/pages/login/login.component.spec.ts` | 8 | PASS |
 | `src/app/features/auth/services/auth.service.spec.ts` | 8 | PASS |
 | `src/app/features/caja/pages/cierre-caja/cierre-caja.component.spec.ts` | 5 | PASS |
 | `src/app/features/caja/services/caja.service.spec.ts` | 2 | PASS |
@@ -31,7 +31,7 @@ Este documento mantiene el inventario y resultado real de las pruebas ejecutadas
 | `src/app/features/pos/pages/pos-layout/pos-layout.component.spec.ts` | 12 | PASS |
 | `src/app/features/pos/services/pos.service.spec.ts` | 5 | PASS |
 | `src/app/features/products/pages/product-master/product-master.spec.ts` | 1 | PASS |
-| `src/app/layout/sidebar/sidebar.spec.ts` | 1 | PASS |
+| `src/app/layout/sidebar/sidebar.spec.ts` | 5 | PASS |
 
 ## AuthGuard y sesión — ejecución del 19-09-2026
 
@@ -43,6 +43,18 @@ Este documento mantiene el inventario y resultado real de las pruebas ejecutadas
 - Expiración del TTL de 8 horas sin necesidad de recargar la pestaña.
 - Regreso a una ruta interna solicitada después del login.
 - Rechazo de `returnUrl` externo y fallback seguro a `/pos`.
+
+## Roles UI por usuario de PostgreSQL — ejecución del 19-09-2026
+
+- El sidebar no fija roles localmente: consume `AuthService.currentUser().rol`, obtenido desde `public.login()` mediante PostgREST.
+- Cajero: muestra Home, Punto de venta y Caja.
+- Bodeguero: muestra Home, Maestro Productos e Inventario.
+- Administrador: muestra todas las opciones disponibles.
+- Sin usuario autenticado: no renderiza enlaces dependientes de rol.
+- Verificación de integración local: las tres cuentas de desarrollo devolvieron desde PostgreSQL los roles `cajero`, `admin` y `bodeguero` esperados.
+- El login envía al bodeguero a `/product-master` y descarta un `returnUrl` al POS, que no está visible para su rol.
+- Resultado automático: 5/5 pruebas del sidebar, 8/8 del login y 69/69 pruebas totales aprobadas.
+- Validación asistida en navegador integrado: cajero, administrador y bodeguero mostraron sus menús esperados; aprobada por Patricio el 19 de septiembre de 2026.
 
 ## Procedimiento obligatorio
 
