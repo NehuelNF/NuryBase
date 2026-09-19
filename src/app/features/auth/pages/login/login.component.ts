@@ -93,8 +93,8 @@ export class LoginComponent {
     }
 
     const visibleRoutes = user.rol === 'bodeguero'
-      ? ['/home', '/product-master', '/inventario']
-      : ['/home', '/pos', '/caja'];
+      ? ['/product-master', '/inventario']
+      : ['/pos', '/caja'];
 
     return visibleRoutes.some((visibleRoute) =>
       route === visibleRoute || route.startsWith(`${visibleRoute}/`),
