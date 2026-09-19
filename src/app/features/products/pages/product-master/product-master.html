@@ -119,19 +119,21 @@
           } @else {
             @for (product of products(); track product.id) {
               <tr>
-                <td class="product-code">{{ productCode(product.id) }}</td>
-                <td class="product-name">{{ product.nombre }}</td>
-                <td>
+                <td class="product-code" data-label="Código">{{ productCode(product.id) }}</td>
+                <td class="product-name" data-label="Producto">{{ product.nombre }}</td>
+                <td data-label="Categoría">
                   <span class="category-badge">{{ product.categoria ?? 'Sin categoría' }}</span>
                 </td>
-                <td class="product-price">{{ formatClp(product.precio_venta) }}</td>
-                <td>
+                <td class="product-price" data-label="Precio de venta">
+                  {{ formatClp(product.precio_venta) }}
+                </td>
+                <td data-label="Estado">
                   <span class="status" [class.inactive]="!product.activo">
                     <span class="status-dot"></span>
                     {{ product.activo ? 'Activo' : 'Inactivo' }}
                   </span>
                 </td>
-                <td class="row-actions">
+                <td class="row-actions" data-label="Acciones">
                   <button
                     type="button"
                     class="edit-button"
