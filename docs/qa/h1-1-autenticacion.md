@@ -1,10 +1,10 @@
 # Revisión de aceptación: H1.1 Autenticación de usuarios
 
-Fecha: 17 de septiembre de 2026. Rama: `Sebastian_Branch`.
+Fecha de última actualización: 19 de septiembre de 2026. Rama: `Patricio2_branch`.
 
 ## Resultado
 
-Los cuatro criterios están implementados en el frontend, con las credenciales validadas contra una lista de cuentas de demostración (`AuthService.mockUsers`), ya que todavía no existe un endpoint de login real en PostgREST (falta la función SQL de login y la configuración de JWT — ver `database/local/04_roles.sql` e `infra/docker-compose.yml`). El resto del ciclo de vida de la sesión (guard de rutas, token, expiración, logout) no depende del backend y funciona igual quede conectado a un backend real más adelante.
+Los cuatro criterios están implementados. Las credenciales se validan mediante el RPC `public.login` expuesto por PostgREST, que devuelve el JWT y los datos del usuario. El frontend protege las rutas privadas con `authGuard`, conserva la sesión por un máximo de ocho horas y la invalida al cerrar sesión o vencer el TTL.
 
 | Criterio de Trello | Evidencia | Resultado |
 | --- | --- | --- |
@@ -21,7 +21,7 @@ Archivos: `src/app/features/auth/services/auth.service.spec.ts`, `src/app/featur
 - `LoginComponent`: formulario inválido con campos vacíos; no llama al servicio si el formulario es inválido (y marca los campos como tocados); el acceso rápido de demo completa el formulario con los datos reales de la cuenta.
 - `authGuard`: bloquea y redirige a `/login` sin sesión; permite el paso con sesión válida; vuelve a bloquear inmediatamente después de un logout.
 
-Última ejecución: `npm run build` sin errores ni advertencias, y `npx ng test --watch=false` con 57/57 pruebas aprobadas en 10 archivos (incluye las 13 nuevas de esta tarea, más las ya existentes de POS, caja y catálogo, que siguen pasando sin cambios).
+Última ejecución: `npm run build` sin errores ni advertencias y `npm test -- --watch=false --reporters=verbose` con 63/63 pruebas aprobadas en 11 archivos. Incluye bloqueo con sesión expirada, expiración durante una pestaña abierta, restauración de sesión y validación segura de `returnUrl`.
 
 ## Recorrido manual para revisión del equipo
 
@@ -32,4 +32,4 @@ Archivos: `src/app/features/auth/services/auth.service.spec.ts`, `src/app/featur
 5. Ya en `/pos`, cerrar sesión y luego intentar volver con el botón "atrás" del navegador o escribiendo `localhost:4200/pos` directo en la barra de direcciones: debe rebotar de nuevo a `/login`.
 6. Volver a iniciar sesión y recargar la página (F5): debe mantener la sesión activa (no vuelve a pedir login), porque la sesión vive en `sessionStorage` con 8h de expiración.
 
-Este recorrido fue ejecutado en esta tarea (pasos 1 a 6 verificados en el navegador por el equipo) y queda disponible para que cualquiera lo repita como parte de la revisión del PR.
+Recorrido manual validado satisfactoriamente por Patricio el 19 de septiembre de 2026. La implementación queda lista para revisión y cierre de la tarjeta en Trello.

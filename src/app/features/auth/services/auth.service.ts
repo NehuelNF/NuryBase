@@ -62,9 +62,9 @@ export class AuthService {
   ];
 
   private readonly tokenSignal = signal<string | null>(null);
+  private sessionExpiresAt: number | null = null;
   readonly currentUser = signal<User | null>(null);
 
-  readonly isAuthenticated = computed(() => this.tokenSignal() !== null);
   readonly isCajero = computed(() => this.currentUser()?.rol === 'cajero');
   readonly isAdmin = computed(() => this.currentUser()?.rol === 'admin');
   readonly isBodeguero = computed(() => this.currentUser()?.rol === 'bodeguero');
@@ -115,21 +115,26 @@ export class AuthService {
    * anterior queda inválido de inmediato para esta pestaña/navegador.
    */
   logout(): void {
-    this.tokenSignal.set(null);
-    this.currentUser.set(null);
-
-    try {
-      sessionStorage.removeItem(SESSION_STORAGE_KEY);
-    } catch {
-      // sessionStorage puede no estar disponible (modo privado, etc.);
-      // igual ya se limpió el estado en memoria.
-    }
+    this.clearSession();
 
     this.router.navigate(['/login']);
   }
 
+  /** Comprueba la sesión en cada acceso para que expire sin requerir recargar. */
+  isAuthenticated(): boolean {
+    const expired = !this.sessionExpiresAt || Date.now() >= this.sessionExpiresAt;
+    const incomplete = !this.tokenSignal() || !this.currentUser();
+
+    if (expired || incomplete) {
+      this.clearSession();
+      return false;
+    }
+
+    return true;
+  }
+
   getToken(): string | null {
-    return this.tokenSignal();
+    return this.isAuthenticated() ? this.tokenSignal() : null;
   }
 
   private startSession(token: string, user: User): void {
@@ -137,6 +142,7 @@ export class AuthService {
     const expiresAt = Date.now() + SESSION_TTL_MS;
 
     this.tokenSignal.set(token);
+    this.sessionExpiresAt = expiresAt;
     this.currentUser.set(user);
 
     const stored: StoredSession = { token, user, expiresAt };
@@ -172,9 +178,23 @@ export class AuthService {
 
       const token = this.normalizeToken(stored.token);
       this.tokenSignal.set(token);
+      this.sessionExpiresAt = stored.expiresAt;
       this.currentUser.set(stored.user);
     } catch {
       sessionStorage.removeItem(SESSION_STORAGE_KEY);
+    }
+  }
+
+  private clearSession(): void {
+    this.tokenSignal.set(null);
+    this.sessionExpiresAt = null;
+    this.currentUser.set(null);
+
+    try {
+      sessionStorage.removeItem(SESSION_STORAGE_KEY);
+    } catch {
+      // sessionStorage puede no estar disponible (modo privado, etc.);
+      // igual ya se limpió el estado en memoria.
     }
   }
 
