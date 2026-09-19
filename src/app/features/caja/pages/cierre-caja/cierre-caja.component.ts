@@ -21,6 +21,9 @@ export class CierreCajaComponent {
   readonly showConfirm = signal(false);
   readonly turnoCerrado = signal<CierreCaja | null>(null);
 
+  readonly efectivoContado = signal<number | null>(null);
+  readonly justificacion = signal('');
+
   readonly summaryByMethod = this.cajaService.summaryByMethod;
   readonly grandTotal = this.cajaService.grandTotal;
   readonly hayVentasEnElTurno = this.cajaService.hayVentasEnElTurno;
@@ -35,12 +38,45 @@ export class CierreCajaComponent {
     return method ? this.cajaService.productosPorMedioPago(method) : [];
   });
 
+  readonly efectivoEsperado = computed(
+    () => this.summaryByMethod().find((m) => m.key === 'efectivo')?.total ?? 0
+  );
+
+  // Diferencia entre lo contado físicamente y lo que dice el sistema.
+  // Positivo = sobrante, negativo = faltante, null = todavía no ingresa el conteo.
+  readonly diferenciaEfectivo = computed(() => {
+    const contado = this.efectivoContado();
+    return contado === null ? null : contado - this.efectivoEsperado();
+  });
+
+  readonly requiereJustificacion = computed(() => {
+    const diferencia = this.diferenciaEfectivo();
+    return diferencia !== null && diferencia !== 0;
+  });
+
+  readonly puedeConfirmarCierre = computed(() => {
+    if (this.efectivoContado() === null) return false;
+    if (this.requiereJustificacion() && this.justificacion().trim().length === 0) return false;
+    return true;
+  });
+
+  setEfectivoContado(valor: string): void {
+    const parsed = valor.trim() === '' ? null : Number(valor);
+    this.efectivoContado.set(parsed === null || Number.isNaN(parsed) ? null : parsed);
+  }
+
+  setJustificacion(valor: string): void {
+    this.justificacion.set(valor);
+  }
+
   selectMethod(method: PaymentMethod): void {
     this.selectedMethod.set(this.selectedMethod() === method ? null : method);
   }
 
   openConfirm(): void {
     if (this.hayVentasEnElTurno()) {
+      this.efectivoContado.set(null);
+      this.justificacion.set('');
       this.showConfirm.set(true);
     }
   }
@@ -50,10 +86,14 @@ export class CierreCajaComponent {
   }
 
   confirmCierre(): void {
+    if (!this.puedeConfirmarCierre()) return;
+
     const cajero = this.authService.currentUser();
     const cierre = this.cajaService.cerrarTurno(
       cajero?.nombre ?? 'Cajero',
-      cajero?.sucursalNombre ?? 'Sucursal'
+      cajero?.sucursalNombre ?? 'Sucursal',
+      this.efectivoContado()!,
+      this.requiereJustificacion() ? this.justificacion() : null
     );
 
     this.turnoCerrado.set(cierre);
@@ -66,6 +106,10 @@ export class CierreCajaComponent {
   volverAOperar(): void {
     this.turnoCerrado.set(null);
     this.router?.navigate(['/pos']);
+  }
+
+  formatClpAbs(amount: number): string {
+    return this.formatClp(Math.abs(amount));
   }
 
   formatClp(amount: number): string {

@@ -117,19 +117,22 @@ describe('CierreCajaComponent', () => {
     expect(component.showConfirm()).toBe(false);
   });
 
-  it('closes the shift after confirming and resets the sales history', () => {
+  it('closes the shift after confirming a matching cash count', () => {
     const pos = TestBed.inject(PosService);
-    chargeSale(pos, 0, 1, 'efectivo');
-    chargeSale(pos, 1, 1, 'tarjeta');
+    chargeSale(pos, 0, 1, 'efectivo'); // $2.600
+    chargeSale(pos, 1, 1, 'tarjeta'); // $3.200
 
     const component = TestBed.createComponent(CierreCajaComponent).componentInstance;
     component.openConfirm();
     expect(component.showConfirm()).toBe(true);
 
+    component.setEfectivoContado('2600');
+    expect(component.puedeConfirmarCierre()).toBe(true);
     component.confirmCierre();
 
     expect(component.showConfirm()).toBe(false);
     expect(component.turnoCerrado()?.totalGeneral).toBe(2600 + 3200);
+    expect(component.turnoCerrado()?.diferenciaEfectivo).toBe(0);
     expect(pos.salesHistory()).toHaveLength(0);
     expect(component.grandTotal()).toBe(0);
     expect(pos.isRegisterOpen()).toBe(false);
@@ -146,5 +149,42 @@ describe('CierreCajaComponent', () => {
     expect(component.showConfirm()).toBe(false);
     expect(component.turnoCerrado()).toBeNull();
     expect(pos.salesHistory()).toHaveLength(1);
+  });
+
+  it('blocks closing when there is a cash mismatch and no justification yet (AC)', () => {
+    const pos = TestBed.inject(PosService);
+    chargeSale(pos, 0, 1, 'efectivo'); // $2.600
+
+    const component = TestBed.createComponent(CierreCajaComponent).componentInstance;
+    component.openConfirm();
+    component.setEfectivoContado('2000');
+
+    expect(component.diferenciaEfectivo()).toBe(-600);
+    expect(component.requiereJustificacion()).toBe(true);
+    expect(component.puedeConfirmarCierre()).toBe(false);
+
+    component.confirmCierre();
+    expect(component.turnoCerrado()).toBeNull(); // no cerró, faltaba justificar
+
+    component.setJustificacion('Faltó registrar una venta en el sistema.');
+    expect(component.puedeConfirmarCierre()).toBe(true);
+
+    component.confirmCierre();
+    expect(component.turnoCerrado()?.diferenciaEfectivo).toBe(-600);
+    expect(component.turnoCerrado()?.justificacionDiferencia).toBe(
+      'Faltó registrar una venta en el sistema.'
+    );
+  });
+
+  it('does not require a justification when the cash count matches exactly', () => {
+    const pos = TestBed.inject(PosService);
+    chargeSale(pos, 0, 1, 'efectivo'); // $2.600
+
+    const component = TestBed.createComponent(CierreCajaComponent).componentInstance;
+    component.openConfirm();
+    component.setEfectivoContado('2600');
+
+    expect(component.requiereJustificacion()).toBe(false);
+    expect(component.puedeConfirmarCierre()).toBe(true);
   });
 });

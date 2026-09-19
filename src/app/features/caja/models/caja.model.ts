@@ -28,4 +28,8 @@ export interface CierreCaja {
   totalGeneral: number;
   ventasTotales: number;
   desglose: PaymentMethodSummary[];
+  efectivoEsperado: number;
+  efectivoContado: number;
+  diferenciaEfectivo: number;
+  justificacionDiferencia: string | null;
 }
