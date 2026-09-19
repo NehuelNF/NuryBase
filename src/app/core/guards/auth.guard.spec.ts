@@ -41,7 +41,7 @@ describe('authGuard', () => {
   it('blocks access and redirects to /login when there is no session', () => {
     const result = runGuard();
     expect(authService.isAuthenticated()).toBe(false);
-    expect(result).not.toBe(true);
+    expect(router.serializeUrl(result as any)).toBe('/login?returnUrl=%2Fpos');
   });
 
   it('allows access when there is a valid session', async () => {
@@ -69,5 +69,31 @@ describe('authGuard', () => {
     authService.logout();
 
     expect(runGuard()).not.toBe(true);
+  });
+
+  it('blocks access when the stored session is expired', () => {
+    sessionStorage.setItem('nury_session', JSON.stringify({
+      token: 'expired.jwt.token',
+      user: { id: 1, nombre: 'Camila', identificadorAcceso: 'c.rojas@nurys.cl', rol: 'cajero', sucursalId: 1, sucursalNombre: 'Nury Providencia', activo: true },
+      expiresAt: Date.now() - 1,
+    }));
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([
+          { path: 'pos', component: DummyComponent },
+          { path: 'login', component: DummyComponent },
+        ]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+      ],
+    });
+    router = TestBed.inject(Router);
+    authService = TestBed.inject(AuthService);
+
+    expect(runGuard()).not.toBe(true);
+    expect(authService.getToken()).toBeNull();
+    expect(sessionStorage.getItem('nury_session')).toBeNull();
   });
 });

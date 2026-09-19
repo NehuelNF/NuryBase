@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { LoginComponent } from './login.component';
 
 @Component({ standalone: true, template: '' })
@@ -16,6 +16,7 @@ describe('LoginComponent', () => {
       providers: [
         provideRouter([
           { path: 'pos', component: DummyComponent },
+          { path: 'caja', component: DummyComponent },
           { path: 'login', component: DummyComponent },
         ]),
         provideHttpClient(),
@@ -65,5 +66,45 @@ describe('LoginComponent', () => {
     expect(component.form.controls.identificadorAcceso.value).toBe(
       adminUser.identificadorAcceso,
     );
+  });
+
+  it('should return to the protected internal URL after a successful login', async () => {
+    const router = TestBed.inject(Router);
+    await router.navigateByUrl('/login?returnUrl=%2Fcaja');
+    const navigateSpy = vi.spyOn(router, 'navigateByUrl');
+    const fixture = TestBed.createComponent(LoginComponent);
+    const component = fixture.componentInstance;
+
+    component.form.setValue({
+      identificadorAcceso: 'c.rojas@nurys.cl',
+      contrasena: '1234',
+    });
+    component.submit();
+    TestBed.inject(HttpTestingController).expectOne('http://localhost:3000/rpc/login').flush({
+      token: 'signed.jwt.token',
+      user: component.demoAccounts[0],
+    });
+
+    expect(navigateSpy).toHaveBeenCalledWith('/caja');
+  });
+
+  it('should reject an external returnUrl and use /pos after login', async () => {
+    const router = TestBed.inject(Router);
+    await router.navigateByUrl('/login?returnUrl=https%3A%2F%2Fevil.example');
+    const navigateSpy = vi.spyOn(router, 'navigateByUrl');
+    const fixture = TestBed.createComponent(LoginComponent);
+    const component = fixture.componentInstance;
+
+    component.form.setValue({
+      identificadorAcceso: 'c.rojas@nurys.cl',
+      contrasena: '1234',
+    });
+    component.submit();
+    TestBed.inject(HttpTestingController).expectOne('http://localhost:3000/rpc/login').flush({
+      token: 'signed.jwt.token',
+      user: component.demoAccounts[0],
+    });
+
+    expect(navigateSpy).toHaveBeenCalledWith('/pos');
   });
 });

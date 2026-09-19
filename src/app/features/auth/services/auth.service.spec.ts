@@ -111,4 +111,63 @@ describe('AuthService', () => {
     expect(service.getToken()).toBeNull();
     expect(sessionStorage.getItem('nury_session')).toBeNull();
   });
+
+  it('should restore a valid session after recreating the service', () => {
+    sessionStorage.setItem('nury_session', JSON.stringify({
+      token: 'persisted.jwt.token',
+      user: {
+        id: 2,
+        nombre: 'Patricio Menares H.',
+        identificadorAcceso: 'pa.menares@duocuc.cl',
+        rol: 'admin',
+        sucursalId: 1,
+        sucursalNombre: 'Casa Central (Todas)',
+        activo: true,
+      },
+      expiresAt: Date.now() + 60_000,
+    }));
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+      ],
+    });
+    const restoredService = TestBed.inject(AuthService);
+
+    expect(restoredService.isAuthenticated()).toBe(true);
+    expect(restoredService.isAdmin()).toBe(true);
+    expect(restoredService.getToken()).toBe('persisted.jwt.token');
+  });
+
+  it('should invalidate an active session as soon as its local TTL expires', async () => {
+    const now = Date.now();
+    vi.spyOn(Date, 'now').mockReturnValue(now);
+
+    const resultPromise = firstValueFrom(service.login({
+      identificadorAcceso: 'c.rojas@nurys.cl',
+      contrasena: '1234',
+    }));
+    http.expectOne('http://localhost:3000/rpc/login').flush({
+      token: 'signed.jwt.token',
+      user: {
+        id: 1,
+        nombre: 'Camila Rojas V.',
+        identificadorAcceso: 'c.rojas@nurys.cl',
+        rol: 'cajero',
+        sucursalId: 1,
+        sucursalNombre: 'Nury Providencia',
+        activo: true,
+      },
+    });
+    await resultPromise;
+
+    vi.spyOn(Date, 'now').mockReturnValue(now + (8 * 60 * 60 * 1000));
+
+    expect(service.isAuthenticated()).toBe(false);
+    expect(service.getToken()).toBeNull();
+    expect(sessionStorage.getItem('nury_session')).toBeNull();
+  });
 });
