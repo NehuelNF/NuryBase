@@ -18,6 +18,26 @@
         </div>
       </div>
 
+      <div class="cash-count-summary">
+        <div class="closed-row">
+          <span>Efectivo esperado (sistema)</span>
+          <strong>{{ formatClp(cierre.efectivoEsperado) }}</strong>
+        </div>
+        <div class="closed-row">
+          <span>Efectivo contado</span>
+          <strong>{{ formatClp(cierre.efectivoContado) }}</strong>
+        </div>
+        @if (cierre.diferenciaEfectivo === 0) {
+          <p class="cash-status cash-ok">✅ Caja cuadrada, sin diferencias.</p>
+        } @else {
+          <p class="cash-status" [class.cash-over]="cierre.diferenciaEfectivo > 0" [class.cash-under]="cierre.diferenciaEfectivo < 0">
+            {{ cierre.diferenciaEfectivo > 0 ? '⚠️ Sobrante de' : '⚠️ Faltante de' }}
+            {{ formatClpAbs(cierre.diferenciaEfectivo) }}
+          </p>
+          <p class="cash-justification">"{{ cierre.justificacionDiferencia }}"</p>
+        }
+      </div>
+
       <button type="button" class="btn-primary" (click)="volverAOperar()">
         Volver a punto de venta
       </button>
@@ -104,15 +124,57 @@
   @if (showConfirm()) {
     <div class="modal-overlay" (click)="cancelConfirm()">
       <div class="modal-window" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
-        <h2>¿Cerrar el turno?</h2>
+        <h2>Conteo de caja</h2>
         <p>
-          Se guardará la cuadratura con un total de <strong>{{ formatClp(grandTotal()) }}</strong>
-          y el conteo de ventas del turno actual quedará en cero para el siguiente turno. Esta
-          acción no se puede deshacer.
+          Cuenta el efectivo físico de la caja e ingrésalo abajo. El sistema registró
+          <strong>{{ formatClp(efectivoEsperado()) }}</strong> en ventas con efectivo este turno.
         </p>
+
+        <label class="field-label" for="efectivo-contado">Efectivo contado</label>
+        <input
+          id="efectivo-contado"
+          type="number"
+          min="0"
+          step="1"
+          class="cash-input"
+          placeholder="Ej: 45000"
+          [value]="efectivoContado() ?? ''"
+          (input)="setEfectivoContado($any($event.target).value)"
+        />
+
+        @if (efectivoContado() !== null) {
+          @if (diferenciaEfectivo() === 0) {
+            <p class="cash-status cash-ok">✅ Caja cuadrada, sin diferencias.</p>
+          } @else {
+            <div
+              class="cash-alert"
+              [class.cash-over]="diferenciaEfectivo()! > 0"
+              [class.cash-under]="diferenciaEfectivo()! < 0"
+            >
+              {{ diferenciaEfectivo()! > 0 ? '⚠️ Hay un sobrante de' : '⚠️ Hay un faltante de' }}
+              {{ formatClpAbs(diferenciaEfectivo()!) }}
+            </div>
+
+            <label class="field-label" for="justificacion">¿Por qué hay diferencia?</label>
+            <textarea
+              id="justificacion"
+              class="cash-textarea"
+              rows="3"
+              placeholder="Ej: se entregó mal el vuelto en una venta, faltó registrar un billete, etc."
+              [value]="justificacion()"
+              (input)="setJustificacion($any($event.target).value)"
+            ></textarea>
+          }
+        }
+
         <div class="modal-actions">
           <button type="button" class="btn-secondary" (click)="cancelConfirm()">Cancelar</button>
-          <button type="button" class="btn-primary" (click)="confirmCierre()">
+          <button
+            type="button"
+            class="btn-primary"
+            [disabled]="!puedeConfirmarCierre()"
+            (click)="confirmCierre()"
+          >
             Confirmar cierre
           </button>
         </div>
