@@ -21,7 +21,7 @@
 
   <nav class="sidebar-nav">
     <ul>
-      @for (item of menuItems; track item.route) {
+      @for (item of visibleMenuItems(); track item.route) {
         <li>
           <a
             [routerLink]="item.route"

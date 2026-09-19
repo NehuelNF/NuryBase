@@ -17,6 +17,7 @@ describe('LoginComponent', () => {
         provideRouter([
           { path: 'pos', component: DummyComponent },
           { path: 'caja', component: DummyComponent },
+          { path: 'product-master', component: DummyComponent },
           { path: 'login', component: DummyComponent },
         ]),
         provideHttpClient(),
@@ -106,5 +107,47 @@ describe('LoginComponent', () => {
     });
 
     expect(navigateSpy).toHaveBeenCalledWith('/pos');
+  });
+
+  it('should send a warehouse user to product master instead of POS', async () => {
+    const router = TestBed.inject(Router);
+    await router.navigateByUrl('/login');
+    const navigateSpy = vi.spyOn(router, 'navigateByUrl');
+    const fixture = TestBed.createComponent(LoginComponent);
+    const component = fixture.componentInstance;
+    const warehouseUser = component.demoAccounts.find((user) => user.rol === 'bodeguero')!;
+
+    component.form.setValue({
+      identificadorAcceso: warehouseUser.identificadorAcceso,
+      contrasena: '1234',
+    });
+    component.submit();
+    TestBed.inject(HttpTestingController).expectOne('http://localhost:3000/rpc/login').flush({
+      token: 'signed.jwt.token',
+      user: warehouseUser,
+    });
+
+    expect(navigateSpy).toHaveBeenCalledWith('/product-master');
+  });
+
+  it('should reject a POS returnUrl for a warehouse user', async () => {
+    const router = TestBed.inject(Router);
+    await router.navigateByUrl('/login?returnUrl=%2Fpos');
+    const navigateSpy = vi.spyOn(router, 'navigateByUrl');
+    const fixture = TestBed.createComponent(LoginComponent);
+    const component = fixture.componentInstance;
+    const warehouseUser = component.demoAccounts.find((user) => user.rol === 'bodeguero')!;
+
+    component.form.setValue({
+      identificadorAcceso: warehouseUser.identificadorAcceso,
+      contrasena: '1234',
+    });
+    component.submit();
+    TestBed.inject(HttpTestingController).expectOne('http://localhost:3000/rpc/login').flush({
+      token: 'signed.jwt.token',
+      user: warehouseUser,
+    });
+
+    expect(navigateSpy).toHaveBeenCalledWith('/product-master');
   });
 });

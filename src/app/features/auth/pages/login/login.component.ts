@@ -56,6 +56,7 @@ export class LoginComponent {
 
       const returnUrl = this.resolveReturnUrl(
         this.route.snapshot.queryParamMap.get('returnUrl'),
+        result.user,
       );
       this.router.navigateByUrl(returnUrl);
     });
@@ -71,18 +72,33 @@ export class LoginComponent {
   }
 
   /** Acepta únicamente rutas internas y evita un ciclo de regreso al login. */
-  private resolveReturnUrl(returnUrl: string | null): string {
+  private resolveReturnUrl(returnUrl: string | null, user: User): string {
     if (
       !returnUrl ||
       !returnUrl.startsWith('/') ||
       returnUrl.startsWith('//') ||
       returnUrl === '/login' ||
-      returnUrl.startsWith('/login?')
+      returnUrl.startsWith('/login?') ||
+      !this.isRouteVisibleForRole(returnUrl, user)
     ) {
-      return '/pos';
+      return user.rol === 'bodeguero' ? '/product-master' : '/pos';
     }
 
     return returnUrl;
+  }
+
+  private isRouteVisibleForRole(route: string, user: User): boolean {
+    if (user.rol === 'admin') {
+      return true;
+    }
+
+    const visibleRoutes = user.rol === 'bodeguero'
+      ? ['/home', '/product-master', '/inventario']
+      : ['/home', '/pos', '/caja'];
+
+    return visibleRoutes.some((visibleRoute) =>
+      route === visibleRoute || route.startsWith(`${visibleRoute}/`),
+    );
   }
 }
 
