@@ -1,4 +1,6 @@
 import { Component } from '@angular/core';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { LoginComponent } from './login.component';
@@ -16,6 +18,8 @@ describe('LoginComponent', () => {
           { path: 'pos', component: DummyComponent },
           { path: 'login', component: DummyComponent },
         ]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
       ],
     }).compileComponents();
   });
@@ -51,6 +55,12 @@ describe('LoginComponent', () => {
     const adminUser = component.demoAccounts.find((u) => u.rol === 'admin')!;
 
     component.selectQuickUser(adminUser);
+
+    const http = TestBed.inject(HttpTestingController);
+    http.expectOne('http://localhost:3000/rpc/login').flush({
+      token: 'signed.jwt.token',
+      user: adminUser,
+    });
 
     expect(component.form.controls.identificadorAcceso.value).toBe(
       adminUser.identificadorAcceso,

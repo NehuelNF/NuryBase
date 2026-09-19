@@ -19,13 +19,18 @@ export class ProductosApiService {
     private readonly http = inject(HttpClient);
     private readonly url = `${environment.apiUrl}/productos`;
 
-    listar(): Observable<ProductoApi[]> {
+    listar(soloActivos = true): Observable<ProductoApi[]> {
+        const params: Record<string, string> = {
+            select: 'id,nombre,categoria,precio_venta,codigo_barras,activo',
+            order: 'id.asc',
+        };
+
+        if (soloActivos) {
+            params['activo'] = 'eq.true';
+        }
+
         return this.http.get<ProductoApi[]>(this.url, {
-            params: {
-                select: 'id,nombre,categoria,precio_venta,codigo_barras,activo',
-                activo: 'eq.true',
-                order: 'id.asc',
-            },
+            params,
         });
     }
 }

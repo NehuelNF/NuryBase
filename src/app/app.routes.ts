@@ -33,6 +33,11 @@ export const routes: Routes = [
         loadChildren: () =>
           import('./features/caja/caja.routes').then((m) => m.CAJA_ROUTES),
       },
+      {
+        path: 'product-master',
+        loadChildren: () =>
+          import('./features/products/products.routes').then((m) => m.PRODUCTS_ROUTES),
+      },
     ],
   },
   {

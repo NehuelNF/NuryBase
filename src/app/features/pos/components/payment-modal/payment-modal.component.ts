@@ -36,6 +36,8 @@ export class PaymentModalComponent {
   readonly NaN = Number.NaN;
   readonly amountReceived = signal<number>(0);
   readonly completedTicket = signal<CompletedSale | null>(null);
+  readonly saving = signal<boolean>(false);
+  readonly saveError = signal<string | null>(null);
 
   // Denominaciones chilenas frecuentes para agilizar en caja
   readonly quickCashButtons = [1000, 2000, 5000, 10000, 20000];
@@ -147,23 +149,41 @@ export class PaymentModalComponent {
     if (this.posService.cart().length === 0 || this.posService.total() !== this.totalToPay) return;
 
     const user = this.authService.currentUser();
-    const cajeroNombre = user ? user.nombre : 'Cajero Turno 1';
-    const sucursalNombre = user ? user.sucursalNombre : 'Nury Providencia';
+    if (!user) {
+      this.saveError.set('No hay una sesión activa. Vuelve a iniciar sesión.');
+      return;
+    }
+    if (user.sucursalId == null) {
+      this.saveError.set('Tu usuario no tiene una sucursal asignada; no puede registrar ventas.');
+      return;
+    }
 
-    const sale = this.posService.completeSale(
-      this.selectedMethod(),
-      this.selectedMethod() === 'efectivo' ? this.amountReceived() : this.totalToPay,
-      cajeroNombre,
-      sucursalNombre,
-      this.selectedMethod() === 'junaeb'
-        ? {
-            codigoAutorizacion: `JUN-${Math.floor(100000 + Math.random() * 900000)}`,
-          }
-        : undefined,
-    );
+    this.saveError.set(null);
+    this.saving.set(true);
 
-    this.completedTicket.set(sale);
-    this.saleFinished.emit(sale);
+    this.posService
+      .completeSale(
+        this.selectedMethod(),
+        this.selectedMethod() === 'efectivo' ? this.amountReceived() : this.totalToPay,
+        { id: user.id, nombre: user.nombre },
+        { id: user.sucursalId, nombre: user.sucursalNombre },
+        this.selectedMethod() === 'junaeb'
+          ? {
+              codigoAutorizacion: `JUN-${Math.floor(100000 + Math.random() * 900000)}`,
+            }
+          : undefined,
+      )
+      .subscribe({
+        next: (sale) => {
+          this.saving.set(false);
+          this.completedTicket.set(sale);
+          this.saleFinished.emit(sale);
+        },
+        error: () => {
+          this.saving.set(false);
+          this.saveError.set('No se pudo registrar la venta. Revisa la conexión e inténtalo de nuevo.');
+        },
+      });
   }
 
   onFinish(): void {

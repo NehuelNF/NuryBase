@@ -17,6 +17,7 @@ export class Sidebar {
     { label: 'Home', icon: 'home', route: '/home' },
     { label: 'Punto de venta', icon: 'cart', route: '/pos' },
     { label: 'Caja', icon: 'cash', route: '/caja' },
+    { label: 'Maestro Productos', icon: 'box', route: '/product-master' },
     { label: 'Inventario', icon: 'box', route: '/inventario' },
     { label: 'Administración', icon: 'settings', route: '/administracion' },
   ];

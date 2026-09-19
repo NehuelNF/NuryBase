@@ -1,12 +1,35 @@
 import { TestBed } from '@angular/core/testing';
+import { NEVER, of } from 'rxjs';
+import { ProductosApiService } from '../../../core/api/productos-api.service';
+import { VentasApiService } from '../../../core/api/ventas-api.service';
+import { PosProduct } from '../models/pos.model';
 import { PosService } from './pos.service';
+
+const TEST_PRODUCT: PosProduct = {
+  id: 1,
+  nombre: 'Café Espresso Doble',
+  categoriaId: 1,
+  categoriaNombre: 'Cafetería',
+  codigoInterno: 'NUR-101',
+  codigoBarras: '7801234501018',
+  precioVenta: 2600,
+  icono: '☕',
+  descripcion: 'Producto exclusivo para pruebas.',
+  activo: true,
+};
 
 describe('PosService', () => {
   let service: PosService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: ProductosApiService, useValue: { listar: () => NEVER } },
+        { provide: VentasApiService, useValue: { registrar: () => of(999) } },
+      ],
+    });
     service = TestBed.inject(PosService);
+    service.catalog.set([TEST_PRODUCT]);
     service.clearCart();
   });
 
@@ -14,7 +37,7 @@ describe('PosService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should have products in catalog with internal codes (H2.3)', () => {
+  it('should support products loaded into the catalog with internal codes (H2.3)', () => {
     const products = service.catalog();
     expect(products.length).toBeGreaterThan(0);
     expect(products.some((p) => p.codigoInterno.startsWith('NUR-'))).toBe(true);
@@ -46,9 +69,19 @@ describe('PosService', () => {
     service.addToCart(product);
     const total = service.total();
 
-    const sale = service.completeSale('efectivo', total + 2000, 'Camila Rojas', 'Nury Providencia');
-    expect(sale.vuelto).toBe(2000);
-    expect(sale.medioPago).toBe('efectivo');
+    let sale: import('../models/pos.model').CompletedSale | undefined;
+    service
+      .completeSale(
+        'efectivo',
+        total + 2000,
+        { id: 1, nombre: 'Camila Rojas' },
+        { id: 1, nombre: 'Nury Providencia' },
+      )
+      .subscribe((result) => (sale = result));
+
+    expect(sale?.id).toBe(999); // 999 es el id que devuelve el mock de VentasApiService
+    expect(sale?.vuelto).toBe(2000);
+    expect(sale?.medioPago).toBe('efectivo');
     expect(service.cart().length).toBe(0);
     expect(service.salesHistory().length).toBe(1);
   });

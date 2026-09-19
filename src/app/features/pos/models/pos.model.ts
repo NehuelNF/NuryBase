@@ -26,6 +26,7 @@ export interface CartItem {
 export type PaymentMethod = 'efectivo' | 'tarjeta' | 'junaeb';
 
 export interface CompletedSale {
+  /** id real de la venta en la base de datos (ventas.id) */
   id: number;
   ticketFolio: string;
   fecha: Date;
