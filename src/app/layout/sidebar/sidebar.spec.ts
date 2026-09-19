@@ -33,14 +33,14 @@ describe('Sidebar', () => {
     currentUser.set(createUser('cajero'));
     fixture.detectChanges();
 
-    expect(visibleMenuRoutes()).toEqual(['/home', '/pos', '/caja']);
+    expect(visibleMenuRoutes()).toEqual(['/pos', '/caja']);
   });
 
   it('should show inventory functions and hide POS from a warehouse user', () => {
     currentUser.set(createUser('bodeguero'));
     fixture.detectChanges();
 
-    expect(visibleMenuRoutes()).toEqual(['/home', '/product-master', '/inventario']);
+    expect(visibleMenuRoutes()).toEqual(['/product-master', '/inventario']);
   });
 
   it('should show every available function to an administrator', () => {
@@ -48,7 +48,6 @@ describe('Sidebar', () => {
     fixture.detectChanges();
 
     expect(visibleMenuRoutes()).toEqual([
-      '/home',
       '/pos',
       '/caja',
       '/product-master',

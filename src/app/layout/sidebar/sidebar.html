@@ -38,7 +38,7 @@
           >
             <span class="icon">
               @switch (item.icon) {
-                @case ('home') {
+                @case ('tag') {
                   <svg
                     viewBox="0 0 24 24"
                     width="19"
@@ -47,8 +47,11 @@
                     stroke="currentColor"
                     stroke-width="1.75"
                   >
-                    <path d="M3 11.5 12 4l9 7.5" stroke-linecap="round" stroke-linejoin="round" />
-                    <path d="M5.5 9.5V20h13V9.5" stroke-linecap="round" stroke-linejoin="round" />
+                    <path
+                      d="M12.59 3H6a2 2 0 0 0-2 2v6.59a1 1 0 0 0 .29.71l9 9a1 1 0 0 0 1.42 0l6.59-6.59a1 1 0 0 0 0-1.42l-9-9a1 1 0 0 0-.71-.29Z"
+                      stroke-linejoin="round"
+                    />
+                    <circle cx="8.5" cy="8.5" r="1.15" fill="currentColor" stroke="none" />
                   </svg>
                 }
                 @case ('cart') {
