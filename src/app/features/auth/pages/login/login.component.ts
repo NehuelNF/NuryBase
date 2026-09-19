@@ -54,7 +54,9 @@ export class LoginComponent {
         return;
       }
 
-      const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/pos';
+      const returnUrl = this.resolveReturnUrl(
+        this.route.snapshot.queryParamMap.get('returnUrl'),
+      );
       this.router.navigateByUrl(returnUrl);
     });
   }
@@ -66,6 +68,21 @@ export class LoginComponent {
       contrasena: '1234',
     });
     this.submit();
+  }
+
+  /** Acepta únicamente rutas internas y evita un ciclo de regreso al login. */
+  private resolveReturnUrl(returnUrl: string | null): string {
+    if (
+      !returnUrl ||
+      !returnUrl.startsWith('/') ||
+      returnUrl.startsWith('//') ||
+      returnUrl === '/login' ||
+      returnUrl.startsWith('/login?')
+    ) {
+      return '/pos';
+    }
+
+    return returnUrl;
   }
 }
 
