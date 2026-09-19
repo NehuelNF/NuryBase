@@ -10,6 +10,11 @@ Antes de modificar cualquier interfaz, leer y aplicar [docs/GUIA-DE-DISENO.md](d
 
 ## 1. REGLAS CRÍTICAS DEL REPOSITORIO (NO ROMPER)
 
+0. **No improvisar ante información faltante o conflictos:**
+   - Si una instrucción, archivo, rama, ruta o dato solicitado no existe o no puede verificarse, detenerse e informar antes de actuar.
+   - Si un paso documentado falla, genera conflictos o exige una decisión no prevista, pedir autorización explícita antes de sustituirlo, omitirlo o aplicar una alternativa.
+   - No inventar pasos ni modificar el alcance de una guía sin aprobación de Patricio.
+
 1. **Rama de Trabajo Exclusiva:**
    - Trabajar **SIEMPRE** sobre la rama `Patricio_Branch`.
    - **PROHIBIDO** commitear o pushear cambios directamente a `main`.
