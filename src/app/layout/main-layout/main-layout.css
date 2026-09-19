@@ -14,3 +14,11 @@
   overflow: auto;
   background: #f5f3ed;
 }
+
+/* Deja espacio para la barra de navegación fija que aparece abajo en celular. */
+@media (max-width: 640px) {
+  .main-layout-content {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom));
+    box-sizing: border-box;
+  }
+}
