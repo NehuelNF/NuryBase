@@ -137,33 +137,6 @@ describe('PosLayoutComponent', () => {
     expect(component.cart().length).toBeGreaterThan(0);
   });
 
-  it('asks for confirmation before closing and opening the register', () => {
-    const component = TestBed.createComponent(PosLayoutComponent).componentInstance;
-
-    expect(component.isRegisterOpen()).toBe(true);
-    component.requestRegisterChange();
-    expect(component.pendingRegisterAction()).toBe('close');
-
-    component.confirmRegisterChange();
-    expect(component.isRegisterOpen()).toBe(false);
-    expect(component.pendingRegisterAction()).toBeNull();
-
-    component.requestRegisterChange();
-    expect(component.pendingRegisterAction()).toBe('open');
-    component.confirmRegisterChange();
-    expect(component.isRegisterOpen()).toBe(true);
-  });
-
-  it('keeps the register state when the confirmation is cancelled', () => {
-    const component = TestBed.createComponent(PosLayoutComponent).componentInstance;
-
-    component.requestRegisterChange();
-    component.cancelRegisterChange();
-
-    expect(component.isRegisterOpen()).toBe(true);
-    expect(component.pendingRegisterAction()).toBeNull();
-  });
-
   it('blocks product entry while the register is closed', () => {
     const component = TestBed.createComponent(PosLayoutComponent).componentInstance;
     const product = component.catalog()[0];
@@ -177,30 +150,11 @@ describe('PosLayoutComponent', () => {
     expect(component.barcodeFeedback()).toContain('caja está cerrada');
   });
 
-  it('shows warning when attempting to logout with an open register and allows going to cierre de caja', () => {
-    const component = TestBed.createComponent(PosLayoutComponent).componentInstance;
-    expect(component.isRegisterOpen()).toBe(true);
+  it('keeps session controls out of the POS header', () => {
+    const fixture = TestBed.createComponent(PosLayoutComponent);
+    fixture.detectChanges();
 
-    component.requestLogout();
-    expect(component.showLogoutConfirm()).toBe(true);
-
-    component.cancelLogout();
-    expect(component.showLogoutConfirm()).toBe(false);
-
-    component.requestLogout();
-    component.goToCierreCaja();
-    expect(component.showLogoutConfirm()).toBe(false);
-  });
-
-  it('allows confirmed logout when requested', () => {
-    const component = TestBed.createComponent(PosLayoutComponent).componentInstance;
-    const logoutSpy = vi.spyOn(component.authService, 'logout').mockImplementation(() => {});
-
-    component.requestLogout();
-    expect(component.showLogoutConfirm()).toBe(true);
-
-    component.confirmLogout();
-    expect(logoutSpy).toHaveBeenCalled();
-    expect(component.showLogoutConfirm()).toBe(false);
+    expect(fixture.nativeElement.querySelector('.btn-register')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.btn-logout')).toBeNull();
   });
 });
