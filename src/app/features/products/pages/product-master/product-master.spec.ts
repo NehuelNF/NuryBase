@@ -13,6 +13,8 @@ describe('ProductMaster', () => {
   let fixture: ComponentFixture<ProductMaster>;
   let updatedProduct: ProductoActualizacion | null;
   let createdProduct: ProductoCreacion | null;
+  let updatedStatus: { id: number; activo: boolean } | null;
+  let deletedProductId: number | null;
 
   const product: ProductoApi = {
     id: 7,
@@ -36,6 +38,8 @@ describe('ProductMaster', () => {
   beforeEach(async () => {
     updatedProduct = null;
     createdProduct = null;
+    updatedStatus = null;
+    deletedProductId = null;
     await TestBed.configureTestingModule({
       imports: [ProductMaster],
       providers: [
@@ -54,6 +58,15 @@ describe('ProductMaster', () => {
             actualizar: (_id: number, changes: ProductoActualizacion) => {
               updatedProduct = changes;
               return of({ ...product, ...changes });
+            },
+            actualizarEstado: (id: number, activo: boolean) => {
+              updatedStatus = { id, activo };
+              const currentProduct = id === product.id ? product : secondProduct;
+              return of({ ...currentProduct, activo });
+            },
+            eliminar: (id: number) => {
+              deletedProductId = id;
+              return of(id === product.id ? product : secondProduct);
             },
           },
         },
@@ -180,6 +193,55 @@ describe('ProductMaster', () => {
       'Café americano grande',
     );
     expect(fixture.nativeElement.querySelector('.success-toast')).toBeTruthy();
+  });
+
+  it('hides and shows a product in the catalog using the eye button', () => {
+    let visibilityButton = fixture.nativeElement.querySelector(
+      '.visibility-button',
+    ) as HTMLButtonElement;
+
+    expect(visibilityButton.getAttribute('aria-label')).toContain('Ocultar Café americano');
+    visibilityButton.click();
+    fixture.detectChanges();
+
+    expect(updatedStatus).toEqual({ id: product.id, activo: false });
+    expect(component['products']()[0].activo).toBe(false);
+    expect(fixture.nativeElement.querySelector('.status').textContent).toContain('Inactivo');
+    expect(fixture.nativeElement.querySelector('.success-toast').textContent).toContain('oculto');
+    visibilityButton = fixture.nativeElement.querySelector(
+      '.visibility-button',
+    ) as HTMLButtonElement;
+    expect(visibilityButton.getAttribute('aria-label')).toContain('Mostrar Café americano');
+
+    visibilityButton.click();
+    fixture.detectChanges();
+
+    expect(updatedStatus).toEqual({ id: product.id, activo: true });
+    expect(component['products']()[0].activo).toBe(true);
+    expect(fixture.nativeElement.querySelector('.status').textContent).toContain('Activo');
+    expect(fixture.nativeElement.querySelector('.success-toast').textContent).toContain('visible');
+  });
+
+  it('asks for confirmation and removes the product using the trash button', () => {
+    const deleteButton = fixture.nativeElement.querySelector('.delete-button') as HTMLButtonElement;
+    deleteButton.click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.delete-modal')).toBeTruthy();
+    expect(
+      fixture.nativeElement.querySelector('#delete-product-description').textContent,
+    ).toContain('Café americano');
+    expect(deletedProductId).toBeNull();
+
+    (fixture.nativeElement.querySelector('.confirm-delete-button') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(deletedProductId).toBe(product.id);
+    expect(component['products']().map((current) => current.id)).not.toContain(product.id);
+    expect(fixture.nativeElement.querySelector('.delete-modal')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.success-toast').textContent).toContain(
+      'eliminado',
+    );
   });
 
   it('does not save an invalid price', () => {
