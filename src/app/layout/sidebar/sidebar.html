@@ -1,6 +1,25 @@
-<aside class="sidebar" [class.collapsed]="collapsed()">
+<button
+  type="button"
+  class="mobile-menu-toggle"
+  (click)="toggleMobile()"
+  [attr.aria-expanded]="mobileOpen()"
+  aria-controls="main-sidebar"
+  aria-label="Abrir menú"
+>
+  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+    <path d="M4 6h16" />
+    <path d="M4 12h16" />
+    <path d="M4 18h16" />
+  </svg>
+</button>
+
+@if (mobileOpen()) {
+  <button type="button" class="mobile-backdrop" (click)="closeMobile()" aria-label="Cerrar menú"></button>
+}
+
+<aside id="main-sidebar" class="sidebar" [class.collapsed]="collapsed()" [class.mobile-open]="mobileOpen()">
   <div class="sidebar-header">
-    @if (!collapsed()) {
+    @if (!collapsed() || mobileOpen()) {
       <span class="brand">nury's</span>
     }
     <button
@@ -24,6 +43,12 @@
         }
       </svg>
     </button>
+    <button type="button" class="mobile-close-btn" (click)="closeMobile()" aria-label="Cerrar menú">
+      <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M6 6l12 12" />
+        <path d="M18 6L6 18" />
+      </svg>
+    </button>
   </div>
 
   <nav class="sidebar-nav">
@@ -35,6 +60,7 @@
             routerLinkActive="active"
             [routerLinkActiveOptions]="{ exact: false }"
             [attr.title]="collapsed() ? item.label : null"
+            (click)="closeMobile()"
           >
             <span class="icon">
               @switch (item.icon) {

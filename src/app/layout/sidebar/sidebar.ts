@@ -14,6 +14,7 @@ const STORAGE_KEY = 'nurybase.sidebar.collapsed';
 export class Sidebar {
   private readonly authService = inject(AuthService);
   protected readonly collapsed = signal(this.readStoredState());
+  protected readonly mobileOpen = signal(false);
 
   protected readonly menuItems: MenuItem[] = [
     { label: 'Punto de venta', icon: 'cart', route: '/pos', allowedRoles: ['admin', 'cajero'] },
@@ -43,7 +44,16 @@ export class Sidebar {
   }
 
   protected logout(): void {
+    this.closeMobile();
     this.authService.logout();
+  }
+
+  protected toggleMobile(): void {
+    this.mobileOpen.update((open) => !open);
+  }
+
+  protected closeMobile(): void {
+    this.mobileOpen.set(false);
   }
 
   private readStoredState(): boolean {

@@ -78,6 +78,25 @@ describe('Sidebar', () => {
     expect(logout).toHaveBeenCalledOnce();
   });
 
+  it('should open and close the mobile menu', () => {
+    fixture.detectChanges();
+    const menuButton = (fixture.nativeElement as HTMLElement).querySelector(
+      '.mobile-menu-toggle',
+    ) as HTMLButtonElement;
+    const sidebar = (fixture.nativeElement as HTMLElement).querySelector('.sidebar') as HTMLElement;
+
+    menuButton.click();
+    fixture.detectChanges();
+    expect(sidebar.classList.contains('mobile-open')).toBe(true);
+
+    const closeButton = (fixture.nativeElement as HTMLElement).querySelector(
+      '.mobile-close-btn',
+    ) as HTMLButtonElement;
+    closeButton.click();
+    fixture.detectChanges();
+    expect(sidebar.classList.contains('mobile-open')).toBe(false);
+  });
+
   function visibleMenuRoutes(): string[] {
     const host = fixture.nativeElement as HTMLElement;
     const links = host.querySelectorAll<HTMLAnchorElement>('.sidebar-nav a');
