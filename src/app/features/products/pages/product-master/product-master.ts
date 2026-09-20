@@ -73,8 +73,6 @@ export class ProductMaster implements OnInit, OnDestroy {
     return this.products().filter((product) => {
       const searchableValues = [
         product.nombre,
-        this.productCode(product.id),
-        String(product.id),
         product.codigo_barras ?? '',
       ];
 
@@ -100,8 +98,8 @@ export class ProductMaster implements OnInit, OnDestroy {
     this.barcodeScanner.stop();
   }
 
-  protected productCode(productId: number): string {
-    return `NUR-${String(productId).padStart(3, '0')}`;
+  protected productBarcode(product: ProductoApi): string {
+    return product.codigo_barras?.trim() || 'Sin código';
   }
 
   protected formatClp(price: number | string): string {
