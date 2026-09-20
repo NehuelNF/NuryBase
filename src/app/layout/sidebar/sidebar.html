@@ -125,4 +125,32 @@
       }
     </ul>
   </nav>
+
+  <div class="sidebar-footer">
+    <button
+      type="button"
+      class="logout-btn"
+      (click)="logout()"
+      [attr.title]="collapsed() ? 'Cerrar sesión' : null"
+      aria-label="Cerrar sesión"
+    >
+      <span class="icon" aria-hidden="true">
+        <svg
+          viewBox="0 0 24 24"
+          width="19"
+          height="19"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.75"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M10 17l5-5-5-5" />
+          <path d="M15 12H3" />
+          <path d="M19 4h1a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-1" />
+        </svg>
+      </span>
+      <span class="label">Cerrar sesión</span>
+    </button>
+  </div>
 </aside>

@@ -9,17 +9,19 @@ describe('Sidebar', () => {
   let component: Sidebar;
   let fixture: ComponentFixture<Sidebar>;
   const currentUser = signal<User | null>(null);
+  const logout = vi.fn();
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [Sidebar],
       providers: [
         provideRouter([]),
-        { provide: AuthService, useValue: { currentUser } },
+        { provide: AuthService, useValue: { currentUser, logout } },
       ],
     }).compileComponents();
 
     currentUser.set(null);
+    logout.mockClear();
     fixture = TestBed.createComponent(Sidebar);
     component = fixture.componentInstance;
     await fixture.whenStable();
@@ -60,6 +62,20 @@ describe('Sidebar', () => {
     fixture.detectChanges();
 
     expect(visibleMenuRoutes()).toEqual([]);
+  });
+
+  it('should show the logout button independently of the user role', () => {
+    currentUser.set(createUser('bodeguero'));
+    fixture.detectChanges();
+
+    const logoutButton = (fixture.nativeElement as HTMLElement).querySelector('.logout-btn') as
+      | HTMLButtonElement
+      | null;
+    expect(logoutButton).toBeTruthy();
+    expect(logoutButton?.textContent).toContain('Cerrar sesión');
+
+    logoutButton?.click();
+    expect(logout).toHaveBeenCalledOnce();
   });
 
   function visibleMenuRoutes(): string[] {

@@ -42,6 +42,10 @@ export class Sidebar {
     }
   }
 
+  protected logout(): void {
+    this.authService.logout();
+  }
+
   private readStoredState(): boolean {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
