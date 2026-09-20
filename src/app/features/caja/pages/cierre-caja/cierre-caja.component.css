@@ -396,4 +396,74 @@
 .ventas-table th:last-child {
   text-align: right;
   white-space: nowrap;
+.field-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #515b46;
+  margin: 16px 0 6px;
+}
+
+.cash-input,
+.cash-textarea {
+  width: 100%;
+  border: 1px solid #d6d9cc;
+  border-radius: 5px;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #292e27;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.cash-input:focus,
+.cash-textarea:focus {
+  border-color: #566544;
+  outline: 2px solid #dce2ce;
+}
+
+.cash-textarea {
+  resize: vertical;
+}
+
+.cash-alert {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: 5px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.cash-alert.cash-over {
+  background: #eaf1e2;
+  color: #3d5334;
+}
+
+.cash-alert.cash-under {
+  background: #f8e7e1;
+  color: #873c28;
+}
+
+.cash-status {
+  margin-top: 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.cash-status.cash-ok {
+  color: #3d5334;
+}
+
+.cash-count-summary {
+  border-top: 1px solid #e6e7df;
+  padding-top: 16px;
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.cash-justification {
+  margin-top: 8px;
+  font-size: 12px;
+  font-style: italic;
+  color: #6b715f;
 }

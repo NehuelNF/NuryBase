@@ -54,7 +54,10 @@ export class LoginComponent {
         return;
       }
 
-      const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/caja';
+      const returnUrl = this.resolveReturnUrl(
+        this.route.snapshot.queryParamMap.get('returnUrl'),
+        result.user,
+      );
       this.router.navigateByUrl(returnUrl);
     });
   }
@@ -66,6 +69,38 @@ export class LoginComponent {
       contrasena: '1234',
     });
     this.submit();
+  }
+
+  /** Acepta únicamente rutas internas y evita un ciclo de regreso al login. */
+  private resolveReturnUrl(returnUrl: string | null, user: User): string {
+    if (
+      !returnUrl ||
+      !returnUrl.startsWith('/') ||
+      returnUrl.startsWith('//') ||
+      returnUrl === '/login' ||
+      returnUrl.startsWith('/login?') ||
+      !this.isRouteVisibleForRole(returnUrl, user)
+    ) {
+      // El turno nunca se inicia solo: cajero/admin aterrizan en "Caja"
+      // para abrir la caja explícitamente antes de ir al POS.
+      return user.rol === 'bodeguero' ? '/product-master' : '/caja';
+    }
+
+    return returnUrl;
+  }
+
+  private isRouteVisibleForRole(route: string, user: User): boolean {
+    if (user.rol === 'admin') {
+      return true;
+    }
+
+    const visibleRoutes = user.rol === 'bodeguero'
+      ? ['/product-master', '/inventario']
+      : ['/pos', '/caja'];
+
+    return visibleRoutes.some((visibleRoute) =>
+      route === visibleRoute || route.startsWith(`${visibleRoute}/`),
+    );
   }
 }
 

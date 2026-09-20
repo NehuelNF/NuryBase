@@ -47,7 +47,9 @@
 }
 
 .brand {
-  font: italic 22px Georgia, serif;
+  font:
+    italic 22px Georgia,
+    serif;
   letter-spacing: -1px;
   color: var(--sidebar-heading);
   white-space: nowrap;
@@ -119,6 +121,10 @@
   border-left: none;
 }
 
+.sidebar.collapsed .label {
+  display: none;
+}
+
 .sidebar-nav a:hover {
   background: var(--sidebar-bg-elevated);
   color: var(--sidebar-heading);
@@ -146,4 +152,80 @@
 .label {
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* En celulares, el menú lateral se transforma en una barra inferior táctil. */
+@media (max-width: 700px) {
+  :host {
+    width: 100%;
+    height: calc(68px + env(safe-area-inset-bottom));
+  }
+
+  .sidebar,
+  .sidebar.collapsed {
+    width: 100%;
+    height: calc(68px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--sidebar-border);
+    border-right: 0;
+    padding-bottom: env(safe-area-inset-bottom);
+    transition: none;
+  }
+
+  .sidebar-header {
+    display: none;
+  }
+
+  .sidebar-nav {
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 6px 8px;
+    scrollbar-width: none;
+  }
+
+  .sidebar-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .sidebar-nav ul {
+    width: 100%;
+    flex-direction: row;
+    gap: 4px;
+  }
+
+  .sidebar-nav li {
+    flex: 1 0 68px;
+  }
+
+  .sidebar-nav a,
+  .sidebar.collapsed .sidebar-nav a {
+    min-height: 55px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    border-bottom: 2px solid transparent;
+    border-left: 0;
+    padding: 5px 4px;
+    text-align: center;
+  }
+
+  .sidebar-nav a.active {
+    border-bottom-color: var(--sidebar-accent);
+    border-left-color: transparent;
+  }
+
+  .sidebar.collapsed .label,
+  .label {
+    display: block;
+    width: 100%;
+    color: inherit;
+    font-size: 10px;
+    line-height: 1.1;
+    text-overflow: ellipsis;
+  }
+
+  .icon svg {
+    width: 18px;
+    height: 18px;
+  }
 }

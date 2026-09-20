@@ -19,11 +19,6 @@ export const routes: Routes = [
       import('./layout/main-layout/main-layout').then((m) => m.MainLayout),
     children: [
       {
-        path: 'home',
-        loadComponent: () =>
-          import('./features/home/pages/home/home').then((m) => m.Home),
-      },
-      {
         path: 'pos',
         loadChildren: () =>
           import('./features/pos/pos.routes').then((m) => m.POS_ROUTES),

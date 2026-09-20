@@ -90,8 +90,21 @@ export class CajaService {
   }
 
   // Confirma el cierre de turno: guarda una foto del desglose y vacía el historial del POS
-  cerrarTurno(cajeroNombre: string, sucursalNombre: string): CierreCaja {
+  cerrarTurno(
+    cajeroNombre: string,
+    sucursalNombre: string,
+    efectivoContado: number,
+    justificacionDiferencia: string | null
+  ): CierreCaja {
     const desglose = this.summaryByMethod();
+    const efectivoEsperado = desglose.find((m) => m.key === 'efectivo')?.total ?? 0;
+    const diferenciaEfectivo = efectivoContado - efectivoEsperado;
+
+    if (diferenciaEfectivo !== 0 && !justificacionDiferencia?.trim()) {
+      throw new Error(
+        'Debes justificar la diferencia de efectivo antes de cerrar el turno.'
+      );
+    }
 
     const cierre: CierreCaja = {
       id: this.cierreSequence++,
@@ -101,6 +114,10 @@ export class CajaService {
       totalGeneral: this.grandTotal(),
       ventasTotales: this.posService.salesHistory().length,
       desglose,
+      efectivoEsperado,
+      efectivoContado,
+      diferenciaEfectivo,
+      justificacionDiferencia: diferenciaEfectivo !== 0 ? justificacionDiferencia!.trim() : null,
     };
 
     this.historialCierres.set([cierre, ...this.historialCierres()]);

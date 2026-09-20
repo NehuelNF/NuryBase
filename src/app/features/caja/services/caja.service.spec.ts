@@ -72,7 +72,7 @@ describe('CajaService', () => {
     chargeSale(pos, 0, 1, 'efectivo'); // $2.600
     chargeSale(pos, 1, 1, 'tarjeta'); // $3.200
 
-    const cierre = caja.cerrarTurno('Camila Rojas', 'Nury Providencia');
+    const cierre = caja.cerrarTurno('Camila Rojas', 'Nury Providencia', 2600, null);
 
     expect(cierre.totalGeneral).toBe(5800);
     expect(cierre.ventasTotales).toBe(2);
@@ -89,10 +89,10 @@ describe('CajaService', () => {
     const caja = TestBed.inject(CajaService);
 
     chargeSale(pos, 0, 1, 'efectivo');
-    caja.cerrarTurno('Camila Rojas', 'Nury Providencia');
+    caja.cerrarTurno('Camila Rojas', 'Nury Providencia', 2600, null);
 
     chargeSale(pos, 1, 1, 'tarjeta'); // única venta del nuevo turno
-    const segundoCierre = caja.cerrarTurno('Camila Rojas', 'Nury Providencia');
+    const segundoCierre = caja.cerrarTurno('Camila Rojas', 'Nury Providencia', 0, null);
 
     expect(segundoCierre.ventasTotales).toBe(1);
     expect(segundoCierre.desglose.find((d) => d.key === 'efectivo')?.total).toBe(0);
@@ -133,5 +133,47 @@ describe('CajaService', () => {
     expect(tarjeta.ventas[0].items[0].cantidad).toBe(2);
 
     expect(junaeb.ventas).toHaveLength(0);
+  });
+
+  it('records no difference when the counted cash matches the system total', () => {
+    const pos = TestBed.inject(PosService);
+    const caja = TestBed.inject(CajaService);
+
+    chargeSale(pos, 0, 1, 'efectivo'); // $2.600
+
+    const cierre = caja.cerrarTurno('Camila Rojas', 'Nury Providencia', 2600, null);
+
+    expect(cierre.efectivoEsperado).toBe(2600);
+    expect(cierre.efectivoContado).toBe(2600);
+    expect(cierre.diferenciaEfectivo).toBe(0);
+    expect(cierre.justificacionDiferencia).toBeNull();
+  });
+
+  it('rejects closing with a cash mismatch and no justification', () => {
+    const pos = TestBed.inject(PosService);
+    const caja = TestBed.inject(CajaService);
+
+    chargeSale(pos, 0, 1, 'efectivo'); // $2.600
+
+    expect(() => caja.cerrarTurno('Camila Rojas', 'Nury Providencia', 2000, null)).toThrow();
+    expect(() => caja.cerrarTurno('Camila Rojas', 'Nury Providencia', 2000, '   ')).toThrow();
+    expect(pos.salesHistory()).toHaveLength(1); // no se cerró el turno
+  });
+
+  it('records a shortage or surplus with its justification', () => {
+    const pos = TestBed.inject(PosService);
+    const caja = TestBed.inject(CajaService);
+
+    chargeSale(pos, 0, 1, 'efectivo'); // $2.600
+
+    const cierre = caja.cerrarTurno(
+      'Camila Rojas',
+      'Nury Providencia',
+      2000,
+      'Se entregó de más en el vuelto de una venta.'
+    );
+
+    expect(cierre.diferenciaEfectivo).toBe(-600);
+    expect(cierre.justificacionDiferencia).toBe('Se entregó de más en el vuelto de una venta.');
   });
 });

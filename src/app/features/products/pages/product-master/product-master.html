@@ -1,4 +1,14 @@
 <main class="product-master">
+  @if (successMessage()) {
+    <div class="success-toast" role="status">
+      <span aria-hidden="true">✓</span>
+      {{ successMessage() }}
+      <button type="button" aria-label="Cerrar mensaje" (click)="successMessage.set(null)">
+        ×
+      </button>
+    </div>
+  }
+
   <header class="page-header">
     <div>
       <span class="eyebrow">Administración del catálogo</span>
@@ -53,7 +63,11 @@
           <circle cx="11" cy="11" r="6"></circle>
           <path d="m16 16 4 4"></path>
         </svg>
-        <input type="search" placeholder="Buscar por nombre o código..." aria-label="Buscar productos" />
+        <input
+          type="search"
+          placeholder="Buscar por nombre o código..."
+          aria-label="Buscar productos"
+        />
       </label>
 
       <label class="select-control">
@@ -105,20 +119,33 @@
           } @else {
             @for (product of products(); track product.id) {
               <tr>
-                <td class="product-code">{{ productCode(product.id) }}</td>
-                <td class="product-name">{{ product.nombre }}</td>
-                <td>
+                <td class="product-code" data-label="Código">{{ productCode(product.id) }}</td>
+                <td class="product-name" data-label="Producto">{{ product.nombre }}</td>
+                <td data-label="Categoría">
                   <span class="category-badge">{{ product.categoria ?? 'Sin categoría' }}</span>
                 </td>
-                <td class="product-price">{{ formatClp(product.precio_venta) }}</td>
-                <td>
+                <td class="product-price" data-label="Precio de venta">
+                  {{ formatClp(product.precio_venta) }}
+                </td>
+                <td data-label="Estado">
                   <span class="status" [class.inactive]="!product.activo">
                     <span class="status-dot"></span>
                     {{ product.activo ? 'Activo' : 'Inactivo' }}
                   </span>
                 </td>
-                <td class="row-actions">
-                  <button type="button" class="edit-button">Editar</button>
+                <td class="row-actions" data-label="Acciones">
+                  <button
+                    type="button"
+                    class="edit-button"
+                    [attr.aria-label]="'Editar ' + product.nombre"
+                    (click)="openEditModal(product)"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M4 20h4l11-11a2.8 2.8 0 0 0-4-4L4 16v4Z"></path>
+                      <path d="m13.5 6.5 4 4"></path>
+                    </svg>
+                    Editar
+                  </button>
                   <button type="button" class="more-button" aria-label="Más acciones">···</button>
                 </td>
               </tr>
@@ -138,3 +165,145 @@
     </footer>
   </section>
 </main>
+
+@if (selectedProduct(); as product) {
+  <div class="modal-backdrop" (mousedown)="closeEditModal()">
+    <section
+      class="edit-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="edit-product-title"
+      (mousedown)="$event.stopPropagation()"
+    >
+      <header class="modal-header">
+        <div>
+          <span class="eyebrow">{{ productCode(product.id) }}</span>
+          <h2 id="edit-product-title">Editar producto</h2>
+          <p>Actualiza la información disponible en el catálogo.</p>
+        </div>
+        <button
+          type="button"
+          class="close-button"
+          aria-label="Cerrar modal"
+          [disabled]="saving()"
+          (click)="closeEditModal()"
+        >
+          ×
+        </button>
+      </header>
+
+      <form [formGroup]="editForm" (ngSubmit)="saveProduct()">
+        <div class="modal-body">
+          <div class="readonly-grid" aria-label="Datos del registro">
+            <div>
+              <span>Identificador</span>
+              <strong>{{ product.id }}</strong>
+            </div>
+            <div>
+              <span>Fecha de creación</span>
+              <strong>{{ formatDate(product.creado_en) }}</strong>
+            </div>
+          </div>
+
+          <label class="form-field full-width">
+            <span>Nombre del producto <em>*</em></span>
+            <input
+              type="text"
+              formControlName="nombre"
+              maxlength="120"
+              autocomplete="off"
+              [class.invalid]="editForm.controls.nombre.invalid && editForm.controls.nombre.touched"
+            />
+            @if (editForm.controls.nombre.invalid && editForm.controls.nombre.touched) {
+              <small>Ingresa un nombre de hasta 120 caracteres.</small>
+            }
+          </label>
+
+          <div class="form-grid">
+            <label class="form-field">
+              <span>Categoría</span>
+              <input
+                type="text"
+                formControlName="categoria"
+                maxlength="60"
+                list="product-categories"
+                autocomplete="off"
+              />
+            </label>
+
+            <label class="form-field">
+              <span>Precio de venta <em>*</em></span>
+              <span class="price-input">
+                <span aria-hidden="true">$</span>
+                <input
+                  type="number"
+                  formControlName="precio_venta"
+                  min="1"
+                  step="1"
+                  [class.invalid]="
+                    editForm.controls.precio_venta.invalid && editForm.controls.precio_venta.touched
+                  "
+                />
+              </span>
+              @if (
+                editForm.controls.precio_venta.invalid && editForm.controls.precio_venta.touched
+              ) {
+                <small>Ingresa un precio mayor a $0.</small>
+              }
+            </label>
+          </div>
+
+          <label class="form-field full-width">
+            <span>Código de barras</span>
+            <input
+              type="text"
+              formControlName="codigo_barras"
+              maxlength="64"
+              autocomplete="off"
+              placeholder="Producto sin código de barras"
+            />
+          </label>
+
+          <label class="status-control">
+            <span>
+              <strong>Producto activo</strong>
+              <small>Estará disponible para su venta en el punto de venta.</small>
+            </span>
+            <input type="checkbox" formControlName="activo" />
+            <span class="toggle" aria-hidden="true"></span>
+          </label>
+
+          @if (saveError()) {
+            <div class="save-error" role="alert">{{ saveError() }}</div>
+          }
+        </div>
+
+        <footer class="modal-footer">
+          <button
+            type="button"
+            class="secondary-button"
+            [disabled]="saving()"
+            (click)="closeEditModal()"
+          >
+            Cancelar
+          </button>
+          <button type="submit" class="save-button" [disabled]="saving()">
+            @if (saving()) {
+              <span class="spinner" aria-hidden="true"></span>
+              Guardando…
+            } @else {
+              Guardar cambios
+            }
+          </button>
+        </footer>
+      </form>
+    </section>
+  </div>
+}
+
+<datalist id="product-categories">
+  <option value="Cafetería"></option>
+  <option value="Pastelería"></option>
+  <option value="Sándwiches"></option>
+  <option value="Bebidas"></option>
+</datalist>
