@@ -80,4 +80,48 @@ export class ProductosApiService {
         }),
       );
   }
+
+  actualizarEstado(id: number, activo: boolean): Observable<ProductoApi> {
+    return this.http
+      .patch<ProductoApi[]>(
+        this.url,
+        { activo },
+        {
+          headers: { Prefer: 'return=representation' },
+          params: {
+            id: `eq.${id}`,
+            select: PRODUCT_FIELDS,
+          },
+        },
+      )
+      .pipe(
+        map(([producto]) => {
+          if (!producto) {
+            throw new Error('El producto no existe o no pudo cambiar de estado.');
+          }
+
+          return producto;
+        }),
+      );
+  }
+
+  eliminar(id: number): Observable<ProductoApi> {
+    return this.http
+      .delete<ProductoApi[]>(this.url, {
+        headers: { Prefer: 'return=representation' },
+        params: {
+          id: `eq.${id}`,
+          select: PRODUCT_FIELDS,
+        },
+      })
+      .pipe(
+        map(([producto]) => {
+          if (!producto) {
+            throw new Error('El producto no existe o no pudo ser eliminado.');
+          }
+
+          return producto;
+        }),
+      );
+  }
 }

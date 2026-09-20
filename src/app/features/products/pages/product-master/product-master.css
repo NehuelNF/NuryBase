@@ -341,18 +341,79 @@ select {
   text-align: right;
 }
 
+.action-group {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
 .edit-button,
-.more-button,
+.visibility-button,
+.delete-button,
 .pagination button {
   border: 0;
   background: transparent;
   color: #536144;
 }
 
+.visibility-button {
+  display: inline-grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 5px;
+  vertical-align: middle;
+}
+
+.delete-button {
+  display: inline-grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 5px;
+  color: #9b5548;
+}
+
+.delete-button svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.delete-button:hover:not(:disabled) {
+  background: #fbefeb;
+  color: #7e3e32;
+}
+
+.visibility-button svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.visibility-button:hover:not(:disabled) {
+  background: #eef1e6;
+  color: #2e4226;
+}
+
+.visibility-button.inactive {
+  color: #9a766a;
+}
+
 .edit-button {
   display: inline-flex;
   align-items: center;
   gap: 5px;
+  min-height: 32px;
   padding: 7px 8px;
   font-size: 12px;
   font-weight: 600;
@@ -371,13 +432,6 @@ select {
 .edit-button:hover {
   color: #2e4226;
   text-decoration: underline;
-}
-
-.more-button {
-  padding: 7px 4px 7px 8px;
-  color: #8a907f;
-  font-weight: 700;
-  letter-spacing: 1px;
 }
 
 .table-footer {
@@ -449,6 +503,53 @@ select {
   padding: 12px 14px;
   font-size: 13px;
   font-weight: 600;
+}
+
+.error-toast {
+  position: fixed;
+  z-index: 110;
+  top: 22px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: min(440px, calc(100vw - 40px));
+  border: 1px solid #e1c2b6;
+  border-radius: 7px;
+  background: #fbf1ed;
+  box-shadow: 0 8px 30px rgb(66 39 30 / 14%);
+  color: #8b513d;
+  padding: 12px 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.error-toast > span {
+  display: grid;
+  width: 23px;
+  height: 23px;
+  flex: 0 0 23px;
+  place-items: center;
+  border-radius: 50%;
+  background: #f1dcd4;
+}
+
+.error-toast button {
+  border: 0;
+  background: transparent;
+  color: #956c5e;
+  padding: 0 0 0 5px;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.action-spinner {
+  width: 15px;
+  height: 15px;
+  border: 2px solid rgb(83 97 68 / 25%);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
 }
 
 .success-toast > span {
@@ -708,6 +809,78 @@ select {
   color: #8b513d;
   padding: 10px 12px;
   font-size: 12px;
+}
+
+.delete-modal {
+  width: min(450px, 100%);
+  border-radius: 10px;
+  background: #fffefa;
+  box-shadow: 0 24px 70px rgb(20 27 17 / 30%);
+  padding: 26px;
+}
+
+.delete-modal-icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 16px;
+  place-items: center;
+  border-radius: 50%;
+  background: #f8e9e4;
+  color: #9b5548;
+}
+
+.delete-modal-icon svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.delete-modal-content h2 {
+  margin: 0 0 8px;
+  color: #332f2b;
+  font-size: 20px;
+}
+
+.delete-modal-content p {
+  margin: 0;
+  color: #73776d;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.delete-modal-content .save-error {
+  margin-top: 16px;
+}
+
+.delete-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.confirm-delete-button {
+  display: inline-flex;
+  min-width: 142px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid #914a3d;
+  border-radius: 5px;
+  background: #914a3d;
+  color: white;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.confirm-delete-button:hover:not(:disabled) {
+  background: #78392f;
 }
 
 .modal-footer {
@@ -1001,8 +1174,16 @@ button:disabled {
     padding: 8px 14px;
   }
 
-  .more-button {
-    display: none;
+  .visibility-button {
+    width: 40px;
+    height: 40px;
+    background: #f4f4ee;
+  }
+
+  .delete-button {
+    width: 40px;
+    height: 40px;
+    background: #fbefeb;
   }
 
   .product-table .empty-row {
@@ -1032,7 +1213,8 @@ button:disabled {
     height: 36px;
   }
 
-  .success-toast {
+  .success-toast,
+  .error-toast {
     top: 12px;
     right: 12px;
     left: 12px;
@@ -1048,6 +1230,12 @@ button:disabled {
     width: 100%;
     max-height: 100dvh;
     border-radius: 14px 14px 0 0;
+  }
+
+  .delete-modal {
+    width: 100%;
+    border-radius: 14px 14px 0 0;
+    padding: 22px 20px calc(20px + env(safe-area-inset-bottom));
   }
 
   .modal-header {
@@ -1082,7 +1270,8 @@ button:disabled {
   }
 
   .secondary-button,
-  .save-button {
+  .save-button,
+  .confirm-delete-button {
     min-height: 44px;
     flex: 1;
   }
@@ -1116,7 +1305,8 @@ button:disabled {
   }
 
   .secondary-button,
-  .save-button {
+  .save-button,
+  .confirm-delete-button {
     width: 100%;
     flex: none;
   }

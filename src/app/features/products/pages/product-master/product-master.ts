@@ -26,6 +26,11 @@ export class ProductMaster implements OnInit {
   protected readonly saving = signal(false);
   protected readonly saveError = signal<string | null>(null);
   protected readonly successMessage = signal<string | null>(null);
+  protected readonly actionError = signal<string | null>(null);
+  protected readonly updatingStatusIds = signal<ReadonlySet<number>>(new Set<number>());
+  protected readonly productToDelete = signal<ProductoApi | null>(null);
+  protected readonly deleting = signal(false);
+  protected readonly deleteError = signal<string | null>(null);
   protected readonly productForm = this.formBuilder.nonNullable.group({
     nombre: ['', [Validators.required, Validators.maxLength(120)]],
     categoria: ['', Validators.maxLength(60)],
@@ -112,6 +117,95 @@ export class ProductMaster implements OnInit {
     this.selectedProduct.set(product);
   }
 
+  protected isUpdatingStatus(productId: number): boolean {
+    return this.updatingStatusIds().has(productId);
+  }
+
+  protected toggleProductStatus(product: ProductoApi): void {
+    if (this.isUpdatingStatus(product.id)) {
+      return;
+    }
+
+    const nextStatus = !product.activo;
+    this.successMessage.set(null);
+    this.actionError.set(null);
+    this.updatingStatusIds.update((ids) => new Set(ids).add(product.id));
+
+    this.productosApi
+      .actualizarEstado(product.id, nextStatus)
+      .pipe(
+        finalize(() => {
+          this.updatingStatusIds.update((ids) => {
+            const updatedIds = new Set(ids);
+            updatedIds.delete(product.id);
+            return updatedIds;
+          });
+        }),
+      )
+      .subscribe({
+        next: (updatedProduct) => {
+          this.products.update((products) =>
+            products.map((current) =>
+              current.id === updatedProduct.id ? updatedProduct : current,
+            ),
+          );
+          this.successMessage.set(
+            `“${updatedProduct.nombre}” ahora está ${updatedProduct.activo ? 'visible' : 'oculto'} en el catálogo.`,
+          );
+        },
+        error: (error) => {
+          console.error('No se pudo cambiar la visibilidad del producto', error);
+          this.actionError.set(
+            'No pudimos cambiar la visibilidad del producto. Inténtalo nuevamente.',
+          );
+        },
+      });
+  }
+
+  protected openDeleteModal(product: ProductoApi): void {
+    this.successMessage.set(null);
+    this.actionError.set(null);
+    this.deleteError.set(null);
+    this.productToDelete.set(product);
+  }
+
+  protected closeDeleteModal(): void {
+    if (this.deleting()) {
+      return;
+    }
+
+    this.productToDelete.set(null);
+    this.deleteError.set(null);
+  }
+
+  protected deleteProduct(): void {
+    const product = this.productToDelete();
+
+    if (!product || this.deleting()) {
+      return;
+    }
+
+    this.deleting.set(true);
+    this.deleteError.set(null);
+
+    this.productosApi
+      .eliminar(product.id)
+      .pipe(finalize(() => this.deleting.set(false)))
+      .subscribe({
+        next: (deletedProduct) => {
+          this.products.update((products) =>
+            products.filter((current) => current.id !== deletedProduct.id),
+          );
+          this.productToDelete.set(null);
+          this.successMessage.set(`“${deletedProduct.nombre}” fue eliminado correctamente.`);
+        },
+        error: (error) => {
+          console.error('No se pudo eliminar el producto', error);
+          this.deleteError.set(this.deleteErrorMessage(error?.status));
+        },
+      });
+  }
+
   protected openCreateModal(): void {
     this.successMessage.set(null);
     this.saveError.set(null);
@@ -192,9 +286,23 @@ export class ProductMaster implements OnInit {
 
   @HostListener('document:keydown.escape')
   protected closeOnEscape(): void {
-    if (this.productModalOpen()) {
+    if (this.productToDelete()) {
+      this.closeDeleteModal();
+    } else if (this.productModalOpen()) {
       this.closeProductModal();
     }
+  }
+
+  private deleteErrorMessage(status: number | undefined): string {
+    if (status === 409) {
+      return 'Este producto tiene ventas, promociones u otros registros asociados. Puedes ocultarlo del catálogo en lugar de eliminarlo.';
+    }
+
+    if (status === 401 || status === 403) {
+      return 'Tu sesión no tiene permisos para eliminar productos.';
+    }
+
+    return 'No pudimos eliminar el producto. Revisa la conexión e inténtalo nuevamente.';
   }
 
   private saveErrorMessage(status: number | undefined, isCreating: boolean): string {

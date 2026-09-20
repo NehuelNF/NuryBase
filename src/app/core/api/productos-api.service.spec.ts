@@ -78,4 +78,36 @@ describe('ProductosApiService', () => {
 
     await expect(resultPromise).resolves.toEqual(product);
   });
+
+  it('updates only the active state used to show a product in the catalog', async () => {
+    const inactiveProduct = { ...product, activo: false };
+    const resultPromise = firstValueFrom(service.actualizarEstado(product.id, false));
+    const request = http.expectOne(
+      (candidate) =>
+        candidate.method === 'PATCH' &&
+        candidate.url === 'http://localhost:3000/productos' &&
+        candidate.params.get('id') === 'eq.7',
+    );
+
+    expect(request.request.body).toEqual({ activo: false });
+    expect(request.request.headers.get('Prefer')).toBe('return=representation');
+    request.flush([inactiveProduct]);
+
+    await expect(resultPromise).resolves.toEqual(inactiveProduct);
+  });
+
+  it('deletes a product and requests the deleted row', async () => {
+    const resultPromise = firstValueFrom(service.eliminar(product.id));
+    const request = http.expectOne(
+      (candidate) =>
+        candidate.method === 'DELETE' &&
+        candidate.url === 'http://localhost:3000/productos' &&
+        candidate.params.get('id') === 'eq.7',
+    );
+
+    expect(request.request.headers.get('Prefer')).toBe('return=representation');
+    request.flush([product]);
+
+    await expect(resultPromise).resolves.toEqual(product);
+  });
 });
