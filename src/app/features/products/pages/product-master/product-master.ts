@@ -1,6 +1,17 @@
-import { Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  HostListener,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
+import { BarcodeScanner } from '../../../../core/services/barcode-scanner';
 import {
   ProductoApi,
   ProductoCreacion,
@@ -13,9 +24,12 @@ import {
   styleUrl: './product-master.css',
   templateUrl: './product-master.html',
 })
-export class ProductMaster implements OnInit {
+export class ProductMaster implements OnInit, OnDestroy {
   private readonly productosApi = inject(ProductosApiService);
   private readonly formBuilder = inject(FormBuilder);
+  private readonly barcodeScanner = inject(BarcodeScanner);
+
+  @ViewChild('productBarcodeVideo') private productBarcodeVideo?: ElementRef<HTMLVideoElement>;
 
   protected readonly products = signal<ProductoApi[]>([]);
   protected readonly searchQuery = signal('');
@@ -31,6 +45,8 @@ export class ProductMaster implements OnInit {
   protected readonly productToDelete = signal<ProductoApi | null>(null);
   protected readonly deleting = signal(false);
   protected readonly deleteError = signal<string | null>(null);
+  protected readonly barcodeScannerOpen = signal(false);
+  protected readonly barcodeScannerError = signal<string | null>(null);
   protected readonly productForm = this.formBuilder.nonNullable.group({
     nombre: ['', [Validators.required, Validators.maxLength(120)]],
     categoria: ['', Validators.maxLength(60)],
@@ -78,6 +94,10 @@ export class ProductMaster implements OnInit {
         this.loading.set(false);
       },
     });
+  }
+
+  ngOnDestroy(): void {
+    this.barcodeScanner.stop();
   }
 
   protected productCode(productId: number): string {
@@ -228,6 +248,52 @@ export class ProductMaster implements OnInit {
     this.creatingProduct.set(false);
     this.selectedProduct.set(null);
     this.saveError.set(null);
+    this.closeBarcodeScanner();
+  }
+
+  protected openBarcodeScanner(): void {
+    this.barcodeScannerError.set(null);
+    this.barcodeScannerOpen.set(true);
+
+    // The video element is rendered by the @if block on the next change-detection pass.
+    setTimeout(() => void this.startBarcodeScanner(), 0);
+  }
+
+  protected closeBarcodeScanner(): void {
+    this.barcodeScanner.stop();
+    this.barcodeScannerOpen.set(false);
+  }
+
+  private async startBarcodeScanner(): Promise<void> {
+    const videoElement = this.productBarcodeVideo?.nativeElement;
+    if (!videoElement || !this.barcodeScannerOpen()) return;
+
+    try {
+      await this.barcodeScanner.start(
+        videoElement,
+        (code) => {
+          this.productForm.controls.codigo_barras.setValue(code);
+          this.productForm.controls.codigo_barras.markAsDirty();
+          this.closeBarcodeScanner();
+        },
+        (error) => {
+          console.error('No se pudo iniciar la cámara para escanear el producto', error);
+          this.barcodeScannerError.set(this.getBarcodeScannerErrorMessage(error));
+        },
+      );
+    } catch {
+      // The user-facing message is set by the error callback above.
+    }
+  }
+
+  private getBarcodeScannerErrorMessage(error: unknown): string {
+    if (error instanceof DOMException && error.name === 'NotAllowedError') {
+      return 'Debes permitir el acceso a la cámara para escanear.';
+    }
+    if (error instanceof DOMException && error.name === 'NotFoundError') {
+      return 'No se encontró una cámara disponible en este dispositivo.';
+    }
+    return 'No fue posible iniciar la cámara. Verifica los permisos y que estés usando HTTPS.';
   }
 
   protected saveProduct(): void {
@@ -286,7 +352,9 @@ export class ProductMaster implements OnInit {
 
   @HostListener('document:keydown.escape')
   protected closeOnEscape(): void {
-    if (this.productToDelete()) {
+    if (this.barcodeScannerOpen()) {
+      this.closeBarcodeScanner();
+    } else if (this.productToDelete()) {
       this.closeDeleteModal();
     } else if (this.productModalOpen()) {
       this.closeProductModal();

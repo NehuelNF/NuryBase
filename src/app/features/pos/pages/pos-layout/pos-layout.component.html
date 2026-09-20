@@ -71,9 +71,39 @@
           <input type="text" [disabled]="!isRegisterOpen()" [ngModel]="quickBarcodeInput()"
             (ngModelChange)="quickBarcodeInput.set($event)" (keydown.enter)="onBarcodeScan()"
             aria-label="Código de barras o código interno" placeholder="Escanear código..." />
+          <button type="button" class="btn-camera" [disabled]="!isRegisterOpen()" (click)="openBarcodeScanner()"
+            aria-label="Escanear código de barras" title="Escanear con cámara">Escanear</button>
           <button type="button" class="btn-scan" (click)="onBarcodeScan()">+ Ingresar</button>
         </div>
       </section>
+
+      @if (isScannerOpen()) {
+      <div class="scanner-modal-backdrop" role="presentation" (click)="closeBarcodeScanner()">
+        <section class="scanner-modal" role="dialog" aria-modal="true" aria-labelledby="scanner-title"
+          (click)="$event.stopPropagation()">
+          <div class="scanner-modal-header">
+            <div>
+              <h2 id="scanner-title">Escanear código</h2>
+              <p>Apunta la cámara al código de barras del producto.</p>
+            </div>
+            <button type="button" class="scanner-close" (click)="closeBarcodeScanner()" aria-label="Cerrar cámara">
+              ✕
+            </button>
+          </div>
+
+          <div class="scanner-video-frame">
+            <video #barcodeVideo autoplay muted playsinline></video>
+            <span class="scanner-guide" aria-hidden="true"></span>
+          </div>
+
+          @if (scannerError()) {
+          <p class="scanner-error" role="alert">{{ scannerError() }}</p>
+          }
+
+          <button type="button" class="scanner-cancel" (click)="closeBarcodeScanner()">Cancelar</button>
+        </section>
+      </div>
+      }
 
       <!-- Pestañas de Categorías Visuales -->
       <nav class="categories-bar">
