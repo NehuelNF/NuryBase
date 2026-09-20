@@ -169,9 +169,15 @@
       <strong>{{ formatClp(efectivoEsperado()) }}</strong> en ventas con efectivo este turno.
     </p>
 
-    <label class="field-label" for="efectivo-contado">Efectivo contado</label>
-    <input id="efectivo-contado" type="number" min="0" step="1" class="cash-input" placeholder="Ej: 45000"
-      [value]="efectivoContado() ?? ''" (input)="setEfectivoContado($any($event.target).value)" />
+    <div class="cash-field">
+      <label class="field-label" for="efectivo-contado">
+        Efectivo contado
+        <span class="field-hint">Monto en pesos chilenos</span>
+      </label>
+      <input id="efectivo-contado" type="number" min="0" step="1" inputmode="numeric" class="cash-input"
+        placeholder="Ej: 45.000" [value]="efectivoContado() ?? ''"
+        (input)="setEfectivoContado($any($event.target).value)" />
+    </div>
 
     @if (efectivoContado() !== null) {
     @if (diferenciaEfectivo() === 0) {
@@ -183,10 +189,12 @@
       {{ formatClpAbs(diferenciaEfectivo()!) }}
     </div>
 
-    <label class="field-label" for="justificacion">¿Por qué hay diferencia?</label>
-    <textarea id="justificacion" class="cash-textarea" rows="3"
-      placeholder="Ej: se entregó mal el vuelto en una venta, faltó registrar un billete, etc."
-      [value]="justificacion()" (input)="setJustificacion($any($event.target).value)"></textarea>
+    <div class="cash-field">
+      <label class="field-label" for="justificacion">¿Por qué hay diferencia?</label>
+      <textarea id="justificacion" class="cash-textarea" rows="3"
+        placeholder="Describe brevemente qué ocurrió..." [value]="justificacion()"
+        (input)="setJustificacion($any($event.target).value)"></textarea>
+    </div>
     }
     }
 

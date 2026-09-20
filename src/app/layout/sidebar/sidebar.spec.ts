@@ -3,23 +3,29 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { User } from '../../features/auth/models/auth.model';
 import { AuthService } from '../../features/auth/services/auth.service';
+import { PosService } from '../../features/pos/services/pos.service';
 import { Sidebar } from './sidebar';
 
 describe('Sidebar', () => {
   let component: Sidebar;
   let fixture: ComponentFixture<Sidebar>;
   const currentUser = signal<User | null>(null);
+  const isRegisterOpen = signal(false);
+  const logout = vi.fn();
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [Sidebar],
       providers: [
         provideRouter([]),
-        { provide: AuthService, useValue: { currentUser } },
+        { provide: AuthService, useValue: { currentUser, logout } },
+        { provide: PosService, useValue: { isRegisterOpen } },
       ],
     }).compileComponents();
 
     currentUser.set(null);
+    isRegisterOpen.set(false);
+    logout.mockClear();
     fixture = TestBed.createComponent(Sidebar);
     component = fixture.componentInstance;
     await fixture.whenStable();
@@ -60,6 +66,56 @@ describe('Sidebar', () => {
     fixture.detectChanges();
 
     expect(visibleMenuRoutes()).toEqual([]);
+  });
+
+  it('should show the logout button independently of the user role', () => {
+    currentUser.set(createUser('bodeguero'));
+    fixture.detectChanges();
+
+    const logoutButton = (fixture.nativeElement as HTMLElement).querySelector('.logout-btn') as
+      | HTMLButtonElement
+      | null;
+    expect(logoutButton).toBeTruthy();
+    expect(logoutButton?.textContent).toContain('Cerrar sesión');
+
+    logoutButton?.click();
+    expect(logout).toHaveBeenCalledOnce();
+  });
+
+  it('should prevent a cashier from logging out while the register is open', () => {
+    currentUser.set(createUser('cajero'));
+    isRegisterOpen.set(true);
+    fixture.detectChanges();
+
+    const logoutButton = (fixture.nativeElement as HTMLElement).querySelector('.logout-btn') as
+      | HTMLButtonElement
+      | null;
+    logoutButton?.click();
+    fixture.detectChanges();
+
+    expect(logout).not.toHaveBeenCalled();
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('.sidebar-logout-overlay'),
+    ).toBeTruthy();
+  });
+
+  it('should open and close the mobile menu', () => {
+    fixture.detectChanges();
+    const menuButton = (fixture.nativeElement as HTMLElement).querySelector(
+      '.mobile-menu-toggle',
+    ) as HTMLButtonElement;
+    const sidebar = (fixture.nativeElement as HTMLElement).querySelector('.sidebar') as HTMLElement;
+
+    menuButton.click();
+    fixture.detectChanges();
+    expect(sidebar.classList.contains('mobile-open')).toBe(true);
+
+    const closeButton = (fixture.nativeElement as HTMLElement).querySelector(
+      '.mobile-close-btn',
+    ) as HTMLButtonElement;
+    closeButton.click();
+    fixture.detectChanges();
+    expect(sidebar.classList.contains('mobile-open')).toBe(false);
   });
 
   function visibleMenuRoutes(): string[] {

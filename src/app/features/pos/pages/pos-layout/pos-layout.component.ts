@@ -35,8 +35,6 @@ export class PosLayoutComponent implements OnInit, OnDestroy {
   readonly quickBarcodeInput = signal<string>('');
   readonly barcodeFeedback = signal<string | null>(null);
   readonly isRegisterOpen = this.posService.isRegisterOpen;
-  readonly pendingRegisterAction = signal<'open' | 'close' | null>(null);
-  readonly showLogoutConfirm = signal<boolean>(false);
 
   // Control del modal de pago (H2.4)
   readonly isPaymentModalOpen = signal<boolean>(false);
@@ -133,36 +131,7 @@ export class PosLayoutComponent implements OnInit, OnDestroy {
     }
   }
 
-  requestRegisterChange(): void {
-    this.pendingRegisterAction.set(this.isRegisterOpen() ? 'close' : 'open');
-  }
-
-  cancelRegisterChange(): void {
-    this.pendingRegisterAction.set(null);
-  }
-
-  confirmRegisterChange(): void {
-    const action = this.pendingRegisterAction();
-    if (!action) return;
-    this.isRegisterOpen.set(action === 'open');
-    this.pendingRegisterAction.set(null);
-  }
-
-  requestLogout(): void {
-    this.showLogoutConfirm.set(true);
-  }
-
-  cancelLogout(): void {
-    this.showLogoutConfirm.set(false);
-  }
-
-  confirmLogout(): void {
-    this.showLogoutConfirm.set(false);
-    this.authService.logout();
-  }
-
-  goToCierreCaja(): void {
-    this.showLogoutConfirm.set(false);
+  goToCaja(): void {
     this.router?.navigate(['/caja']);
   }
 
