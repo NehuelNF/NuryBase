@@ -180,3 +180,28 @@
     </button>
   </div>
 </aside>
+
+@if (showLogoutWarning()) {
+  <div class="sidebar-logout-overlay" (click)="cancelLogout()">
+    <section
+      class="sidebar-logout-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="sidebar-logout-title"
+      (click)="$event.stopPropagation()"
+    >
+      <span class="sidebar-logout-icon" aria-hidden="true">⚠️</span>
+      <p class="sidebar-logout-eyebrow">Turno en curso</p>
+      <h2 id="sidebar-logout-title">Cierra la caja antes de salir</h2>
+      <p>
+        Tu caja todavía está abierta. Debes cerrar y cuadrar el turno antes de cerrar sesión.
+      </p>
+      <div class="sidebar-logout-actions">
+        <button type="button" class="btn-sidebar-cancel" (click)="cancelLogout()">Cancelar</button>
+        <button type="button" class="btn-sidebar-cierre" (click)="goToCierreCaja()">
+          Ir a cierre de caja
+        </button>
+      </div>
+    </section>
+  </div>
+}

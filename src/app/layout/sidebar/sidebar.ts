@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../features/auth/services/auth.service';
+import { PosService } from '../../features/pos/services/pos.service';
 import { MenuItem } from '../../shared/models/menu-item';
 
 const STORAGE_KEY = 'nurybase.sidebar.collapsed';
@@ -13,8 +14,11 @@ const STORAGE_KEY = 'nurybase.sidebar.collapsed';
 })
 export class Sidebar {
   private readonly authService = inject(AuthService);
+  private readonly posService = inject(PosService);
+  private readonly router = inject(Router);
   protected readonly collapsed = signal(this.readStoredState());
   protected readonly mobileOpen = signal(false);
+  protected readonly showLogoutWarning = signal(false);
 
   protected readonly menuItems: MenuItem[] = [
     { label: 'Punto de venta', icon: 'cart', route: '/pos', allowedRoles: ['admin', 'cajero'] },
@@ -45,7 +49,23 @@ export class Sidebar {
 
   protected logout(): void {
     this.closeMobile();
+
+    const isCashier = this.authService.currentUser()?.rol === 'cajero';
+    if (isCashier && this.posService.isRegisterOpen()) {
+      this.showLogoutWarning.set(true);
+      return;
+    }
+
     this.authService.logout();
+  }
+
+  protected cancelLogout(): void {
+    this.showLogoutWarning.set(false);
+  }
+
+  protected goToCierreCaja(): void {
+    this.showLogoutWarning.set(false);
+    this.router.navigate(['/caja']);
   }
 
   protected toggleMobile(): void {

@@ -3,12 +3,14 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { User } from '../../features/auth/models/auth.model';
 import { AuthService } from '../../features/auth/services/auth.service';
+import { PosService } from '../../features/pos/services/pos.service';
 import { Sidebar } from './sidebar';
 
 describe('Sidebar', () => {
   let component: Sidebar;
   let fixture: ComponentFixture<Sidebar>;
   const currentUser = signal<User | null>(null);
+  const isRegisterOpen = signal(false);
   const logout = vi.fn();
 
   beforeEach(async () => {
@@ -17,10 +19,12 @@ describe('Sidebar', () => {
       providers: [
         provideRouter([]),
         { provide: AuthService, useValue: { currentUser, logout } },
+        { provide: PosService, useValue: { isRegisterOpen } },
       ],
     }).compileComponents();
 
     currentUser.set(null);
+    isRegisterOpen.set(false);
     logout.mockClear();
     fixture = TestBed.createComponent(Sidebar);
     component = fixture.componentInstance;
@@ -76,6 +80,23 @@ describe('Sidebar', () => {
 
     logoutButton?.click();
     expect(logout).toHaveBeenCalledOnce();
+  });
+
+  it('should prevent a cashier from logging out while the register is open', () => {
+    currentUser.set(createUser('cajero'));
+    isRegisterOpen.set(true);
+    fixture.detectChanges();
+
+    const logoutButton = (fixture.nativeElement as HTMLElement).querySelector('.logout-btn') as
+      | HTMLButtonElement
+      | null;
+    logoutButton?.click();
+    fixture.detectChanges();
+
+    expect(logout).not.toHaveBeenCalled();
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('.sidebar-logout-overlay'),
+    ).toBeTruthy();
   });
 
   it('should open and close the mobile menu', () => {
