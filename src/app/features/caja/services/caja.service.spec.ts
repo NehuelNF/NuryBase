@@ -98,4 +98,40 @@ describe('CajaService', () => {
     expect(segundoCierre.desglose.find((d) => d.key === 'efectivo')?.total).toBe(0);
     expect(segundoCierre.desglose.find((d) => d.key === 'tarjeta')?.total).toBe(3200);
   });
+
+  it('iniciarTurno opens the register so the cashier can operate in the POS', () => {
+    const pos = TestBed.inject(PosService);
+    const caja = TestBed.inject(CajaService);
+
+    pos.closeRegister();
+    expect(caja.isRegisterOpen()).toBe(false);
+
+    caja.iniciarTurno();
+
+    expect(caja.isRegisterOpen()).toBe(true);
+    expect(pos.isRegisterOpen()).toBe(true);
+  });
+
+  it('groups the individual sales of the shift by payment method (ventasPorMetodo)', () => {
+    const pos = TestBed.inject(PosService);
+    const caja = TestBed.inject(CajaService);
+
+    chargeSale(pos, 0, 1, 'efectivo'); // Café Espresso Doble $2.600
+    chargeSale(pos, 1, 2, 'tarjeta'); // 2x Cappuccino Italiano $6.400
+
+    const grupos = caja.ventasPorMetodo();
+    const efectivo = grupos.find((g) => g.key === 'efectivo')!;
+    const tarjeta = grupos.find((g) => g.key === 'tarjeta')!;
+    const junaeb = grupos.find((g) => g.key === 'junaeb')!;
+
+    expect(efectivo.ventas).toHaveLength(1);
+    expect(efectivo.ventas[0].total).toBe(2600);
+    expect(efectivo.ventas[0].items[0].producto.nombre).toBe('Café Espresso Doble');
+
+    expect(tarjeta.ventas).toHaveLength(1);
+    expect(tarjeta.ventas[0].total).toBe(6400);
+    expect(tarjeta.ventas[0].items[0].cantidad).toBe(2);
+
+    expect(junaeb.ventas).toHaveLength(0);
+  });
 });

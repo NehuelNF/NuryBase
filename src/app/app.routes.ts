@@ -4,7 +4,7 @@ import { authGuard } from './core/guards/auth.guard';
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'pos',
+    redirectTo: 'caja',
     pathMatch: 'full',
   },
   {
@@ -42,6 +42,6 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    redirectTo: 'pos',
+    redirectTo: 'caja',
   },
 ];

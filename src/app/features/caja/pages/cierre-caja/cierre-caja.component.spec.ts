@@ -1,10 +1,15 @@
+import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { NEVER, of } from 'rxjs';
 import { CierreCajaComponent } from './cierre-caja.component';
 import { PosService } from '../../../pos/services/pos.service';
 import { ProductosApiService } from '../../../../core/api/productos-api.service';
 import { VentasApiService } from '../../../../core/api/ventas-api.service';
 import { PosProduct } from '../../../pos/models/pos.model';
+
+@Component({ standalone: true, template: '' })
+class DummyComponent {}
 
 const TEST_PRODUCTS: PosProduct[] = [
   {
@@ -68,6 +73,10 @@ describe('CierreCajaComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       providers: [
+        provideRouter([
+          { path: 'pos', component: DummyComponent },
+          { path: 'caja', component: DummyComponent },
+        ]),
         { provide: ProductosApiService, useValue: { listar: () => NEVER } },
         { provide: VentasApiService, useValue: { registrar: () => of(999) } },
       ],
@@ -146,5 +155,47 @@ describe('CierreCajaComponent', () => {
     expect(component.showConfirm()).toBe(false);
     expect(component.turnoCerrado()).toBeNull();
     expect(pos.salesHistory()).toHaveLength(1);
+  });
+
+  it('shows the register as closed until "Iniciar Turno" is triggered', () => {
+    const pos = TestBed.inject(PosService);
+    pos.closeRegister();
+
+    const component = TestBed.createComponent(CierreCajaComponent).componentInstance;
+    expect(component.isRegisterOpen()).toBe(false);
+
+    component.iniciarTurno();
+    expect(component.isRegisterOpen()).toBe(true);
+    expect(pos.isRegisterOpen()).toBe(true);
+  });
+
+  it('reopens the register when returning to operate after closing the shift', () => {
+    const pos = TestBed.inject(PosService);
+    chargeSale(pos, 0, 1, 'efectivo');
+
+    const component = TestBed.createComponent(CierreCajaComponent).componentInstance;
+    component.openConfirm();
+    component.confirmCierre();
+
+    expect(pos.isRegisterOpen()).toBe(false);
+
+    component.volverAOperar();
+
+    expect(component.turnoCerrado()).toBeNull();
+    expect(pos.isRegisterOpen()).toBe(true);
+  });
+
+  it('lists the individual sales grouped by payment method, not just aggregates (AC2)', () => {
+    const pos = TestBed.inject(PosService);
+    chargeSale(pos, 0, 1, 'efectivo'); // Café Espresso Doble
+    chargeSale(pos, 1, 1, 'efectivo'); // Cappuccino Italiano
+
+    const component = TestBed.createComponent(CierreCajaComponent).componentInstance;
+    const grupos = component.ventasPorMetodo();
+    const efectivo = grupos.find((g) => g.key === 'efectivo')!;
+
+    expect(efectivo.ventas).toHaveLength(2);
+    expect(component.resumenItems(efectivo.ventas[0])).toContain('Cappuccino Italiano');
+    expect(component.resumenItems(efectivo.ventas[1])).toContain('Café Espresso Doble');
   });
 });

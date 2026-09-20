@@ -3,7 +3,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../auth/services/auth.service';
 import { PAYMENT_METHOD_META, CierreCaja } from '../../models/caja.model';
-import { PaymentMethod } from '../../../pos/models/pos.model';
+import { CompletedSale, PaymentMethod } from '../../../pos/models/pos.model';
 import { CajaService } from '../../services/caja.service';
 
 @Component({
@@ -16,6 +16,7 @@ import { CajaService } from '../../services/caja.service';
 export class CierreCajaComponent {
   private readonly cajaService = inject(CajaService);
   private readonly authService = inject(AuthService);
+  private readonly router = inject(Router, { optional: true });
 
   readonly selectedMethod = signal<PaymentMethod | null>(null);
   readonly showConfirm = signal(false);
@@ -24,6 +25,8 @@ export class CierreCajaComponent {
   readonly summaryByMethod = this.cajaService.summaryByMethod;
   readonly grandTotal = this.cajaService.grandTotal;
   readonly hayVentasEnElTurno = this.cajaService.hayVentasEnElTurno;
+  readonly isRegisterOpen = this.cajaService.isRegisterOpen;
+  readonly ventasPorMetodo = this.cajaService.ventasPorMetodo;
 
   readonly selectedMethodLabel = computed(() => {
     const method = this.selectedMethod();
@@ -61,11 +64,15 @@ export class CierreCajaComponent {
     this.selectedMethod.set(null);
   }
 
-  private readonly router = inject(Router, { optional: true });
+  // Abre la caja y lleva al cajero al POS para empezar a vender (flujo de turno)
+  iniciarTurno(): void {
+    this.cajaService.iniciarTurno();
+    this.router?.navigate(['/pos']);
+  }
 
   volverAOperar(): void {
     this.turnoCerrado.set(null);
-    this.router?.navigate(['/pos']);
+    this.iniciarTurno();
   }
 
   formatClp(amount: number): string {
@@ -81,5 +88,14 @@ export class CierreCajaComponent {
       dateStyle: 'medium',
       timeStyle: 'short',
     }).format(fecha);
+  }
+
+  formatHora(fecha: Date): string {
+    return new Intl.DateTimeFormat('es-CL', { timeStyle: 'short' }).format(fecha);
+  }
+
+  // Resumen legible de los ítems de una venta, ej. "2x Café Espresso, 1x Cappuccino"
+  resumenItems(sale: CompletedSale): string {
+    return sale.items.map((item) => `${item.cantidad}x ${item.producto.nombre}`).join(', ');
   }
 }

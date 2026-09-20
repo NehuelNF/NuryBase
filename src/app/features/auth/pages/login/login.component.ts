@@ -54,7 +54,7 @@ export class LoginComponent {
         return;
       }
 
-      const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/pos';
+      const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/caja';
       this.router.navigateByUrl(returnUrl);
     });
   }

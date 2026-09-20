@@ -6,6 +6,7 @@ import {
   PAYMENT_METHOD_META,
   PaymentMethodSummary,
   ProductoVendido,
+  VentasPorMetodo,
 } from '../models/caja.model';
 
 @Injectable({
@@ -41,6 +42,24 @@ export class CajaService {
 
   readonly hayVentasEnElTurno = computed(() => this.posService.salesHistory().length > 0);
 
+  // Estado de la caja (compartido con PosService): abierta = turno en curso
+  readonly isRegisterOpen = this.posService.isRegisterOpen;
+
+  // Historial de ventas del turno activo, por venta individual y agrupado
+  // por medio de pago (H: historial de caja detallado, no solo agregados)
+  readonly ventasPorMetodo = computed<VentasPorMetodo[]>(() => {
+    const sales = this.posService.salesHistory();
+
+    return (Object.keys(PAYMENT_METHOD_META) as PaymentMethod[]).map((key) => ({
+      key,
+      label: PAYMENT_METHOD_META[key].label,
+      icon: PAYMENT_METHOD_META[key].icon,
+      ventas: sales
+        .filter((sale) => sale.medioPago === key)
+        .sort((a, b) => b.fecha.getTime() - a.fecha.getTime()),
+    }));
+  });
+
   // Productos vendidos con un método de pago específico, agrupados y sumados
   productosPorMedioPago(medioPago: PaymentMethod): ProductoVendido[] {
     const sales = this.posService.salesHistory().filter((sale) => sale.medioPago === medioPago);
@@ -63,6 +82,11 @@ export class CajaService {
     }
 
     return Array.from(acumulado.values()).sort((a, b) => b.subtotal - a.subtotal);
+  }
+
+  // Inicia el turno: abre la caja para que el cajero pueda operar en el POS
+  iniciarTurno(): void {
+    this.posService.openRegister();
   }
 
   // Confirma el cierre de turno: guarda una foto del desglose y vacía el historial del POS

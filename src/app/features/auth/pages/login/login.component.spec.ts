@@ -16,6 +16,7 @@ describe('LoginComponent', () => {
       providers: [
         provideRouter([
           { path: 'pos', component: DummyComponent },
+          { path: 'caja', component: DummyComponent },
           { path: 'login', component: DummyComponent },
         ]),
         provideHttpClient(),

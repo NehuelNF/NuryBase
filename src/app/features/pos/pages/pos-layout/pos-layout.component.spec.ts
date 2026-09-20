@@ -98,6 +98,9 @@ describe('PosLayoutComponent', () => {
     const posService = TestBed.inject(PosService);
     posService.catalog.set(TEST_PRODUCTS.map((product) => ({ ...product })));
     posService.clearCart();
+    // Estas pruebas verifican el comportamiento del POS asumiendo un turno ya
+    // iniciado; el flujo real de apertura ahora vive en CajaService/"Caja".
+    posService.openRegister();
   });
 
   it('should create the pos layout component', () => {
