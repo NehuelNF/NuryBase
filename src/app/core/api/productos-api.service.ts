@@ -18,6 +18,8 @@ export type ProductoActualizacion = Pick<
   'nombre' | 'categoria' | 'precio_venta' | 'codigo_barras' | 'activo'
 >;
 
+export type ProductoCreacion = ProductoActualizacion;
+
 const PRODUCT_FIELDS = 'id,nombre,categoria,precio_venta,codigo_barras,activo,creado_en';
 
 @Injectable({
@@ -40,6 +42,23 @@ export class ProductosApiService {
     return this.http.get<ProductoApi[]>(this.url, {
       params,
     });
+  }
+
+  crear(producto: ProductoCreacion): Observable<ProductoApi> {
+    return this.http
+      .post<ProductoApi[]>(this.url, producto, {
+        headers: { Prefer: 'return=representation' },
+        params: { select: PRODUCT_FIELDS },
+      })
+      .pipe(
+        map(([productoCreado]) => {
+          if (!productoCreado) {
+            throw new Error('El producto no pudo ser creado.');
+          }
+
+          return productoCreado;
+        }),
+      );
   }
 
   actualizar(id: number, cambios: ProductoActualizacion): Observable<ProductoApi> {

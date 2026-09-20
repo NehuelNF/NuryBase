@@ -2,7 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
-import { ProductoApi, ProductosApiService } from './productos-api.service';
+import { ProductoCreacion, ProductoApi, ProductosApiService } from './productos-api.service';
 
 describe('ProductosApiService', () => {
   let service: ProductosApiService;
@@ -27,6 +27,34 @@ describe('ProductosApiService', () => {
   });
 
   afterEach(() => http.verify());
+
+  it('creates a product in the database and requests the resulting row', async () => {
+    const newProduct: ProductoCreacion = {
+      nombre: 'Té chai',
+      categoria: 'Cafetería',
+      precio_venta: 2800,
+      codigo_barras: null,
+      activo: true,
+    };
+    const createdProduct: ProductoApi = {
+      ...newProduct,
+      id: 8,
+      creado_en: '2026-09-20T12:00:00Z',
+    };
+    const resultPromise = firstValueFrom(service.crear(newProduct));
+    const request = http.expectOne(
+      (candidate) =>
+        candidate.method === 'POST' &&
+        candidate.url === 'http://localhost:3000/productos' &&
+        candidate.params.get('select')?.includes('id') === true,
+    );
+
+    expect(request.request.body).toEqual(newProduct);
+    expect(request.request.headers.get('Prefer')).toBe('return=representation');
+    request.flush([createdProduct]);
+
+    await expect(resultPromise).resolves.toEqual(createdProduct);
+  });
 
   it('updates a product in the database and requests the resulting row', async () => {
     const changes = {
