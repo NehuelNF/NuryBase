@@ -98,8 +98,10 @@ export class PosService {
   // Historial de ventas del turno activo
   readonly salesHistory = signal<CompletedSale[]>([]);
 
-  // Estado de apertura de caja (compartido entre POS y Cierre de Caja)
-  readonly isRegisterOpen = signal<boolean>(true);
+  // Estado de apertura de caja (compartido entre POS y Cierre de Caja).
+  // Arranca cerrada: el turno debe iniciarse explícitamente desde "Caja"
+  // (botón "Iniciar Turno"), nunca automáticamente al iniciar sesión.
+  readonly isRegisterOpen = signal<boolean>(false);
 
   openRegister(): void {
     this.isRegisterOpen.set(true);

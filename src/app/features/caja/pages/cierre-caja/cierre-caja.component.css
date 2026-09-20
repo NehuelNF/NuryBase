@@ -305,6 +305,97 @@
   font-size: 15px;
 }
 
+.start-shift-state {
+  max-width: 420px;
+  margin: 80px auto 0;
+  text-align: center;
+  background: #fffefa;
+  border: 1px solid #e1e2d9;
+  border-radius: 10px;
+  padding: 48px 32px;
+}
+
+.start-shift-icon {
+  font-size: 40px;
+}
+
+.start-shift-state h1 {
+  font: 400 26px Georgia, serif;
+  color: #292e27;
+  margin: 12px 0 8px;
+}
+
+.start-shift-subtitle {
+  color: #7d8276;
+  font-size: 13px;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.ventas-detalle {
+  background: #fffefa;
+  border: 1px solid #e1e2d9;
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 28px;
+}
+
+.ventas-detalle h2 {
+  font: 400 20px Georgia, serif;
+  color: #292e27;
+  margin-bottom: 16px;
+}
+
+.ventas-grupo + .ventas-grupo {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #eeefe7;
+}
+
+.ventas-grupo h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333e2b;
+  margin-bottom: 10px;
+}
+
+.ventas-grupo-count {
+  font-size: 11px;
+  font-weight: 500;
+  color: #8a907f;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ventas-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.ventas-table th {
+  text-align: left;
+  font-size: 11px;
+  color: #7d8276;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 8px;
+  border-bottom: 1px solid #e6e7df;
+}
+
+.ventas-table td {
+  padding: 10px 8px;
+  border-bottom: 1px solid #eeefe7;
+  color: #333e2b;
+}
+
+.ventas-table td:last-child,
+.ventas-table th:last-child {
+  text-align: right;
+  white-space: nowrap;
 .field-label {
   display: block;
   font-size: 12px;

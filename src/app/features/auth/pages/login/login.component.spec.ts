@@ -89,7 +89,7 @@ describe('LoginComponent', () => {
     expect(navigateSpy).toHaveBeenCalledWith('/caja');
   });
 
-  it('should reject an external returnUrl and use /pos after login', async () => {
+  it('should reject an external returnUrl and use /caja after login', async () => {
     const router = TestBed.inject(Router);
     await router.navigateByUrl('/login?returnUrl=https%3A%2F%2Fevil.example');
     const navigateSpy = vi.spyOn(router, 'navigateByUrl');
@@ -106,7 +106,7 @@ describe('LoginComponent', () => {
       user: component.demoAccounts[0],
     });
 
-    expect(navigateSpy).toHaveBeenCalledWith('/pos');
+    expect(navigateSpy).toHaveBeenCalledWith('/caja');
   });
 
   it('should send a warehouse user to product master instead of POS', async () => {

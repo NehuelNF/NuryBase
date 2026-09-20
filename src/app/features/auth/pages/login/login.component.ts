@@ -81,7 +81,9 @@ export class LoginComponent {
       returnUrl.startsWith('/login?') ||
       !this.isRouteVisibleForRole(returnUrl, user)
     ) {
-      return user.rol === 'bodeguero' ? '/product-master' : '/pos';
+      // El turno nunca se inicia solo: cajero/admin aterrizan en "Caja"
+      // para abrir la caja explícitamente antes de ir al POS.
+      return user.rol === 'bodeguero' ? '/product-master' : '/caja';
     }
 
     return returnUrl;

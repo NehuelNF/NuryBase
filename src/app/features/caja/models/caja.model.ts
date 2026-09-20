@@ -1,4 +1,4 @@
-import { PaymentMethod, PosProduct } from '../../pos/models/pos.model';
+import { CompletedSale, PaymentMethod, PosProduct } from '../../pos/models/pos.model';
 
 export const PAYMENT_METHOD_META: Record<PaymentMethod, { label: string; icon: string }> = {
   efectivo: { label: 'Efectivo', icon: '💵' },
@@ -18,6 +18,13 @@ export interface ProductoVendido {
   producto: PosProduct;
   cantidad: number;
   subtotal: number;
+}
+
+export interface VentasPorMetodo {
+  key: PaymentMethod;
+  label: string;
+  icon: string;
+  ventas: CompletedSale[];
 }
 
 export interface CierreCaja {
