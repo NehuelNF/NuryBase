@@ -133,7 +133,7 @@
           } @else {
             @for (product of filteredProducts(); track product.id) {
               <tr>
-                <td class="product-code" data-label="Código">{{ productCode(product.id) }}</td>
+            <td class="product-code" data-label="Código">{{ productBarcode(product) }}</td>
                 <td class="product-name" data-label="Producto">{{ product.nombre }}</td>
                 <td data-label="Categoría">
                   <span class="category-badge">{{ product.categoria ?? 'Sin categoría' }}</span>
@@ -244,7 +244,7 @@
             @if (creatingProduct()) {
               Nuevo registro
             } @else if (selectedProduct(); as product) {
-              {{ productCode(product.id) }}
+              {{ productBarcode(product) }}
             }
           </span>
           <h2 id="product-form-title">
@@ -338,13 +338,24 @@
 
           <label class="form-field full-width">
             <span>Código de barras</span>
-            <input
-              type="text"
-              formControlName="codigo_barras"
-              maxlength="64"
-              autocomplete="off"
-              placeholder="Producto sin código de barras"
-            />
+            <span class="barcode-input-row">
+              <input
+                type="text"
+                formControlName="codigo_barras"
+                maxlength="64"
+                autocomplete="off"
+                placeholder="Producto sin código de barras"
+              />
+              <button
+                type="button"
+                class="barcode-scan-button"
+                [disabled]="saving()"
+                (click)="openBarcodeScanner()"
+                aria-label="Escanear código de barras"
+              >
+                Escanear
+              </button>
+            </span>
           </label>
 
           <label class="status-control">
@@ -380,6 +391,50 @@
           </button>
         </footer>
       </form>
+    </section>
+  </div>
+}
+
+@if (barcodeScannerOpen()) {
+  <div class="modal-backdrop barcode-scanner-backdrop" (mousedown)="closeBarcodeScanner()">
+    <section
+      class="barcode-scanner-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="product-barcode-scanner-title"
+      (mousedown)="$event.stopPropagation()"
+    >
+      <header class="modal-header">
+        <div>
+          <span class="eyebrow">Código de barras</span>
+          <h2 id="product-barcode-scanner-title">Escanear producto</h2>
+          <p>Apunta la cámara al código de barras del producto.</p>
+        </div>
+        <button
+          type="button"
+          class="close-button"
+          aria-label="Cerrar cámara"
+          (click)="closeBarcodeScanner()"
+        >
+          ×
+        </button>
+      </header>
+
+      <div class="barcode-scanner-body">
+        <div class="barcode-video-frame">
+          <video #productBarcodeVideo autoplay muted playsinline></video>
+          <span class="barcode-scanner-guide" aria-hidden="true"></span>
+        </div>
+        @if (barcodeScannerError()) {
+          <p class="barcode-scanner-error" role="alert">{{ barcodeScannerError() }}</p>
+        }
+      </div>
+
+      <footer class="modal-footer">
+        <button type="button" class="secondary-button" (click)="closeBarcodeScanner()">
+          Cancelar
+        </button>
+      </footer>
     </section>
   </div>
 }

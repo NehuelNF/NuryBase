@@ -1,8 +1,18 @@
 import { CommonModule, DecimalPipe } from '@angular/common';
-import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../auth/services/auth.service';
+import { BarcodeScanner } from '../../../../core/services/barcode-scanner';
 import { PaymentModalComponent } from '../../components/payment-modal/payment-modal.component';
 import { CompletedSale, PosProduct } from '../../models/pos.model';
 import { PosService } from '../../services/pos.service';
@@ -19,8 +29,11 @@ import { PosService } from '../../services/pos.service';
 
 export class PosLayoutComponent implements OnInit, OnDestroy {
 
+  @ViewChild('barcodeVideo') private barcodeVideo?: ElementRef<HTMLVideoElement>;
+
   readonly posService = inject(PosService);
   readonly authService = inject(AuthService);
+  private readonly barcodeScanner = inject(BarcodeScanner);
   private readonly router = inject(Router, { optional: true });
 
   readonly categories = this.posService.categories;
@@ -34,6 +47,8 @@ export class PosLayoutComponent implements OnInit, OnDestroy {
   readonly searchQuery = signal<string>('');
   readonly quickBarcodeInput = signal<string>('');
   readonly barcodeFeedback = signal<string | null>(null);
+  readonly isScannerOpen = signal(false);
+  readonly scannerError = signal<string | null>(null);
   readonly isRegisterOpen = this.posService.isRegisterOpen;
 
   // Control del modal de pago (H2.4)
@@ -58,6 +73,7 @@ export class PosLayoutComponent implements OnInit, OnDestroy {
     if (this.timerId) {
       clearInterval(this.timerId);
     }
+    this.barcodeScanner.stop();
   }
 
   // Catálogo filtrado por categoría y búsqueda de texto (H2.2)
@@ -133,6 +149,56 @@ export class PosLayoutComponent implements OnInit, OnDestroy {
 
   goToCaja(): void {
     this.router?.navigate(['/caja']);
+  }
+
+  openBarcodeScanner(): void {
+    if (!this.isRegisterOpen()) {
+      this.barcodeFeedback.set('❌ La caja está cerrada. Ábrela para registrar productos.');
+      return;
+    }
+
+    this.scannerError.set(null);
+    this.isScannerOpen.set(true);
+
+    // The video element is created by the @if block on the next change-detection pass.
+    setTimeout(() => void this.startBarcodeScanner(), 0);
+  }
+
+  closeBarcodeScanner(): void {
+    this.barcodeScanner.stop();
+    this.isScannerOpen.set(false);
+  }
+
+  private async startBarcodeScanner(): Promise<void> {
+    const videoElement = this.barcodeVideo?.nativeElement;
+    if (!videoElement || !this.isScannerOpen()) return;
+
+    try {
+      await this.barcodeScanner.start(
+        videoElement,
+        (code) => {
+          this.quickBarcodeInput.set(code);
+          this.closeBarcodeScanner();
+          this.onBarcodeScan();
+        },
+        (error) => {
+          console.error('No se pudo iniciar la cámara para escanear', error);
+          this.scannerError.set(this.getScannerErrorMessage(error));
+        },
+      );
+    } catch {
+      // The user-facing message is set by the error callback above.
+    }
+  }
+
+  private getScannerErrorMessage(error: unknown): string {
+    if (error instanceof DOMException && error.name === 'NotAllowedError') {
+      return 'Debes permitir el acceso a la cámara para escanear.';
+    }
+    if (error instanceof DOMException && error.name === 'NotFoundError') {
+      return 'No se encontró una cámara disponible en este dispositivo.';
+    }
+    return 'No fue posible iniciar la cámara. Verifica los permisos y que estés usando HTTPS.';
   }
 
   closePayment(): void {

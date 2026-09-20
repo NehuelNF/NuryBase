@@ -695,6 +695,40 @@ select {
   outline: 0;
 }
 
+.barcode-input-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.barcode-input-row input {
+  min-width: 0;
+  flex: 1;
+  border: 1px solid #d8dbcf;
+  border-radius: 5px;
+  background: white;
+  color: #343c30;
+  padding: 10px 11px;
+  outline: 0;
+}
+
+.barcode-scan-button {
+  flex: 0 0 auto;
+  border: 1px solid #c7d58d;
+  border-radius: 5px;
+  background: #edf3d2;
+  color: #34422f;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 0 14px;
+}
+
+.barcode-scan-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .form-field input:focus,
 .price-input:focus-within {
   border-color: #6f825f;
@@ -890,6 +924,57 @@ select {
   border-top: 1px solid #e5e6dd;
   background: #fafaf5;
   padding: 16px 26px;
+}
+
+.barcode-scanner-backdrop {
+  z-index: 120;
+}
+
+.barcode-scanner-modal {
+  width: min(560px, 100%);
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto;
+  border-radius: 10px;
+  background: #fffefa;
+  box-shadow: 0 24px 70px rgb(20 27 17 / 30%);
+}
+
+.barcode-scanner-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 22px 26px 0;
+}
+
+.barcode-video-frame {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  border-radius: 8px;
+  background: #111;
+}
+
+.barcode-video-frame video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.barcode-scanner-guide {
+  position: absolute;
+  top: 34%;
+  left: 10%;
+  width: 80%;
+  height: 32%;
+  border: 2px solid #d8f36b;
+  border-radius: 7px;
+}
+
+.barcode-scanner-error {
+  margin: 0;
+  color: #a76550;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .secondary-button,

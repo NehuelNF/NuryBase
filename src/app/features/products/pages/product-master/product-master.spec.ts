@@ -115,18 +115,18 @@ describe('ProductMaster', () => {
     expect(rows[0].textContent).not.toContain('Café americano');
   });
 
-  it('filters products by their displayed internal code', () => {
+  it('filters products by their displayed barcode', () => {
     const searchInput = fixture.nativeElement.querySelector(
       'input[aria-label="Buscar productos"]',
     ) as HTMLInputElement;
-    searchInput.value = 'NUR-012';
+    searchInput.value = '7800000000012';
     searchInput.dispatchEvent(new Event('input'));
     fixture.detectChanges();
 
     const rows = fixture.nativeElement.querySelectorAll('.product-table tbody tr');
     expect(rows).toHaveLength(1);
     expect(rows[0].textContent).toContain('Té verde');
-    expect(rows[0].textContent).toContain('NUR-012');
+    expect(rows[0].textContent).toContain('7800000000012');
   });
 
   it('opens an empty form when clicking Nuevo producto', () => {
