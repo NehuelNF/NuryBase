@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard } from './core/guards/auth.guard';
+import { authGuard, roleGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -20,16 +20,22 @@ export const routes: Routes = [
     children: [
       {
         path: 'pos',
+        canActivate: [roleGuard],
+        data: { allowedRoles: ['admin', 'cajero'] },
         loadChildren: () =>
           import('./features/pos/pos.routes').then((m) => m.POS_ROUTES),
       },
       {
         path: 'caja',
+        canActivate: [roleGuard],
+        data: { allowedRoles: ['admin', 'cajero'] },
         loadChildren: () =>
           import('./features/caja/caja.routes').then((m) => m.CAJA_ROUTES),
       },
       {
         path: 'product-master',
+        canActivate: [roleGuard],
+        data: { allowedRoles: ['admin', 'bodeguero'] },
         loadChildren: () =>
           import('./features/products/products.routes').then((m) => m.PRODUCTS_ROUTES),
       },
