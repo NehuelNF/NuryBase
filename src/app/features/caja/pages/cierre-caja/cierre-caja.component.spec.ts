@@ -91,7 +91,7 @@ describe('CierreCajaComponent', () => {
           { path: 'caja', component: DummyComponent },
         ]),
         { provide: ProductosApiService, useValue: { listar: () => NEVER } },
-        { provide: VentasApiService, useValue: { registrar: () => of(999) } },
+        { provide: VentasApiService, useValue: { registrar: () => of(999), obtenerEstados: () => of([]) } },
         {
           provide: TurnosApiService,
           useValue: {

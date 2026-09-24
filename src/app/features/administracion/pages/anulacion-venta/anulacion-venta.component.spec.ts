@@ -27,6 +27,11 @@ function ventaDePrueba(overrides: Partial<VentaApi> = {}): VentaApi {
     anulada_en: null,
     anulada_por: null,
     motivo_anulacion: null,
+    monto_recibido: 2600,
+    vuelto: 0,
+    codigo_autorizacion: null,
+    titular_junaeb: null,
+    saldo_restante_junaeb: null,
     cajero: { nombre: 'Camila Rojas' },
     detalle_venta: [
       { cantidad: 1, precio_unitario: 2600, subtotal: 2600, productos: { nombre: 'Café Espresso Doble' } },

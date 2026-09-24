@@ -37,6 +37,7 @@ const TEST_PRODUCTS: PosProduct[] = [
 describe('CajaService', () => {
   let abrirTurno: ReturnType<typeof vi.fn>;
   let cerrarTurnoApi: ReturnType<typeof vi.fn>;
+  let obtenerEstados: ReturnType<typeof vi.fn>;
 
   function chargeSale(
     pos: PosService,
@@ -67,11 +68,16 @@ describe('CajaService', () => {
     cerrarTurnoApi = vi.fn(() =>
       of({ id: 42, usuario_id: 1, sucursal_id: 1, hora_inicio: '', hora_fin: '', creado_en: '' })
     );
+    obtenerEstados = vi.fn(() => of([]));
+    let nextVentaId = 900;
 
     TestBed.configureTestingModule({
       providers: [
         { provide: ProductosApiService, useValue: { listar: () => NEVER } },
-        { provide: VentasApiService, useValue: { registrar: () => of(999) } },
+        {
+          provide: VentasApiService,
+          useValue: { registrar: () => of(++nextVentaId), obtenerEstados },
+        },
         { provide: TurnosApiService, useValue: { abrir: abrirTurno, cerrar: cerrarTurnoApi } },
       ],
     });
@@ -220,6 +226,44 @@ describe('CajaService', () => {
 
     expect(cierre.diferenciaEfectivo).toBe(-600);
     expect(cierre.justificacionDiferencia).toBe('Se entregó de más en el vuelto de una venta.');
+  });
+
+  it('excludes a sale voided by an admin from the current cuadratura (AC)', () => {
+    const pos = TestBed.inject(PosService);
+    const caja = TestBed.inject(CajaService);
+    abrirTurnoDePrueba(caja);
+
+    chargeSale(pos, 0, 1, 'efectivo'); // $2.600
+    chargeSale(pos, 1, 1, 'tarjeta'); // $3.200
+    const idVentaEfectivo = pos.salesHistory().find((v) => v.medioPago === 'efectivo')!.id;
+
+    expect(caja.grandTotal()).toBe(5800);
+
+    // Un admin anuló la primera venta desde Administrador mientras la
+    // caja seguía abierta; obtenerEstados es lo que el cajero usa para
+    // enterarse.
+    obtenerEstados.mockReturnValueOnce(of([{ id: idVentaEfectivo, anulada: true }]));
+    caja.sincronizarAnuladas();
+
+    expect(caja.grandTotal()).toBe(3200);
+    expect(caja.hayVentasEnElTurno()).toBe(true);
+    expect(
+      caja.summaryByMethod().find((m) => m.key === 'efectivo')?.ventas
+    ).toBe(0);
+
+    let cierre: any;
+    caja.cerrarTurno('Camila Rojas', 'Nury Providencia', 0, null).subscribe((c) => (cierre = c));
+    expect(cierre.totalGeneral).toBe(3200);
+    expect(cierre.ventasTotales).toBe(1);
+  });
+
+  it('does not call obtenerEstados when there are no sales yet', () => {
+    const caja = TestBed.inject(CajaService);
+    abrirTurnoDePrueba(caja);
+
+    caja.sincronizarAnuladas();
+
+    expect(obtenerEstados).not.toHaveBeenCalled();
   });
 
   it('fails to close when the backend rejects fn_cerrar_turno', () => {

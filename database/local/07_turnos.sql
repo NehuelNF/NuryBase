@@ -14,7 +14,16 @@ LANGUAGE plpgsql
 AS $$
 DECLARE
     v_turno_id INTEGER;
+    v_sub      INTEGER;
 BEGIN
+    -- Nadie puede abrir un turno a nombre de otro usuario, salvo un admin.
+    v_sub := NULLIF(current_setting('request.jwt.claims', true)::json->>'sub', '')::integer;
+    IF v_sub IS DISTINCT FROM p_usuario_id
+       AND current_setting('request.jwt.claims', true)::json->>'app_role' IS DISTINCT FROM 'admin'
+    THEN
+        RAISE EXCEPTION 'No puedes abrir un turno a nombre de otro usuario.' USING ERRCODE = '42501';
+    END IF;
+
     -- Idempotente: si el usuario ya tiene un turno abierto, se reutiliza
     -- en vez de crear uno nuevo (doble click, refrescar la página, etc.).
     SELECT id INTO v_turno_id
@@ -47,6 +56,12 @@ BEGIN
 
     IF NOT FOUND THEN
         RAISE EXCEPTION 'El turno % no existe.', p_turno_id;
+    END IF;
+
+    IF v_turno.usuario_id IS DISTINCT FROM NULLIF(current_setting('request.jwt.claims', true)::json->>'sub', '')::integer
+       AND current_setting('request.jwt.claims', true)::json->>'app_role' IS DISTINCT FROM 'admin'
+    THEN
+        RAISE EXCEPTION 'No puedes cerrar el turno de otro usuario.' USING ERRCODE = '42501';
     END IF;
 
     IF v_turno.hora_fin IS NOT NULL THEN

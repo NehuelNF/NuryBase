@@ -31,6 +31,11 @@ describe('VentasApiService', () => {
         anulada_en: null,
         anulada_por: null,
         motivo_anulacion: null,
+        monto_recibido: 2600,
+        vuelto: 0,
+        codigo_autorizacion: null,
+        titular_junaeb: null,
+        saldo_restante_junaeb: null,
         cajero: { nombre: 'Camila Rojas' },
         detalle_venta: [
           { cantidad: 1, precio_unitario: 2600, subtotal: 2600, productos: { nombre: 'Café' } },
@@ -64,6 +69,11 @@ describe('VentasApiService', () => {
       anulada_en: '2026-09-24T13:00:00Z',
       anulada_por: 2,
       motivo_anulacion: 'El cliente se arrepintió.',
+      monto_recibido: 2600,
+      vuelto: 0,
+      codigo_autorizacion: null,
+      titular_junaeb: null,
+      saldo_restante_junaeb: null,
       cajero: { nombre: 'Camila Rojas' },
       detalle_venta: [],
     };

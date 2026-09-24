@@ -65,6 +65,15 @@
               <td colspan="6">
                 <div class="venta-detalle">
                   <p><strong>Productos:</strong> {{ resumenItems(venta) }}</p>
+                  @if (venta.monto_recibido !== null) {
+                    <p>
+                      <strong>Comprobante:</strong> recibido {{ formatClp(venta.monto_recibido) }},
+                      vuelto {{ formatClp(venta.vuelto ?? 0) }}
+                      @if (venta.codigo_autorizacion) {
+                        · autorización {{ venta.codigo_autorizacion }}
+                      }
+                    </p>
+                  }
                   @if (venta.anulada) {
                     <p class="detalle-anulacion">
                       Anulada el {{ venta.anulada_en ? formatFecha(venta.anulada_en) : '—' }}.

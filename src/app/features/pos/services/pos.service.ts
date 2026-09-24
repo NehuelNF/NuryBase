@@ -217,6 +217,11 @@ export class PosService {
           cantidad: item.cantidad,
           precio_unitario: item.producto.precioVenta,
         })),
+        p_monto_recibido: montoRecibido,
+        p_vuelto: vuelto,
+        p_codigo_autorizacion: extraDetails?.codigoAutorizacion,
+        p_titular_junaeb: extraDetails?.titularJunaeb,
+        p_saldo_restante_junaeb: extraDetails?.saldoRestanteJunaeb,
       })
       .pipe(
         // Si PostgREST no responde en 15s (backend caído, colgado o sin red),

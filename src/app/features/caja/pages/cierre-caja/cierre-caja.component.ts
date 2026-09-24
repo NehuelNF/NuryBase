@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../auth/services/auth.service';
 import { PAYMENT_METHOD_META, CierreCaja } from '../../models/caja.model';
@@ -13,7 +13,7 @@ import { CajaService } from '../../services/caja.service';
   templateUrl: './cierre-caja.component.html',
   styleUrl: './cierre-caja.component.css',
 })
-export class CierreCajaComponent {
+export class CierreCajaComponent implements OnInit {
   private readonly cajaService = inject(CajaService);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router, { optional: true });
@@ -64,6 +64,13 @@ export class CierreCajaComponent {
     return true;
   });
 
+  ngOnInit(): void {
+    // Por si un admin anuló alguna venta de este turno desde
+    // Administrador mientras la caja seguía abierta (AC: la cuadratura
+    // vigente no debe contarla).
+    this.cajaService.sincronizarAnuladas();
+  }
+
   setEfectivoContado(valor: string): void {
     const parsed = valor.trim() === '' ? null : Number(valor);
     this.efectivoContado.set(parsed === null || Number.isNaN(parsed) ? null : parsed);
@@ -78,6 +85,9 @@ export class CierreCajaComponent {
   }
 
   openConfirm(): void {
+    // Última chance de detectar una anulación reciente antes de cuadrar.
+    this.cajaService.sincronizarAnuladas();
+
     if (this.hayVentasEnElTurno()) {
       this.efectivoContado.set(null);
       this.justificacion.set('');
