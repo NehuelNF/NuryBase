@@ -62,3 +62,11 @@ Este documento mantiene el inventario y resultado real de las pruebas ejecutadas
 2. Registrar suites, casos nuevos, fecha, rama y resultado real.
 3. Ejecutar `npm run build` y registrar errores o advertencias.
 4. No marcar una tarea como finalizada hasta completar también su revisión manual cuando corresponda.
+
+## Catálogo POS con categorías reales — 24-09-2026
+
+- **Rama:** `Patricio2_branch`
+- **Cambios:** Categorías derivadas del campo `productos.categoria`; filtro por nombre real; “Sin categoría” para valores vacíos.
+- **Pruebas:** `npm test -- --watch=false --reporters=verbose` no pudo completar la compilación del bundle. Angular/esbuild reportó `Acceso denegado` al leer directorios del workspace y resolver CSS y dependencias locales. Una primera ejecución también detectó fixtures numéricos; fueron actualizados al nuevo tipo string antes del segundo intento.
+- **Resultado:** Sin conteo de pruebas ejecutadas; suite bloqueada antes de su inicio por acceso al filesystem. No registrar como PASS.
+- **Build:** `npm run build` también falló antes de compilar por `Acceso denegado` al resolver archivos del workspace y estilos globales; no atribuido a errores de TypeScript del cambio.

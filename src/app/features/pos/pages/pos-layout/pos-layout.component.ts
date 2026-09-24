@@ -43,7 +43,7 @@ export class PosLayoutComponent implements OnInit, OnDestroy {
   readonly totalItemsCount = this.posService.totalItemsCount;
   readonly currentUser = this.authService.currentUser;
 
-  readonly selectedCategoryId = signal<number>(0);
+  readonly selectedCategoryId = signal<string>('');
   readonly searchQuery = signal<string>('');
   readonly quickBarcodeInput = signal<string>('');
   readonly barcodeFeedback = signal<string | null>(null);
@@ -82,7 +82,7 @@ export class PosLayoutComponent implements OnInit, OnDestroy {
     const catId = this.selectedCategoryId();
     const query = this.normalizeSearch(this.searchQuery());
 
-    if (catId !== 0) {
+    if (catId !== '') {
       list = list.filter((p) => p.categoriaId === catId);
     }
 
@@ -97,7 +97,7 @@ export class PosLayoutComponent implements OnInit, OnDestroy {
     return list;
   });
 
-  selectCategory(catId: number): void {
+  selectCategory(catId: string): void {
     this.selectedCategoryId.set(catId);
   }
 
@@ -109,8 +109,8 @@ export class PosLayoutComponent implements OnInit, OnDestroy {
       .toLowerCase();
   }
 
-  getCategoryCount(catId: number): number {
-    return this.catalog().filter((p) => p.activo && (catId === 0 || p.categoriaId === catId))
+  getCategoryCount(catId: string): number {
+    return this.catalog().filter((p) => p.activo && (catId === '' || p.categoriaId === catId))
       .length;
   }
 
