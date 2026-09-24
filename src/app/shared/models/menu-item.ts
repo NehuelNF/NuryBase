@@ -5,4 +5,5 @@ export interface MenuItem {
   icon: string;
   route: string;
   allowedRoles: readonly UserRole[];
+  children?: readonly MenuItem[];
 }

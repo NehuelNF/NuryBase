@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
-import { NEVER, of } from 'rxjs';
+import { NEVER, of, throwError } from 'rxjs';
 import { ProductosApiService } from '../../../core/api/productos-api.service';
+import { TurnosApiService } from '../../../core/api/turnos-api.service';
 import { VentasApiService } from '../../../core/api/ventas-api.service';
 import { PosProduct } from '../../pos/models/pos.model';
 import { PosService } from '../../pos/services/pos.service';
@@ -34,6 +35,9 @@ const TEST_PRODUCTS: PosProduct[] = [
 ];
 
 describe('CajaService', () => {
+  let abrirTurno: ReturnType<typeof vi.fn>;
+  let cerrarTurnoApi: ReturnType<typeof vi.fn>;
+
   function chargeSale(
     pos: PosService,
     productIndex: number,
@@ -53,11 +57,22 @@ describe('CajaService', () => {
       .subscribe();
   }
 
+  // Abre un turno de prueba (id 42) para dejar la caja lista para cerrarTurno().
+  function abrirTurnoDePrueba(caja: CajaService) {
+    caja.iniciarTurno(1, 1).subscribe();
+  }
+
   beforeEach(() => {
+    abrirTurno = vi.fn(() => of(42));
+    cerrarTurnoApi = vi.fn(() =>
+      of({ id: 42, usuario_id: 1, sucursal_id: 1, hora_inicio: '', hora_fin: '', creado_en: '' })
+    );
+
     TestBed.configureTestingModule({
       providers: [
         { provide: ProductosApiService, useValue: { listar: () => NEVER } },
         { provide: VentasApiService, useValue: { registrar: () => of(999) } },
+        { provide: TurnosApiService, useValue: { abrir: abrirTurno, cerrar: cerrarTurnoApi } },
       ],
     });
     const pos = TestBed.inject(PosService);
@@ -68,16 +83,19 @@ describe('CajaService', () => {
   it('closes the shift with a snapshot of the totals and resets the sales history', () => {
     const pos = TestBed.inject(PosService);
     const caja = TestBed.inject(CajaService);
+    abrirTurnoDePrueba(caja);
 
     chargeSale(pos, 0, 1, 'efectivo'); // $2.600
     chargeSale(pos, 1, 1, 'tarjeta'); // $3.200
 
-    const cierre = caja.cerrarTurno('Camila Rojas', 'Nury Providencia', 2600, null);
+    let cierre: any;
+    caja.cerrarTurno('Camila Rojas', 'Nury Providencia', 2600, null).subscribe((c) => (cierre = c));
 
+    expect(cerrarTurnoApi).toHaveBeenCalledWith(42);
     expect(cierre.totalGeneral).toBe(5800);
     expect(cierre.ventasTotales).toBe(2);
-    expect(cierre.desglose.find((d) => d.key === 'efectivo')?.total).toBe(2600);
-    expect(cierre.desglose.find((d) => d.key === 'tarjeta')?.total).toBe(3200);
+    expect(cierre.desglose.find((d: { key: string }) => d.key === 'efectivo')?.total).toBe(2600);
+    expect(cierre.desglose.find((d: { key: string }) => d.key === 'tarjeta')?.total).toBe(3200);
     expect(pos.salesHistory()).toHaveLength(0);
     expect(caja.grandTotal()).toBe(0);
     expect(caja.historialCierres()).toContain(cierre);
@@ -87,34 +105,43 @@ describe('CajaService', () => {
   it('does not mix sales from a previous shift into the next closing', () => {
     const pos = TestBed.inject(PosService);
     const caja = TestBed.inject(CajaService);
+    abrirTurnoDePrueba(caja);
 
     chargeSale(pos, 0, 1, 'efectivo');
-    caja.cerrarTurno('Camila Rojas', 'Nury Providencia', 2600, null);
+    caja.cerrarTurno('Camila Rojas', 'Nury Providencia', 2600, null).subscribe();
 
+    abrirTurnoDePrueba(caja);
     chargeSale(pos, 1, 1, 'tarjeta'); // única venta del nuevo turno
-    const segundoCierre = caja.cerrarTurno('Camila Rojas', 'Nury Providencia', 0, null);
+
+    let segundoCierre: any;
+    caja
+      .cerrarTurno('Camila Rojas', 'Nury Providencia', 0, null)
+      .subscribe((c) => (segundoCierre = c));
 
     expect(segundoCierre.ventasTotales).toBe(1);
-    expect(segundoCierre.desglose.find((d) => d.key === 'efectivo')?.total).toBe(0);
-    expect(segundoCierre.desglose.find((d) => d.key === 'tarjeta')?.total).toBe(3200);
+    expect(segundoCierre.desglose.find((d: { key: string }) => d.key === 'efectivo')?.total).toBe(0);
+    expect(segundoCierre.desglose.find((d: { key: string }) => d.key === 'tarjeta')?.total).toBe(3200);
   });
 
-  it('iniciarTurno opens the register so the cashier can operate in the POS', () => {
+  it('iniciarTurno abre el turno real y deja la caja operativa', () => {
     const pos = TestBed.inject(PosService);
     const caja = TestBed.inject(CajaService);
 
     pos.closeRegister();
     expect(caja.isRegisterOpen()).toBe(false);
 
-    caja.iniciarTurno();
+    caja.iniciarTurno(1, 1).subscribe();
 
+    expect(abrirTurno).toHaveBeenCalledWith(1, 1);
     expect(caja.isRegisterOpen()).toBe(true);
     expect(pos.isRegisterOpen()).toBe(true);
+    expect(pos.currentTurnoId()).toBe(42);
   });
 
   it('groups the individual sales of the shift by payment method (ventasPorMetodo)', () => {
     const pos = TestBed.inject(PosService);
     const caja = TestBed.inject(CajaService);
+    abrirTurnoDePrueba(caja);
 
     chargeSale(pos, 0, 1, 'efectivo'); // Café Espresso Doble $2.600
     chargeSale(pos, 1, 2, 'tarjeta'); // 2x Cappuccino Italiano $6.400
@@ -138,10 +165,12 @@ describe('CajaService', () => {
   it('records no difference when the counted cash matches the system total', () => {
     const pos = TestBed.inject(PosService);
     const caja = TestBed.inject(CajaService);
+    abrirTurnoDePrueba(caja);
 
     chargeSale(pos, 0, 1, 'efectivo'); // $2.600
 
-    const cierre = caja.cerrarTurno('Camila Rojas', 'Nury Providencia', 2600, null);
+    let cierre: any;
+    caja.cerrarTurno('Camila Rojas', 'Nury Providencia', 2600, null).subscribe((c) => (cierre = c));
 
     expect(cierre.efectivoEsperado).toBe(2600);
     expect(cierre.efectivoContado).toBe(2600);
@@ -152,28 +181,61 @@ describe('CajaService', () => {
   it('rejects closing with a cash mismatch and no justification', () => {
     const pos = TestBed.inject(PosService);
     const caja = TestBed.inject(CajaService);
+    abrirTurnoDePrueba(caja);
 
     chargeSale(pos, 0, 1, 'efectivo'); // $2.600
 
-    expect(() => caja.cerrarTurno('Camila Rojas', 'Nury Providencia', 2000, null)).toThrow();
-    expect(() => caja.cerrarTurno('Camila Rojas', 'Nury Providencia', 2000, '   ')).toThrow();
+    let error1: Error | undefined;
+    caja
+      .cerrarTurno('Camila Rojas', 'Nury Providencia', 2000, null)
+      .subscribe({ error: (e) => (error1 = e) });
+    expect(error1).toBeInstanceOf(Error);
+
+    let error2: Error | undefined;
+    caja
+      .cerrarTurno('Camila Rojas', 'Nury Providencia', 2000, '   ')
+      .subscribe({ error: (e) => (error2 = e) });
+    expect(error2).toBeInstanceOf(Error);
+
+    expect(cerrarTurnoApi).not.toHaveBeenCalled();
     expect(pos.salesHistory()).toHaveLength(1); // no se cerró el turno
   });
 
   it('records a shortage or surplus with its justification', () => {
     const pos = TestBed.inject(PosService);
     const caja = TestBed.inject(CajaService);
+    abrirTurnoDePrueba(caja);
 
     chargeSale(pos, 0, 1, 'efectivo'); // $2.600
 
-    const cierre = caja.cerrarTurno(
-      'Camila Rojas',
-      'Nury Providencia',
-      2000,
-      'Se entregó de más en el vuelto de una venta.'
-    );
+    let cierre: any;
+    caja
+      .cerrarTurno(
+        'Camila Rojas',
+        'Nury Providencia',
+        2000,
+        'Se entregó de más en el vuelto de una venta.'
+      )
+      .subscribe((c) => (cierre = c));
 
     expect(cierre.diferenciaEfectivo).toBe(-600);
     expect(cierre.justificacionDiferencia).toBe('Se entregó de más en el vuelto de una venta.');
+  });
+
+  it('fails to close when the backend rejects fn_cerrar_turno', () => {
+    const pos = TestBed.inject(PosService);
+    const caja = TestBed.inject(CajaService);
+    abrirTurnoDePrueba(caja);
+    chargeSale(pos, 0, 1, 'efectivo');
+
+    cerrarTurnoApi.mockReturnValueOnce(throwError(() => new Error('El turno ya estaba cerrado.')));
+
+    let error: Error | undefined;
+    caja
+      .cerrarTurno('Camila Rojas', 'Nury Providencia', 2600, null)
+      .subscribe({ error: (e) => (error = e) });
+
+    expect(error?.message).toBe('El turno ya estaba cerrado.');
+    expect(pos.salesHistory()).toHaveLength(1); // no se limpió: el cierre falló
   });
 });

@@ -24,6 +24,7 @@ export class CierreCajaComponent {
 
   readonly efectivoContado = signal<number | null>(null);
   readonly justificacion = signal('');
+  readonly errorMensaje = signal<string | null>(null);
 
   readonly summaryByMethod = this.cajaService.summaryByMethod;
   readonly grandTotal = this.cajaService.grandTotal;
@@ -91,23 +92,39 @@ export class CierreCajaComponent {
   confirmCierre(): void {
     if (!this.puedeConfirmarCierre()) return;
 
+    this.errorMensaje.set(null);
     const cajero = this.authService.currentUser();
-    const cierre = this.cajaService.cerrarTurno(
-      cajero?.nombre ?? 'Cajero',
-      cajero?.sucursalNombre ?? 'Sucursal',
-      this.efectivoContado()!,
-      this.requiereJustificacion() ? this.justificacion() : null
-    );
-
-    this.turnoCerrado.set(cierre);
-    this.showConfirm.set(false);
-    this.selectedMethod.set(null);
+    this.cajaService
+      .cerrarTurno(
+        cajero?.nombre ?? 'Cajero',
+        cajero?.sucursalNombre ?? 'Sucursal',
+        this.efectivoContado()!,
+        this.requiereJustificacion() ? this.justificacion() : null
+      )
+      .subscribe({
+        next: (cierre) => {
+          this.turnoCerrado.set(cierre);
+          this.showConfirm.set(false);
+          this.selectedMethod.set(null);
+        },
+        error: (error: Error) => {
+          this.errorMensaje.set(error.message || 'No se pudo cerrar el turno. Intenta de nuevo.');
+        },
+      });
   }
 
   // Abre la caja y lleva al cajero al POS para empezar a vender (flujo de turno)
   iniciarTurno(): void {
-    this.cajaService.iniciarTurno();
-    this.router?.navigate(['/pos']);
+    const usuario = this.authService.currentUser();
+    if (!usuario) return;
+
+    this.errorMensaje.set(null);
+    this.cajaService.iniciarTurno(usuario.id, usuario.sucursalId).subscribe({
+      next: () => this.router?.navigate(['/pos']),
+      error: (error: Error) => {
+        this.errorMensaje.set(error.message || 'No se pudo iniciar el turno. Intenta de nuevo.');
+      },
+    });
   }
 
   volverAOperar(): void {

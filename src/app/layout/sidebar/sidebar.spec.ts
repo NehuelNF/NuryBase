@@ -49,7 +49,7 @@ describe('Sidebar', () => {
     expect(visibleMenuRoutes()).toEqual(['/product-master', '/inventario']);
   });
 
-  it('should show every available function to an administrator', () => {
+  it('should show every available function to an administrator, with anulación de venta already expanded', () => {
     currentUser.set(createUser('admin'));
     fixture.detectChanges();
 
@@ -58,8 +58,18 @@ describe('Sidebar', () => {
       '/caja',
       '/product-master',
       '/inventario',
-      '/administracion',
+      '/administracion/anulacion-venta',
     ]);
+  });
+
+  it('should not show the Administrador submenu to non-admin roles', () => {
+    currentUser.set(createUser('cajero'));
+    fixture.detectChanges();
+
+    expect(visibleMenuRoutes()).not.toContain('/administracion/anulacion-venta');
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('.nav-parent-toggle'),
+    ).toBeNull();
   });
 
   it('should not render role-specific links without a database-authenticated user', () => {

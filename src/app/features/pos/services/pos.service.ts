@@ -103,11 +103,17 @@ export class PosService {
   // (botón "Iniciar Turno"), nunca automáticamente al iniciar sesión.
   readonly isRegisterOpen = signal<boolean>(false);
 
-  openRegister(): void {
+  // Id real de la fila en `turnos` (ver fn_abrir_turno). Sin esto no hay
+  // forma de cerrarla ni de que fn_anular_venta valide "turno abierto".
+  readonly currentTurnoId = signal<number | null>(null);
+
+  openRegister(turnoId: number): void {
+    this.currentTurnoId.set(turnoId);
     this.isRegisterOpen.set(true);
   }
 
   closeRegister(): void {
+    this.currentTurnoId.set(null);
     this.isRegisterOpen.set(false);
   }
 

@@ -1,4 +1,6 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
+import { Observable, map, throwError } from 'rxjs';
+import { TurnosApiService } from '../../../core/api/turnos-api.service';
 import { PaymentMethod } from '../../pos/models/pos.model';
 import { PosService } from '../../pos/services/pos.service';
 import {
@@ -14,6 +16,7 @@ import {
 })
 export class CajaService {
   private readonly posService = inject(PosService);
+  private readonly turnosApi = inject(TurnosApiService);
 
   private cierreSequence = 1;
 
@@ -84,46 +87,62 @@ export class CajaService {
     return Array.from(acumulado.values()).sort((a, b) => b.subtotal - a.subtotal);
   }
 
-  // Inicia el turno: abre la caja para que el cajero pueda operar en el POS
-  iniciarTurno(): void {
-    this.posService.openRegister();
+  // Inicia el turno contra la base real (fn_abrir_turno) y solo si responde
+  // bien abre la caja localmente; así el turnoId nunca queda desincronizado.
+  iniciarTurno(usuarioId: number, sucursalId: number): Observable<number> {
+    return this.turnosApi.abrir(usuarioId, sucursalId).pipe(
+      map((turnoId) => {
+        this.posService.openRegister(turnoId);
+        return turnoId;
+      })
+    );
   }
 
-  // Confirma el cierre de turno: guarda una foto del desglose y vacía el historial del POS
+  // Confirma el cierre de turno: cierra el turno real (fn_cerrar_turno),
+  // guarda una foto del desglose y vacía el historial del POS.
   cerrarTurno(
     cajeroNombre: string,
     sucursalNombre: string,
     efectivoContado: number,
     justificacionDiferencia: string | null
-  ): CierreCaja {
+  ): Observable<CierreCaja> {
     const desglose = this.summaryByMethod();
     const efectivoEsperado = desglose.find((m) => m.key === 'efectivo')?.total ?? 0;
     const diferenciaEfectivo = efectivoContado - efectivoEsperado;
 
     if (diferenciaEfectivo !== 0 && !justificacionDiferencia?.trim()) {
-      throw new Error(
-        'Debes justificar la diferencia de efectivo antes de cerrar el turno.'
+      return throwError(
+        () => new Error('Debes justificar la diferencia de efectivo antes de cerrar el turno.')
       );
     }
 
-    const cierre: CierreCaja = {
-      id: this.cierreSequence++,
-      fecha: new Date(),
-      cajeroNombre,
-      sucursalNombre,
-      totalGeneral: this.grandTotal(),
-      ventasTotales: this.posService.salesHistory().length,
-      desglose,
-      efectivoEsperado,
-      efectivoContado,
-      diferenciaEfectivo,
-      justificacionDiferencia: diferenciaEfectivo !== 0 ? justificacionDiferencia!.trim() : null,
-    };
+    const turnoId = this.posService.currentTurnoId();
+    if (turnoId === null) {
+      return throwError(() => new Error('No hay un turno abierto para cerrar.'));
+    }
 
-    this.historialCierres.set([cierre, ...this.historialCierres()]);
-    this.posService.resetSalesHistory();
-    this.posService.clearCart();
-    this.posService.closeRegister();
-    return cierre;
+    return this.turnosApi.cerrar(turnoId).pipe(
+      map(() => {
+        const cierre: CierreCaja = {
+          id: this.cierreSequence++,
+          fecha: new Date(),
+          cajeroNombre,
+          sucursalNombre,
+          totalGeneral: this.grandTotal(),
+          ventasTotales: this.posService.salesHistory().length,
+          desglose,
+          efectivoEsperado,
+          efectivoContado,
+          diferenciaEfectivo,
+          justificacionDiferencia: diferenciaEfectivo !== 0 ? justificacionDiferencia!.trim() : null,
+        };
+
+        this.historialCierres.set([cierre, ...this.historialCierres()]);
+        this.posService.resetSalesHistory();
+        this.posService.clearCart();
+        this.posService.closeRegister();
+        return cierre;
+      })
+    );
   }
 }

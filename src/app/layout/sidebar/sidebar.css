@@ -96,7 +96,8 @@
   gap: 0.3rem;
 }
 
-.sidebar-nav a {
+.sidebar-nav a,
+.nav-parent-toggle {
   display: flex;
   align-items: center;
   gap: 0.9rem;
@@ -115,7 +116,18 @@
     border-color 0.15s ease;
 }
 
-.sidebar.collapsed .sidebar-nav a {
+.nav-parent-toggle {
+  width: 100%;
+  border: 0;
+  border-left: 3px solid transparent;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.sidebar.collapsed .sidebar-nav a,
+.sidebar.collapsed .nav-parent-toggle {
   justify-content: center;
   padding-inline: 0;
   border-left: none;
@@ -125,7 +137,8 @@
   display: none;
 }
 
-.sidebar-nav a:hover {
+.sidebar-nav a:hover,
+.nav-parent-toggle:hover {
   background: var(--sidebar-bg-elevated);
   color: var(--sidebar-heading);
 }
@@ -139,6 +152,41 @@
 
 .sidebar-nav a.active .icon {
   color: var(--sidebar-accent);
+}
+
+.chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  color: var(--sidebar-text-muted);
+  transition: transform 0.18s ease;
+}
+
+.chevron.open {
+  transform: rotate(180deg);
+}
+
+.sidebar.collapsed .chevron {
+  display: none;
+}
+
+.submenu {
+  list-style: none;
+  margin: 0.2rem 0 0.3rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.submenu a {
+  padding-left: 2.4rem;
+  font-size: 0.85rem;
+}
+
+.sidebar.collapsed .submenu {
+  display: none;
 }
 
 .sidebar-footer {
@@ -432,6 +480,18 @@
     font-size: 0.9rem;
     line-height: normal;
     text-overflow: ellipsis;
+  }
+
+  /* El estado "colapsado" es una preferencia de escritorio; en el drawer
+     móvil el submenú siempre debe verse completo, nunca escondido. */
+  .sidebar.collapsed .chevron,
+  .chevron {
+    display: flex;
+  }
+
+  .sidebar.collapsed .submenu,
+  .submenu {
+    display: flex;
   }
 
   .sidebar-footer,

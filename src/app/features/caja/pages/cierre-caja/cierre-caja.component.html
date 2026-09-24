@@ -52,6 +52,9 @@
     <p class="start-shift-subtitle">
       Abre la caja para empezar a registrar ventas en el punto de venta.
     </p>
+    @if (errorMensaje()) {
+    <p class="error-mensaje">{{ errorMensaje() }}</p>
+    }
     <button type="button" class="btn-primary" (click)="iniciarTurno()">Iniciar Turno</button>
   </div>
 </div>
@@ -196,6 +199,10 @@
         (input)="setJustificacion($any($event.target).value)"></textarea>
     </div>
     }
+    }
+
+    @if (errorMensaje()) {
+    <p class="error-mensaje">{{ errorMensaje() }}</p>
     }
 
     <div class="modal-actions">

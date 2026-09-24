@@ -1,0 +1,123 @@
+<div class="anulacion-venta">
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">Administrador</span>
+      <h1>Anulación de venta</h1>
+      <p class="subtitle">
+        Anula una venta cuando corresponda: se marca como anulada (nunca se borra) y se
+        restituye automáticamente el stock descontado.
+      </p>
+    </div>
+    <div class="header-actions">
+      <label class="filter-toggle">
+        <input type="checkbox" [checked]="soloActivas()" (change)="soloActivas.set(!soloActivas())" />
+        Ocultar anuladas
+      </label>
+      <button type="button" class="btn-secondary" (click)="cargarVentas()">Actualizar</button>
+    </div>
+  </header>
+
+  @if (cargando()) {
+    <p class="empty-state">Cargando ventas…</p>
+  } @else if (errorCarga()) {
+    <p class="error-mensaje">{{ errorCarga() }}</p>
+  } @else if (ventasFiltradas().length === 0) {
+    <p class="empty-state">No hay ventas para mostrar.</p>
+  } @else {
+    <table class="ventas-table">
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Cajero</th>
+          <th>Medio de pago</th>
+          <th>Total</th>
+          <th>Estado</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (venta of ventasFiltradas(); track venta.id) {
+          <tr class="venta-row" [class.venta-anulada]="venta.anulada">
+            <td>{{ formatFecha(venta.fecha_venta) }}</td>
+            <td>{{ venta.cajero?.nombre ?? '—' }}</td>
+            <td>{{ venta.medio_pago }}</td>
+            <td>{{ formatClp(venta.total) }}</td>
+            <td>
+              @if (venta.anulada) {
+                <span class="badge badge-anulada">⛔ Anulada</span>
+              } @else {
+                <span class="badge badge-activa">Activa</span>
+              }
+            </td>
+            <td class="acciones">
+              <button type="button" class="btn-link" (click)="toggleDetalle(venta)">
+                {{ ventaExpandidaId() === venta.id ? 'Ocultar' : 'Ver detalle' }}
+              </button>
+              @if (!venta.anulada) {
+                <button type="button" class="btn-danger" (click)="abrirAnulacion(venta)">
+                  Anular
+                </button>
+              }
+            </td>
+          </tr>
+          @if (ventaExpandidaId() === venta.id) {
+            <tr class="venta-detalle-row">
+              <td colspan="6">
+                <div class="venta-detalle">
+                  <p><strong>Productos:</strong> {{ resumenItems(venta) }}</p>
+                  @if (venta.anulada) {
+                    <p class="detalle-anulacion">
+                      Anulada el {{ venta.anulada_en ? formatFecha(venta.anulada_en) : '—' }}.
+                      Motivo: "{{ venta.motivo_anulacion }}"
+                    </p>
+                  }
+                </div>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  }
+</div>
+
+@if (ventaAAnular(); as venta) {
+  <div class="modal-overlay" (click)="cancelarAnulacion()">
+    <div class="modal-window" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+      <h2>¿Anular esta venta?</h2>
+      <p>
+        Venta #{{ venta.id }} · {{ formatFecha(venta.fecha_venta) }} ·
+        <strong>{{ formatClp(venta.total) }}</strong>
+      </p>
+      <p class="modal-warning">
+        Esta acción restituirá el stock de los productos vendidos y no se puede deshacer.
+      </p>
+
+      <label class="field-label" for="motivo-anulacion">Motivo de la anulación</label>
+      <textarea
+        id="motivo-anulacion"
+        class="motivo-textarea"
+        rows="3"
+        placeholder="Ej: el cliente se arrepintió, error de cobro, producto equivocado…"
+        [value]="motivo()"
+        (input)="motivo.set($any($event.target).value)"
+      ></textarea>
+
+      @if (errorAnulacion()) {
+        <p class="error-mensaje">{{ errorAnulacion() }}</p>
+      }
+
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" (click)="cancelarAnulacion()">Cancelar</button>
+        <button
+          type="button"
+          class="btn-danger"
+          [disabled]="!puedeConfirmarAnulacion() || anulando()"
+          (click)="confirmarAnulacion()"
+        >
+          {{ anulando() ? 'Anulando…' : 'Confirmar anulación' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

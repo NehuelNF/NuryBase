@@ -1,12 +1,25 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { NEVER, of } from 'rxjs';
 import { CierreCajaComponent } from './cierre-caja.component';
+import { AuthService } from '../../../auth/services/auth.service';
+import { User } from '../../../auth/models/auth.model';
 import { PosService } from '../../../pos/services/pos.service';
 import { ProductosApiService } from '../../../../core/api/productos-api.service';
+import { TurnosApiService } from '../../../../core/api/turnos-api.service';
 import { VentasApiService } from '../../../../core/api/ventas-api.service';
 import { PosProduct } from '../../../pos/models/pos.model';
+
+const TEST_USER: User = {
+  id: 1,
+  nombre: 'Camila Rojas V.',
+  identificadorAcceso: 'c.rojas@nurys.cl',
+  rol: 'cajero',
+  sucursalId: 1,
+  sucursalNombre: 'Sucursal Providencia',
+  activo: true,
+};
 
 @Component({ standalone: true, template: '' })
 class DummyComponent {}
@@ -79,6 +92,15 @@ describe('CierreCajaComponent', () => {
         ]),
         { provide: ProductosApiService, useValue: { listar: () => NEVER } },
         { provide: VentasApiService, useValue: { registrar: () => of(999) } },
+        {
+          provide: TurnosApiService,
+          useValue: {
+            abrir: () => of(42),
+            cerrar: () =>
+              of({ id: 42, usuario_id: 1, sucursal_id: 1, hora_inicio: '', hora_fin: '', creado_en: '' }),
+          },
+        },
+        { provide: AuthService, useValue: { currentUser: signal<User | null>(TEST_USER) } },
       ],
     });
     const pos = TestBed.inject(PosService);
@@ -132,6 +154,7 @@ describe('CierreCajaComponent', () => {
     chargeSale(pos, 1, 1, 'tarjeta'); // $3.200
 
     const component = TestBed.createComponent(CierreCajaComponent).componentInstance;
+    component.iniciarTurno();
     component.openConfirm();
     expect(component.showConfirm()).toBe(true);
 
@@ -177,10 +200,12 @@ describe('CierreCajaComponent', () => {
     chargeSale(pos, 0, 1, 'efectivo'); // $2.600
 
     const component = TestBed.createComponent(CierreCajaComponent).componentInstance;
+    component.iniciarTurno();
     component.openConfirm();
     component.setEfectivoContado('2600');
     component.confirmCierre();
 
+    expect(component.turnoCerrado()).not.toBeNull();
     expect(pos.isRegisterOpen()).toBe(false);
 
     component.volverAOperar();
@@ -208,6 +233,7 @@ describe('CierreCajaComponent', () => {
     chargeSale(pos, 0, 1, 'efectivo'); // $2.600
 
     const component = TestBed.createComponent(CierreCajaComponent).componentInstance;
+    component.iniciarTurno();
     component.openConfirm();
     component.setEfectivoContado('2000');
 

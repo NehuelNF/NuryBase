@@ -100,7 +100,7 @@ describe('PosLayoutComponent', () => {
     posService.clearCart();
     // Estas pruebas verifican el comportamiento del POS asumiendo un turno ya
     // iniciado; el flujo real de apertura ahora vive en CajaService/"Caja".
-    posService.openRegister();
+    posService.openRegister(1);
   });
 
   it('should create the pos layout component', () => {

@@ -1,30 +1,36 @@
 # Base de datos
 
-Este proyecto todavía no tiene un backend/base de datos conectado — el
-POS, login y caja funcionan hoy con datos en memoria dentro de Angular
-(`PosService`, `AuthService`). Esta carpeta guarda el SQL para cuando
-se conecte a la base real (PostgreSQL vía PostgREST/Supabase, según lo
-mencionado en `docs/qa/h2-2-catalogo.md`).
-
-Los tipos de TypeScript en `src/app/core/models/` fueron generados a
-partir de `nury_schema.sql` (ese archivo solo existe en la máquina de
-Nelson, no está en este repo), así que son la mejor referencia
-disponible del esquema real — pero revisa contra el `.sql` original
-antes de aplicar cualquier archivo de aquí a una base de verdad.
+PostgreSQL + PostgREST corriendo localmente vía Docker (ver
+`GUIA_LEVANTAMIENTO_LOCAL.md`). El frontend ya está conectado: login,
+catálogo de productos y registro de ventas pasan por PostgREST.
 
 ## Estructura
 
-- `migrations/` — cambios al esquema, en orden (prefijo numérico).
-- `functions/` — funciones RPC en PL/pgSQL, una por archivo.
+- `schema_nury.sql` — esquema base (tablas, triggers, `fn_registrar_venta`).
+- `seed/` — datos de ejemplo (productos, proveedores).
+- `local/` — todo lo que solo aplica al entorno de desarrollo local, en
+  orden numerado. Se monta en `infra/docker-compose.yml` bajo
+  `docker-entrypoint-initdb.d`, así que solo corre una vez, cuando el
+  volumen de Postgres está vacío (`docker compose down -v` + `up -d`
+  para reaplicar todo desde cero).
+  - `04_roles.sql` — roles de PostgREST (`web_anon`, `authenticator`).
+  - `05_sucursal.sql` — sucursal inicial.
+  - `06_auth.sql` — usuarios de prueba + función `login()` (JWT).
+  - `07_turnos.sql` — `fn_abrir_turno` / `fn_cerrar_turno`.
+  - `08_anulacion_venta.sql` — `fn_anular_venta` (anula venta y restituye
+    stock; se puede anular sin importar si el turno sigue abierto, ver
+    nota abajo).
 
-## Pendiente conocido
+## Notas
 
-`core/models/comun.model.ts` define `MedioPago` como
-`'efectivo' | 'debito' | 'credito' | 'transferencia'`, pero el POS
-(`features/pos/models/pos.model.ts`) usa
-`'efectivo' | 'tarjeta' | 'junaeb'`. Son dos cosas distintas hoy:
-cuando se conecte el POS a la base real, alguien tiene que decidir
-cómo mapear "tarjeta" a débito/crédito y dónde vive Junaeb (¿un medio
-de pago más en el enum, o una tabla de convenios aparte?). La función
-`cuadrar_y_cerrar_turno` está escrita contra el enum de la base
-(`efectivo/debito/credito/transferencia`), no contra el del POS.
+- `ventas.medio_pago` es texto libre (sin CHECK), así que el POS puede
+  usar `'efectivo' | 'tarjeta' | 'junaeb'` sin conflicto con lo que
+  documenta el esquema (`efectivo/debito/credito/transferencia`).
+- Anular una venta nunca hace `DELETE`: solo marca
+  `ventas.anulada = true` y revierte el stock con un movimiento de
+  tipo `ajuste` (mismo patrón que ya usa el esquema para compras/ventas),
+  para no perder el rastro de auditoría.
+- `fn_anular_venta` originalmente exigía que el turno de la venta
+  siguiera abierto (para no descuadrar un cierre ya reportado), pero
+  como cerrar sesión ya obliga a cerrar caja primero, esa regla dejaba
+  la función casi inutilizable en el flujo real — se sacó a propósito.
