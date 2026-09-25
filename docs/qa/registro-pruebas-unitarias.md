@@ -4,20 +4,21 @@ Este documento mantiene el inventario y resultado real de las pruebas ejecutadas
 
 ## Resumen de última ejecución
 
-- **Fecha:** 24 de septiembre de 2026
+- **Fecha:** 25 de septiembre de 2026
 - **Rama:** `Patricio2_branch`
 - **Entorno:** Angular 22.1 / Vitest 4.1.11 / Node 24
 - **Suites:** 13 aprobadas de 13
 - **Pruebas:** 102 aprobadas de 102
-- **Duración:** 51.67 segundos
+- **Duración:** 30.13 segundos
 - **Resultado:** PASS, 0 fallos y 0 omitidas
 - **Comando:** `npm test -- --watch=false --reporters=verbose`
-- **Build:** `npm run build` aprobado, 0 errores y 0 advertencias
+- **Build:** `npm run build` aprobado el 25-09-2026, 0 errores y 0 advertencias
 - **Validación de API:** matriz de lectura real por rol y permisos efectivos de PostgreSQL en `docs/qa/seguridad-roles.md`
+- **Aviso del runner:** sourcemaps externos al paquete en `@zxing/browser`; no afectaron las pruebas.
 
 > El registro del 19-09 indicaba 69 pruebas en esta rama. La implementación anterior de anulación sigue pendiente de reconstrucción y verificación.
 
-## Inventario por suite — 24-09-2026
+## Inventario por suite — 25-09-2026
 
 | Archivo | Pruebas | Estado |
 | --- | ---: | --- |
@@ -57,6 +58,11 @@ Este documento mantiene el inventario y resultado real de las pruebas ejecutadas
 - El login envía al bodeguero a `/product-master` y descarta un `returnUrl` al POS, que no está visible para su rol.
 - Resultado automático: 5/5 pruebas del sidebar, 8/8 del login y 69/69 pruebas totales aprobadas.
 - Validación asistida en navegador integrado: cajero, administrador y bodeguero mostraron sus menús esperados; aprobada por Patricio el 19 de septiembre de 2026.
+
+### Revalidación — 25-09-2026
+
+- `npm test -- --watch=false --reporters=verbose`: 13/13 suites y 102/102 pruebas aprobadas; incluye sidebar por rol y `roleGuard`.
+- `npm run build`: compilación de producción aprobada, sin errores ni advertencias.
 
 ## Procedimiento obligatorio
 
