@@ -535,6 +535,23 @@
   color: #6b715f;
 }
 
+.modal-divider {
+  border: none;
+  border-top: 1px solid #e6e7df;
+  margin: 24px 0 12px;
+}
+
+.boleta-field {
+  margin-top: 16px;
+}
+
+.boletas-summary {
+  border-top: 1px solid #e6e7df;
+  padding-top: 16px;
+  margin-bottom: 24px;
+  text-align: left;
+}
+
 @media (max-width: 600px) {
   .modal-overlay {
     align-items: flex-end;

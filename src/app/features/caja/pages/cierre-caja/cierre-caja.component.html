@@ -39,6 +39,23 @@
       }
     </div>
 
+    <div class="boletas-summary">
+      @for (boleta of cierre.cuadraturaBoletas; track boleta.key) {
+      <div class="closed-row">
+        <span>{{ boleta.icon }} Boletas {{ boleta.label }}</span>
+        <strong>{{ boleta.boletasContadas }} / {{ boleta.boletasEsperadas }} esperadas</strong>
+      </div>
+      @if (boleta.diferenciaBoletas !== 0) {
+      <p class="cash-status" [class.cash-over]="boleta.diferenciaBoletas > 0"
+        [class.cash-under]="boleta.diferenciaBoletas < 0">
+        {{ boleta.diferenciaBoletas > 0 ? ' Sobran' : ' Faltan' }}
+        {{ absNumber(boleta.diferenciaBoletas) }} boleta(s)
+      </p>
+      <p class="cash-justification">"{{ boleta.justificacionDiferencia }}"</p>
+      }
+      }
+    </div>
+
     <button type="button" class="btn-primary" (click)="volverAOperar()">
       Iniciar nuevo turno
     </button>
@@ -195,6 +212,44 @@
         placeholder="Describe brevemente qué ocurrió..." [value]="justificacion()"
         (input)="setJustificacion($any($event.target).value)"></textarea>
     </div>
+    }
+    }
+
+    <hr class="modal-divider" />
+    <h3>Boletas de medios electrónicos</h3>
+    <p class="field-hint">
+      Cuenta cuántas boletas/comprobantes tienes de cada medio electrónico. No es dinero: ese
+      pago ya llegó a la cuenta del negocio vía el proveedor.
+    </p>
+
+    @for (boleta of cuadraturaBoletas(); track boleta.key) {
+    <div class="cash-field boleta-field">
+      <label class="field-label" [for]="'boletas-' + boleta.key">
+        {{ boleta.icon }} Boletas {{ boleta.label }}
+        <span class="field-hint">El sistema registró {{ boleta.esperadas }} venta(s)</span>
+      </label>
+      <input [id]="'boletas-' + boleta.key" type="number" min="0" step="1" inputmode="numeric"
+        class="cash-input" placeholder="Ej: 4" [value]="boleta.contadas ?? ''"
+        (input)="setBoletaContada(boleta.key, $any($event.target).value)" />
+    </div>
+
+    @if (boleta.contadas !== null) {
+    @if (boleta.diferencia === 0) {
+    <p class="cash-status cash-ok">✅ Cuadrado, sin diferencias.</p>
+    } @else {
+    <div class="cash-alert" [class.cash-over]="boleta.diferencia! > 0"
+      [class.cash-under]="boleta.diferencia! < 0">
+      {{ boleta.diferencia! > 0 ? '⚠️ Sobran' : '⚠️ Faltan' }}
+      {{ absNumber(boleta.diferencia!) }} boleta(s)
+    </div>
+
+    <div class="cash-field">
+      <label class="field-label" [for]="'justificacion-' + boleta.key">¿Por qué hay diferencia?</label>
+      <textarea [id]="'justificacion-' + boleta.key" class="cash-textarea" rows="2"
+        placeholder="Describe brevemente qué ocurrió..." [value]="boleta.justificacion"
+        (input)="setJustificacionBoleta(boleta.key, $any($event.target).value)"></textarea>
+    </div>
+    }
     }
     }
 
