@@ -15,7 +15,7 @@ const TEST_PRODUCTS: PosProduct[] = [
   {
     id: 1,
     nombre: 'Café Espresso Doble',
-    categoriaId: 1,
+    categoriaId: 'BEBESTIBLES - CAFÉ',
     categoriaNombre: 'Cafetería',
     codigoInterno: 'NUR-101',
     codigoBarras: '7801234501018',
@@ -27,7 +27,7 @@ const TEST_PRODUCTS: PosProduct[] = [
   {
     id: 2,
     nombre: 'Cappuccino Italiano',
-    categoriaId: 1,
+    categoriaId: 'BEBESTIBLES - CAFÉ',
     categoriaNombre: 'Cafetería',
     codigoInterno: 'NUR-102',
     codigoBarras: '7801234501025',
@@ -39,7 +39,7 @@ const TEST_PRODUCTS: PosProduct[] = [
   {
     id: 3,
     nombre: 'Café Latte Vainilla',
-    categoriaId: 1,
+    categoriaId: 'BEBESTIBLES - CAFÉ',
     categoriaNombre: 'Cafetería',
     codigoInterno: 'NUR-103',
     codigoBarras: '7801234501032',
@@ -55,7 +55,7 @@ describe('CierreCajaComponent', () => {
     pos: PosService,
     productIndex: number,
     cantidad: number,
-    medioPago: 'efectivo' | 'tarjeta' | 'junaeb'
+    medioPago: 'efectivo' | 'credito' | 'debito' | 'sodexo' | 'pluxee'
   ) {
     for (let i = 0; i < cantidad; i++) {
       pos.addToCart(pos.catalog()[productIndex]);
@@ -89,15 +89,15 @@ describe('CierreCajaComponent', () => {
   it('shows the amount collected per payment method (AC1)', () => {
     const pos = TestBed.inject(PosService);
     chargeSale(pos, 0, 1, 'efectivo'); // Café Espresso Doble $2.600
-    chargeSale(pos, 1, 1, 'tarjeta'); // Cappuccino Italiano $3.200
-    chargeSale(pos, 2, 1, 'junaeb'); // Café Latte Vainilla $3.500
+    chargeSale(pos, 1, 1, 'credito'); // Cappuccino Italiano $3.200
+    chargeSale(pos, 2, 1, 'sodexo'); // Café Latte Vainilla $3.500
 
     const component = TestBed.createComponent(CierreCajaComponent).componentInstance;
     const summary = component.summaryByMethod();
 
     expect(summary.find((m) => m.key === 'efectivo')?.total).toBe(2600);
-    expect(summary.find((m) => m.key === 'tarjeta')?.total).toBe(3200);
-    expect(summary.find((m) => m.key === 'junaeb')?.total).toBe(3500);
+    expect(summary.find((m) => m.key === 'credito')?.total).toBe(3200);
+    expect(summary.find((m) => m.key === 'sodexo')?.total).toBe(3500);
     expect(component.grandTotal()).toBe(2600 + 3200 + 3500);
   });
 
@@ -105,7 +105,7 @@ describe('CierreCajaComponent', () => {
     const pos = TestBed.inject(PosService);
     chargeSale(pos, 0, 1, 'efectivo'); // 1ra venta: 1 unidad
     chargeSale(pos, 0, 2, 'efectivo'); // 2da venta: 2 unidades del mismo producto
-    chargeSale(pos, 1, 1, 'tarjeta'); // producto distinto, otro método
+    chargeSale(pos, 1, 1, 'credito'); // producto distinto, otro método
 
     const component = TestBed.createComponent(CierreCajaComponent).componentInstance;
     component.selectMethod('efectivo');
@@ -129,19 +129,23 @@ describe('CierreCajaComponent', () => {
   it('closes the shift after confirming a matching cash count', () => {
     const pos = TestBed.inject(PosService);
     chargeSale(pos, 0, 1, 'efectivo'); // $2.600
-    chargeSale(pos, 1, 1, 'tarjeta'); // $3.200
+    chargeSale(pos, 1, 1, 'credito'); // $3.200
 
     const component = TestBed.createComponent(CierreCajaComponent).componentInstance;
     component.openConfirm();
     expect(component.showConfirm()).toBe(true);
 
     component.setEfectivoContado('2600');
+    expect(component.puedeConfirmarCierre()).toBe(false); // falta cuadrar las boletas de crédito
+
+    component.setBoletaContada('credito', '1');
     expect(component.puedeConfirmarCierre()).toBe(true);
     component.confirmCierre();
 
     expect(component.showConfirm()).toBe(false);
     expect(component.turnoCerrado()?.totalGeneral).toBe(2600 + 3200);
     expect(component.turnoCerrado()?.diferenciaEfectivo).toBe(0);
+    expect(component.turnoCerrado()?.cuadraturaBoletas.find((b) => b.key === 'credito')?.diferenciaBoletas).toBe(0);
     expect(pos.salesHistory()).toHaveLength(0);
     expect(component.grandTotal()).toBe(0);
     expect(pos.isRegisterOpen()).toBe(false);
@@ -237,6 +241,44 @@ describe('CierreCajaComponent', () => {
     component.setEfectivoContado('2600');
 
     expect(component.requiereJustificacion()).toBe(false);
+    expect(component.puedeConfirmarCierre()).toBe(true);
+  });
+
+  it('blocks closing when there is a boleta mismatch for an electronic method (AC)', () => {
+    const pos = TestBed.inject(PosService);
+    chargeSale(pos, 0, 1, 'efectivo'); // $2.600
+    chargeSale(pos, 1, 1, 'sodexo'); // $3.200
+
+    const component = TestBed.createComponent(CierreCajaComponent).componentInstance;
+    component.openConfirm();
+    component.setEfectivoContado('2600');
+    component.setBoletaContada('sodexo', '0');
+
+    const sodexo = component.cuadraturaBoletas().find((b) => b.key === 'sodexo')!;
+    expect(sodexo.diferencia).toBe(-1);
+    expect(component.puedeConfirmarCierre()).toBe(false);
+
+    component.confirmCierre();
+    expect(component.turnoCerrado()).toBeNull(); // no cerró, faltaba justificar la boleta
+
+    component.setJustificacionBoleta('sodexo', 'El cliente se retiró con la boleta impresa.');
+    expect(component.puedeConfirmarCierre()).toBe(true);
+
+    component.confirmCierre();
+    const cierreSodexo = component.turnoCerrado()?.cuadraturaBoletas.find((b) => b.key === 'sodexo');
+    expect(cierreSodexo?.diferenciaBoletas).toBe(-1);
+    expect(cierreSodexo?.justificacionDiferencia).toBe('El cliente se retiró con la boleta impresa.');
+  });
+
+  it('does not ask to reconcile an electronic method with no sales this shift', () => {
+    const pos = TestBed.inject(PosService);
+    chargeSale(pos, 0, 1, 'efectivo'); // $2.600
+
+    const component = TestBed.createComponent(CierreCajaComponent).componentInstance;
+    component.openConfirm();
+
+    expect(component.cuadraturaBoletas()).toHaveLength(0);
+    component.setEfectivoContado('2600');
     expect(component.puedeConfirmarCierre()).toBe(true);
   });
 });

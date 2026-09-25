@@ -30,59 +30,34 @@ export class PosService {
   }
 
   private adaptarProducto(producto: ProductoApi): PosProduct {
-    const categoria = (producto.categoria ?? '').toLowerCase();
-
-    let categoriaId = 0;
-    let icono = '🛍️';
-
-    if (categoria.includes('café') || categoria.includes('cafe')) {
-      categoriaId = 1;
-      icono = '☕';
-    } else if (categoria.includes('sandwich') || categoria.includes('sándwich')) {
-      categoriaId = 2;
-      icono = '🥪';
-    } else if (
-      categoria.includes('dulce') ||
-      categoria.includes('pastel') ||
-      categoria.includes('boll')
-    ) {
-      categoriaId = 3;
-      icono = '🥐';
-    } else if (
-      categoria.includes('bebida') ||
-      categoria.includes('jugo') ||
-      categoria.includes('coca')
-    ) {
-      categoriaId = 4;
-      icono = '🥤';
-    }
+    const categoriaNombre = producto.categoria?.trim() || 'Sin categoría';
 
     return {
       id: producto.id,
       nombre: producto.nombre,
-      categoriaId,
-      categoriaNombre: producto.categoria ?? 'Otros',
+      categoriaId: categoriaNombre,
+      categoriaNombre,
       codigoInterno: `NUR-${String(producto.id).padStart(3, '0')}`,
       codigoBarras: producto.codigo_barras ?? '',
       precioVenta: Number(producto.precio_venta),
-      icono,
+      icono: '🛍️',
       descripcion: '',
       activo: producto.activo,
     };
   }
 
 
-  // Categorías de productos del Punto de Venta
-  readonly categories: PosCategory[] = [
-    { id: 0, nombre: 'Todos', icono: '✨' },
-    { id: 1, nombre: 'Cafetería', icono: '☕' },
-    { id: 2, nombre: 'Sándwiches', icono: '🥪' },
-    { id: 3, nombre: 'Bollería & Dulces', icono: '🥐' },
-    { id: 4, nombre: 'Bebidas Frías', icono: '🥤' },
-  ];
-
   // Se carga exclusivamente desde ProductosApiService.
   readonly catalog = signal<PosProduct[]>([]);
+
+  readonly categories = computed<PosCategory[]>(() => {
+    const names = [...new Set(this.catalog().map((product) => product.categoriaNombre))]
+      .sort((a, b) => a.localeCompare(b, 'es', { sensitivity: 'base' }));
+    return [
+      { id: '', nombre: 'Todos', icono: '✨' },
+      ...names.map((nombre) => ({ id: nombre, nombre, icono: '🛍️' })),
+    ];
+  });
 
   // Carrito de compras reactivo
   readonly cart = signal<CartItem[]>([]);

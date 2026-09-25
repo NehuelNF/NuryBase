@@ -3,11 +3,16 @@ import { PaymentMethod } from '../../pos/models/pos.model';
 import { PosService } from '../../pos/services/pos.service';
 import {
   CierreCaja,
+  CuadraturaBoletas,
+  MetodoElectronico,
   PAYMENT_METHOD_META,
   PaymentMethodSummary,
   ProductoVendido,
   VentasPorMetodo,
 } from '../models/caja.model';
+
+// Los 4 medios de pago electrónicos se cuadran por cantidad de boletas, no por dinero
+const METODOS_ELECTRONICOS: MetodoElectronico[] = ['credito', 'debito', 'sodexo', 'pluxee'];
 
 @Injectable({
   providedIn: 'root',
@@ -89,22 +94,50 @@ export class CajaService {
     this.posService.openRegister();
   }
 
-  // Confirma el cierre de turno: guarda una foto del desglose y vacía el historial del POS
+  // Confirma el cierre de turno: guarda una foto del desglose y vacía el historial del POS.
+  // El efectivo se cuadra en dinero; los medios electrónicos (tarjeta/Junaeb) se
+  // cuadran en cantidad de boletas, porque el dinero ya llegó vía el proveedor.
   cerrarTurno(
     cajeroNombre: string,
     sucursalNombre: string,
     efectivoContado: number,
-    justificacionDiferencia: string | null
+    justificacionEfectivo: string | null,
+    boletasContadas: Partial<Record<MetodoElectronico, number>>,
+    justificacionesBoletas: Partial<Record<MetodoElectronico, string>>
   ): CierreCaja {
     const desglose = this.summaryByMethod();
     const efectivoEsperado = desglose.find((m) => m.key === 'efectivo')?.total ?? 0;
     const diferenciaEfectivo = efectivoContado - efectivoEsperado;
 
-    if (diferenciaEfectivo !== 0 && !justificacionDiferencia?.trim()) {
+    if (diferenciaEfectivo !== 0 && !justificacionEfectivo?.trim()) {
       throw new Error(
         'Debes justificar la diferencia de efectivo antes de cerrar el turno.'
       );
     }
+
+    const cuadraturaBoletas: CuadraturaBoletas[] = METODOS_ELECTRONICOS.map((key) => {
+      const meta = PAYMENT_METHOD_META[key];
+      const boletasEsperadas = desglose.find((m) => m.key === key)?.ventas ?? 0;
+      const boletasContadasMetodo = boletasContadas[key] ?? 0;
+      const diferenciaBoletas = boletasContadasMetodo - boletasEsperadas;
+      const justificacion = justificacionesBoletas[key]?.trim() || null;
+
+      if (diferenciaBoletas !== 0 && !justificacion) {
+        throw new Error(
+          `Debes justificar la diferencia de boletas de ${meta.label} antes de cerrar el turno.`
+        );
+      }
+
+      return {
+        key,
+        label: meta.label,
+        icon: meta.icon,
+        boletasEsperadas,
+        boletasContadas: boletasContadasMetodo,
+        diferenciaBoletas,
+        justificacionDiferencia: diferenciaBoletas !== 0 ? justificacion : null,
+      };
+    });
 
     const cierre: CierreCaja = {
       id: this.cierreSequence++,
@@ -117,7 +150,8 @@ export class CajaService {
       efectivoEsperado,
       efectivoContado,
       diferenciaEfectivo,
-      justificacionDiferencia: diferenciaEfectivo !== 0 ? justificacionDiferencia!.trim() : null,
+      justificacionDiferencia: diferenciaEfectivo !== 0 ? justificacionEfectivo!.trim() : null,
+      cuadraturaBoletas,
     };
 
     this.historialCierres.set([cierre, ...this.historialCierres()]);

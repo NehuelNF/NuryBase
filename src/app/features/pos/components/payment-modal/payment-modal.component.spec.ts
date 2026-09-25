@@ -12,7 +12,7 @@ import { User } from '../../../auth/models/auth.model';
 const TEST_PRODUCT: PosProduct = {
   id: 1,
   nombre: 'Café Espresso Doble',
-  categoriaId: 1,
+  categoriaId: 'BEBESTIBLES - CAFÉ',
   categoriaNombre: 'Cafetería',
   codigoInterno: 'NUR-101',
   codigoBarras: '7801234501018',
@@ -91,7 +91,7 @@ describe('PaymentModalComponent', () => {
     expect(component.changeDue()).toBe(0);
 
     // Al cambiar de medio y volver a efectivo se requiere nueva confirmación
-    component.setMethod('tarjeta');
+    component.setMethod('credito');
     component.setMethod('efectivo');
     expect(component.isPaymentValid()).toBe(false);
 
@@ -114,12 +114,12 @@ describe('PaymentModalComponent', () => {
   it('revalidates the total and resets Junaeb approval when it changes', () => {
     const component = TestBed.createComponent(PaymentModalComponent).componentInstance;
     component.totalToPay = 5000;
-    component.setMethod('junaeb');
+    component.setMethod('sodexo');
     component.markJunaebAsScanned();
     expect(component.isPaymentValid()).toBe(true);
     component.totalToPay = 6000;
     expect(component.isPaymentValid()).toBe(false);
-    component.setMethod('tarjeta');
+    component.setMethod('credito');
     component.totalToPay = 0;
     expect(component.isPaymentValid()).toBe(false);
   });
@@ -127,10 +127,10 @@ describe('PaymentModalComponent', () => {
   it('requires a fresh Junaeb confirmation after switching methods', () => {
     const component = TestBed.createComponent(PaymentModalComponent).componentInstance;
     component.totalToPay = 5000;
-    component.setMethod('junaeb');
+    component.setMethod('sodexo');
     component.markJunaebAsScanned();
-    component.setMethod('tarjeta');
-    component.setMethod('junaeb');
+    component.setMethod('credito');
+    component.setMethod('sodexo');
     expect(component.isPaymentValid()).toBe(false);
   });
 
@@ -139,14 +139,14 @@ describe('PaymentModalComponent', () => {
     pos.addToCart(pos.catalog()[0]);
     const component = TestBed.createComponent(PaymentModalComponent).componentInstance;
     component.totalToPay = pos.total();
-    component.setMethod('tarjeta');
+    component.setMethod('credito');
     component.markCardPaymentAsReady();
     component.onConfirmPayment();
     const sale = component.completedTicket();
     component.onConfirmPayment();
     expect(pos.salesHistory()).toHaveLength(1);
     expect(component.completedTicket()).toBe(sale);
-    expect(sale?.medioPago).toBe('tarjeta');
+    expect(sale?.medioPago).toBe('credito');
     expect(sale?.montoRecibido).toBe(sale?.total);
   });
 
@@ -154,7 +154,7 @@ describe('PaymentModalComponent', () => {
     const pos = TestBed.inject(PosService);
     const component = TestBed.createComponent(PaymentModalComponent).componentInstance;
     component.totalToPay = 5000;
-    component.setMethod('tarjeta');
+    component.setMethod('credito');
     component.markCardPaymentAsReady();
     component.onConfirmPayment();
     pos.addToCart(pos.catalog()[0]);
@@ -203,7 +203,7 @@ describe('PaymentModalComponent', () => {
     component.totalToPay = 6500;
     fixture.detectChanges();
 
-    component.setMethod('tarjeta');
+    component.setMethod('credito');
     expect(component.amountReceived()).toBe(6500);
     expect(component.isPaymentValid()).toBe(false);
     component.markCardPaymentAsReady();
@@ -213,12 +213,12 @@ describe('PaymentModalComponent', () => {
   it('requires a fresh card confirmation after switching payment methods', () => {
     const component = TestBed.createComponent(PaymentModalComponent).componentInstance;
     component.totalToPay = 5000;
-    component.setMethod('tarjeta');
+    component.setMethod('credito');
     component.markCardPaymentAsReady();
     expect(component.isPaymentValid()).toBe(true);
 
     component.setMethod('efectivo');
-    component.setMethod('tarjeta');
+    component.setMethod('credito');
 
     expect(component.cardPaymentReady()).toBe(false);
     expect(component.isPaymentValid()).toBe(false);
@@ -230,7 +230,7 @@ describe('PaymentModalComponent', () => {
     component.totalToPay = 4500;
     fixture.detectChanges();
 
-    component.setMethod('junaeb');
+    component.setMethod('sodexo');
     // Inicialmente no es válido hasta que se marque como escaneado desde el móvil
     expect(component.isPaymentValid()).toBe(false);
 

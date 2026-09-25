@@ -64,7 +64,8 @@ database/
 └── local/
     ├── 04_roles.sql
     ├── 05_sucursal.sql
-    └── 06_auth.sql
+    ├── 06_auth.sql
+    └── 07_seguridad_roles.sql
 ```
 
 También debe existir:
@@ -85,6 +86,7 @@ Test-Path .\database\schema_nury.sql
 Test-Path .\database\local\04_roles.sql
 Test-Path .\database\local\05_sucursal.sql
 Test-Path .\database\local\06_auth.sql
+Test-Path .\database\local\07_seguridad_roles.sql
 ```
 
 Todos deben devolver `True`.
@@ -129,6 +131,7 @@ services:
       - ../database/local/04_roles.sql:/docker-entrypoint-initdb.d/04_roles.sql:ro
       - ../database/local/05_sucursal.sql:/docker-entrypoint-initdb.d/05_sucursal.sql:ro
       - ../database/local/06_auth.sql:/docker-entrypoint-initdb.d/06_auth.sql:ro
+      - ../database/local/07_seguridad_roles.sql:/docker-entrypoint-initdb.d/07_seguridad_roles.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
@@ -170,13 +173,14 @@ Los siguientes archivos ya vienen incluidos en el proyecto y no deben crearse nu
 database/local/04_roles.sql
 database/local/05_sucursal.sql
 database/local/06_auth.sql
+database/local/07_seguridad_roles.sql
 ```
 
-`04_roles.sql` crea los roles necesarios para PostgREST, `05_sucursal.sql` crea la sucursal local inicial y `06_auth.sql` instala el login JWT y las cuentas de desarrollo. Docker los ejecutará automáticamente mediante `docker-compose.yml`.
+`04_roles.sql` crea los roles de PostgREST, `05_sucursal.sql` crea la sucursal local, `06_auth.sql` instala el login JWT y las cuentas de desarrollo, y `07_seguridad_roles.sql` restringe los endpoints por rol. Docker los ejecuta automáticamente al crear un volumen nuevo.
 
 ## 7. Permisos locales de PostgREST
 
-El contenido de `database/local/04_roles.sql` ya está versionado. Estos permisos son para desarrollo local. Antes de publicar el sistema en un VPS hay que implementar autenticación, JWT, RLS y permisos más restrictivos. No se debe exponer `password_hash` al navegador.
+El JWT usa los roles PostgreSQL `nury_admin`, `nury_cajero` y `nury_bodeguero`. El rol anónimo solo puede llamar a `login`; cajero puede leer productos y registrar ventas mediante la función; bodeguero puede mantener productos y consultar inventario; administrador tiene acceso general. `usuarios` no es accesible a cajero ni bodeguero. Para un volumen existente, aplicar `06_auth.sql` y luego `07_seguridad_roles.sql` sin borrar datos.
 
 ## 8. Sucursal inicial
 
@@ -216,6 +220,8 @@ Los scripts se ejecutan en este orden:
 3. `carga_proveedores_nury.sql` carga proveedores.
 4. `04_roles.sql` crea los roles de PostgREST.
 5. `05_sucursal.sql` crea la sucursal inicial.
+6. `06_auth.sql` instala el login y las cuentas locales.
+7. `07_seguridad_roles.sql` restringe los permisos por rol.
 
 ## 10. Verificar PostgreSQL
 
