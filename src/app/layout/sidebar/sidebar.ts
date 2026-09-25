@@ -23,7 +23,7 @@ export class Sidebar {
   protected readonly menuItems: MenuItem[] = [
     { label: 'Punto de venta', icon: 'cart', route: '/pos', allowedRoles: ['admin', 'cajero'] },
     { label: 'Caja', icon: 'cash', route: '/caja', allowedRoles: ['admin', 'cajero'] },
-    { label: 'Maestro de productos', icon: 'tag', route: '/product-master', allowedRoles: ['admin', 'bodeguero'] },
+    { label: 'Maestro de productos', icon: 'tag', route: '/product-master', allowedRoles: ['admin'] },
     { label: 'Inventario', icon: 'box', route: '/inventario', allowedRoles: ['admin', 'bodeguero'] },
     { label: 'Administración', icon: 'settings', route: '/administracion', allowedRoles: ['admin'] },
   ];

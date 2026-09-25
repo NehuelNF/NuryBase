@@ -35,9 +35,14 @@ export const routes: Routes = [
       {
         path: 'product-master',
         canActivate: [roleGuard],
-        data: { allowedRoles: ['admin', 'bodeguero'] },
+        data: { allowedRoles: ['admin'] },
         loadChildren: () =>
           import('./features/products/products.routes').then((m) => m.PRODUCTS_ROUTES),
+      },
+      {
+        path: 'sin-acceso',
+        loadComponent: () =>
+          import('./shared/pages/access-denied/access-denied').then((m) => m.AccessDenied),
       },
     ],
   },

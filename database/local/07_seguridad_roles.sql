@@ -37,8 +37,15 @@ GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO nury_admin;
 GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO nury_admin;
 
 GRANT SELECT ON public.productos, public.sucursales TO nury_cajero;
-GRANT SELECT, INSERT, UPDATE, DELETE ON public.productos TO nury_bodeguero;
-GRANT USAGE, SELECT ON SEQUENCE public.productos_id_seq TO nury_bodeguero;
+-- PENDIENTE en la base local actual: el contenedor PostgreSQL existente fue
+-- creado antes de montar este archivo, por lo que aún conserva los permisos
+-- anteriores de escritura para Bodeguero. Este bloque define el estado deseado:
+-- permitir leer productos para Inventario, pero impedir INSERT, UPDATE y DELETE.
+-- Aplicar este script a la base existente y verificar lectura permitida y las
+-- tres escrituras rechazadas. No borrar el volumen de datos.
+REVOKE ALL ON public.productos FROM nury_bodeguero;
+GRANT SELECT ON public.productos TO nury_bodeguero;
+REVOKE ALL ON SEQUENCE public.productos_id_seq FROM nury_bodeguero;
 GRANT SELECT ON public.sucursales, public.ingredientes,
     public.stock_sucursal, public.categorias_ingrediente,
     public.unidades_medida TO nury_bodeguero;

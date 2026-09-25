@@ -8,8 +8,8 @@ Este documento mantiene el inventario y resultado real de las pruebas ejecutadas
 - **Rama:** `Patricio2_branch`
 - **Entorno:** Angular 22.1 / Vitest 4.1.11 / Node 24
 - **Suites:** 13 aprobadas de 13
-- **Pruebas:** 102 aprobadas de 102
-- **Duración:** 30.13 segundos
+- **Pruebas:** 103 aprobadas de 103
+- **Duración:** 28.62 segundos
 - **Resultado:** PASS, 0 fallos y 0 omitidas
 - **Comando:** `npm test -- --watch=false --reporters=verbose`
 - **Build:** `npm run build` aprobado el 25-09-2026, 0 errores y 0 advertencias
@@ -26,7 +26,7 @@ Este documento mantiene el inventario y resultado real de las pruebas ejecutadas
 | `src/app/core/api/productos-api.service.spec.ts` | 4 | PASS |
 | `src/app/core/guards/auth.guard.spec.ts` | 13 | PASS |
 | `src/app/core/services/barcode-scanner.spec.ts` | 1 | PASS |
-| `src/app/features/auth/pages/login/login.component.spec.ts` | 8 | PASS |
+| `src/app/features/auth/pages/login/login.component.spec.ts` | 9 | PASS |
 | `src/app/features/auth/services/auth.service.spec.ts` | 8 | PASS |
 | `src/app/features/caja/pages/cierre-caja/cierre-caja.component.spec.ts` | 10 | PASS |
 | `src/app/features/caja/services/caja.service.spec.ts` | 7 | PASS |
@@ -61,7 +61,7 @@ Este documento mantiene el inventario y resultado real de las pruebas ejecutadas
 
 ### Revalidación — 25-09-2026
 
-- `npm test -- --watch=false --reporters=verbose`: 13/13 suites y 102/102 pruebas aprobadas; incluye sidebar por rol y `roleGuard`.
+- `npm test -- --watch=false --reporters=verbose`: 13/13 suites y 103/103 pruebas aprobadas; incluye que bodeguero no ve ni puede abrir `/product-master`.
 - `npm run build`: compilación de producción aprobada, sin errores ni advertencias.
 
 ## Procedimiento obligatorio
