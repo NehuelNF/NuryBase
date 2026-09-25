@@ -23,7 +23,7 @@ export interface CartItem {
   subtotal: number;
 }
 
-export type PaymentMethod = 'efectivo' | 'tarjeta' | 'junaeb';
+export type PaymentMethod = 'efectivo' | 'credito' | 'debito' | 'sodexo' | 'pluxee';
 
 export interface CompletedSale {
   /** id real de la venta en la base de datos (ventas.id) */

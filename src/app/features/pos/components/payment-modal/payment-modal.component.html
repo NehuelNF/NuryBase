@@ -41,22 +41,44 @@
           <button
             type="button"
             class="method-btn"
-            [class.active]="selectedMethod() === 'tarjeta'"
-            (click)="setMethod('tarjeta')"
+            [class.active]="selectedMethod() === 'debito'"
+            (click)="setMethod('debito')"
           >
             <span class="method-icon" aria-hidden="true">▤</span>
-            <span class="method-name">Tarjeta</span>
-            <small>Débito / Crédito</small>
+            <span class="method-name">Débito</span>
+            <small>Terminal Transbank</small>
           </button>
 
           <button
             type="button"
             class="method-btn"
-            [class.active]="selectedMethod() === 'junaeb'"
-            (click)="setMethod('junaeb')"
+            [class.active]="selectedMethod() === 'credito'"
+            (click)="setMethod('credito')"
+          >
+            <span class="method-icon" aria-hidden="true">▤</span>
+            <span class="method-name">Crédito</span>
+            <small>Terminal Transbank</small>
+          </button>
+
+          <button
+            type="button"
+            class="method-btn"
+            [class.active]="selectedMethod() === 'sodexo'"
+            (click)="setMethod('sodexo')"
           >
             <span class="method-icon" aria-hidden="true">J.</span>
-            <span class="method-name">Beca Junaeb</span>
+            <span class="method-name">Sodexo</span>
+            <small>App Ticket Junaeb (QR)</small>
+          </button>
+
+          <button
+            type="button"
+            class="method-btn"
+            [class.active]="selectedMethod() === 'pluxee'"
+            (click)="setMethod('pluxee')"
+          >
+            <span class="method-icon" aria-hidden="true">J.</span>
+            <span class="method-name">Pluxee</span>
             <small>App Ticket Junaeb (QR)</small>
           </button>
         </div>
@@ -129,8 +151,8 @@
           </div>
         }
 
-        <!-- Sección Específica de TARJETA (Transbank) -->
-        @if (selectedMethod() === 'tarjeta') {
+        <!-- Sección Específica de TARJETA (Transbank): Débito o Crédito -->
+        @if (selectedMethod() === 'debito' || selectedMethod() === 'credito') {
           <div class="pos-terminal-box">
             <div class="pos-terminal-icon" aria-hidden="true">▤</div>
             <div class="pos-terminal-details">
@@ -162,8 +184,8 @@
           </div>
         }
 
-        <!-- Sección Específica de JUNAEB (App Ticket Junaeb QR) -->
-        @if (selectedMethod() === 'junaeb') {
+        <!-- Sección Específica de JUNAEB (App Ticket Junaeb QR): Sodexo o Pluxee -->
+        @if (selectedMethod() === 'sodexo' || selectedMethod() === 'pluxee') {
           <div class="junaeb-simple-box">
             <div class="junaeb-instruction-header">
               <span class="junaeb-phone-icon" aria-hidden="true">J.</span>
@@ -279,11 +301,7 @@
             </div>
             <div class="receipt-row text-muted text-xs">
               <span>Medio de Pago</span>
-              <span class="capitalize">{{
-                completedTicket()?.medioPago === 'junaeb'
-                  ? 'Ticket Junaeb (BAES App)'
-                  : completedTicket()?.medioPago
-              }}</span>
+              <span class="capitalize">{{ medioPagoLabel(completedTicket()?.medioPago) }}</span>
             </div>
             @if (completedTicket()?.medioPago === 'efectivo') {
               <div class="receipt-row text-muted text-xs">
@@ -295,9 +313,9 @@
                 <span>{{ formatClp(completedTicket()?.vuelto || 0) }}</span>
               </div>
             }
-            @if (completedTicket()?.medioPago === 'junaeb') {
+            @if (completedTicket()?.medioPago === 'sodexo' || completedTicket()?.medioPago === 'pluxee') {
               <div class="receipt-row text-muted text-xs">
-                <span>Estado Junaeb</span>
+                <span>Estado {{ completedTicket()?.medioPago === 'sodexo' ? 'Sodexo' : 'Pluxee' }}</span>
                 <span>Escaneado desde App Móvil (Listo)</span>
               </div>
               @if (completedTicket()?.codigoAutorizacion) {
