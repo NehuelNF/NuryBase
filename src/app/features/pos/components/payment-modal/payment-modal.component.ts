@@ -68,12 +68,14 @@ export class PaymentModalComponent {
           return `Faltan ${this.formatClp(this.totalToPay - this.amountReceived())}.`;
         }
         return null;
-      case 'tarjeta':
+      case 'credito':
+      case 'debito':
         return this.cardPaymentReady()
           ? null
           : 'Confirma que el pago terminó correctamente en la máquina del local.';
-      case 'junaeb':
-        return this.junaebScanned() ? null : 'Confirma el escaneo en Ticket Junaeb para continuar.';
+      case 'sodexo':
+      case 'pluxee':
+        return this.junaebScanned() ? null : 'Confirma el escaneo en la app para continuar.';
       default:
         return 'Selecciona un medio de pago válido.';
     }
@@ -167,9 +169,9 @@ export class PaymentModalComponent {
         this.selectedMethod() === 'efectivo' ? this.amountReceived() : this.totalToPay,
         { id: user.id, nombre: user.nombre },
         { id: user.sucursalId, nombre: user.sucursalNombre },
-        this.selectedMethod() === 'junaeb'
+        this.selectedMethod() === 'sodexo' || this.selectedMethod() === 'pluxee'
           ? {
-              codigoAutorizacion: `JUN-${Math.floor(100000 + Math.random() * 900000)}`,
+              codigoAutorizacion: `${this.selectedMethod().slice(0, 3).toUpperCase()}-${Math.floor(100000 + Math.random() * 900000)}`,
             }
           : undefined,
       )
@@ -201,5 +203,22 @@ export class PaymentModalComponent {
       currency: 'CLP',
       maximumFractionDigits: 0,
     }).format(amount);
+  }
+
+  medioPagoLabel(medioPago: PaymentMethod | undefined): string {
+    switch (medioPago) {
+      case 'sodexo':
+        return 'Sodexo (Ticket Junaeb)';
+      case 'pluxee':
+        return 'Pluxee (Ticket Junaeb)';
+      case 'credito':
+        return 'Crédito';
+      case 'debito':
+        return 'Débito';
+      case 'efectivo':
+        return 'Efectivo';
+      default:
+        return '';
+    }
   }
 }
