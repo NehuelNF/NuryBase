@@ -8,8 +8,8 @@ import { PosService } from './pos.service';
 const TEST_PRODUCT: PosProduct = {
   id: 1,
   nombre: 'Café Espresso Doble',
-  categoriaId: 1,
-  categoriaNombre: 'Cafetería',
+  categoriaId: 'BEBESTIBLES - CAFÉ',
+  categoriaNombre: 'BEBESTIBLES - CAFÉ',
   codigoInterno: 'NUR-101',
   codigoBarras: '7801234501018',
   precioVenta: 2600,

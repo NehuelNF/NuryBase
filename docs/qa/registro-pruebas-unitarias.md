@@ -4,34 +4,37 @@ Este documento mantiene el inventario y resultado real de las pruebas ejecutadas
 
 ## Resumen de última ejecución
 
-- **Fecha:** 19 de septiembre de 2026
+- **Fecha:** 25 de septiembre de 2026
 - **Rama:** `Patricio2_branch`
 - **Entorno:** Angular 22.1 / Vitest 4.1.11 / Node 24
-- **Suites:** 11 aprobadas de 11
-- **Pruebas:** 69 aprobadas de 69
-- **Duración:** 8.30 segundos
+- **Suites:** 13 aprobadas de 13
+- **Pruebas:** 102 aprobadas de 102
+- **Duración:** 30.13 segundos
 - **Resultado:** PASS, 0 fallos y 0 omitidas
 - **Comando:** `npm test -- --watch=false --reporters=verbose`
-- **Build:** `npm run build` aprobado, 0 errores y 0 advertencias
-- **Validación manual:** AuthGuard y Roles UI aprobados por Patricio el 19 de septiembre de 2026
+- **Build:** `npm run build` aprobado el 25-09-2026, 0 errores y 0 advertencias
+- **Validación de API:** matriz de lectura real por rol y permisos efectivos de PostgreSQL en `docs/qa/seguridad-roles.md`
+- **Aviso del runner:** sourcemaps externos al paquete en `@zxing/browser`; no afectaron las pruebas.
 
-> El registro anterior indicaba 70 pruebas en `Patricio_Branch`. La rama actual contiene 63; las pruebas y la implementación anterior de anulación no están presentes y esa tarea volvió a quedar pendiente.
+> El registro del 19-09 indicaba 69 pruebas en esta rama. La implementación anterior de anulación sigue pendiente de reconstrucción y verificación.
 
-## Inventario por suite
+## Inventario por suite — 25-09-2026
 
 | Archivo | Pruebas | Estado |
 | --- | ---: | --- |
 | `src/app/app.spec.ts` | 2 | PASS |
-| `src/app/core/guards/auth.guard.spec.ts` | 4 | PASS |
+| `src/app/core/api/productos-api.service.spec.ts` | 4 | PASS |
+| `src/app/core/guards/auth.guard.spec.ts` | 13 | PASS |
+| `src/app/core/services/barcode-scanner.spec.ts` | 1 | PASS |
 | `src/app/features/auth/pages/login/login.component.spec.ts` | 8 | PASS |
 | `src/app/features/auth/services/auth.service.spec.ts` | 8 | PASS |
-| `src/app/features/caja/pages/cierre-caja/cierre-caja.component.spec.ts` | 5 | PASS |
-| `src/app/features/caja/services/caja.service.spec.ts` | 2 | PASS |
+| `src/app/features/caja/pages/cierre-caja/cierre-caja.component.spec.ts` | 10 | PASS |
+| `src/app/features/caja/services/caja.service.spec.ts` | 7 | PASS |
 | `src/app/features/pos/components/payment-modal/payment-modal.component.spec.ts` | 17 | PASS |
-| `src/app/features/pos/pages/pos-layout/pos-layout.component.spec.ts` | 12 | PASS |
+| `src/app/features/pos/pages/pos-layout/pos-layout.component.spec.ts` | 9 | PASS |
 | `src/app/features/pos/services/pos.service.spec.ts` | 5 | PASS |
-| `src/app/features/products/pages/product-master/product-master.spec.ts` | 1 | PASS |
-| `src/app/layout/sidebar/sidebar.spec.ts` | 5 | PASS |
+| `src/app/features/products/pages/product-master/product-master.spec.ts` | 10 | PASS |
+| `src/app/layout/sidebar/sidebar.spec.ts` | 8 | PASS |
 
 ## AuthGuard y sesión — ejecución del 19-09-2026
 
@@ -56,9 +59,22 @@ Este documento mantiene el inventario y resultado real de las pruebas ejecutadas
 - Resultado automático: 5/5 pruebas del sidebar, 8/8 del login y 69/69 pruebas totales aprobadas.
 - Validación asistida en navegador integrado: cajero, administrador y bodeguero mostraron sus menús esperados; aprobada por Patricio el 19 de septiembre de 2026.
 
+### Revalidación — 25-09-2026
+
+- `npm test -- --watch=false --reporters=verbose`: 13/13 suites y 102/102 pruebas aprobadas; incluye sidebar por rol y `roleGuard`.
+- `npm run build`: compilación de producción aprobada, sin errores ni advertencias.
+
 ## Procedimiento obligatorio
 
 1. Ejecutar `npm test -- --watch=false --reporters=verbose`.
 2. Registrar suites, casos nuevos, fecha, rama y resultado real.
 3. Ejecutar `npm run build` y registrar errores o advertencias.
 4. No marcar una tarea como finalizada hasta completar también su revisión manual cuando corresponda.
+
+## Catálogo POS con categorías reales — 24-09-2026
+
+- **Rama:** `Patricio2_branch`
+- **Cambios:** Categorías derivadas del campo `productos.categoria`; filtro por nombre real; “Sin categoría” para valores vacíos.
+- **Pruebas:** `npm test -- --watch=false --reporters=verbose` no pudo completar la compilación del bundle. Angular/esbuild reportó `Acceso denegado` al leer directorios del workspace y resolver CSS y dependencias locales. Una primera ejecución también detectó fixtures numéricos; fueron actualizados al nuevo tipo string antes del segundo intento.
+- **Resultado:** Sin conteo de pruebas ejecutadas; suite bloqueada antes de su inicio por acceso al filesystem. No registrar como PASS.
+- **Build:** `npm run build` también falló antes de compilar por `Acceso denegado` al resolver archivos del workspace y estilos globales; no atribuido a errores de TypeScript del cambio.

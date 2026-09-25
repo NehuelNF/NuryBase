@@ -12,7 +12,7 @@ import { User } from '../../../auth/models/auth.model';
 const TEST_PRODUCT: PosProduct = {
   id: 1,
   nombre: 'Café Espresso Doble',
-  categoriaId: 1,
+  categoriaId: 'BEBESTIBLES - CAFÉ',
   categoriaNombre: 'Cafetería',
   codigoInterno: 'NUR-101',
   codigoBarras: '7801234501018',

@@ -43,7 +43,11 @@ BEGIN
 
     v_payload := json_build_object(
         'sub', v_usuario.id::text,
-        'role', 'web_anon',
+        'role', CASE v_usuario.rol
+            WHEN 'administrador' THEN 'nury_admin'
+            WHEN 'cajero' THEN 'nury_cajero'
+            WHEN 'bodeguero' THEN 'nury_bodeguero'
+        END,
         'app_role', CASE WHEN v_usuario.rol = 'administrador' THEN 'admin' ELSE v_usuario.rol END,
         'exp', v_now + 28800,
         'iat', v_now

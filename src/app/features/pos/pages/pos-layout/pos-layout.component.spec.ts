@@ -14,8 +14,8 @@ const TEST_PRODUCTS: PosProduct[] = [
   {
     id: 1,
     nombre: 'Café Espresso Doble',
-    categoriaId: 1,
-    categoriaNombre: 'Cafetería',
+    categoriaId: 'BEBESTIBLES - CAFÉ',
+    categoriaNombre: 'BEBESTIBLES - CAFÉ',
     codigoInterno: 'NUR-101',
     codigoBarras: '7801234501018',
     precioVenta: 2600,
@@ -26,8 +26,8 @@ const TEST_PRODUCTS: PosProduct[] = [
   ...[201, 202, 203].map((code, index) => ({
     id: index + 2,
     nombre: ['Sándwich Ave Palta', 'Sándwich Mechada Luco', 'Sándwich Jamón Queso'][index],
-    categoriaId: 2,
-    categoriaNombre: 'Sándwiches',
+    categoriaId: 'ALIMENTOS - SANDWICH',
+    categoriaNombre: 'ALIMENTOS - SANDWICH',
     codigoInterno: `NUR-${code}`,
     codigoBarras: `780123450${code}`,
     precioVenta: 4000 + index * 500,
@@ -51,21 +51,21 @@ describe('PosLayoutComponent', () => {
     const product = component.catalog()[0];
     component.searchQuery.set(product.codigoBarras);
     expect(component.filteredCatalog()).toEqual([product]);
-    component.selectCategory(2);
+    component.selectCategory('ALIMENTOS - SANDWICH');
     expect(component.filteredCatalog()).toEqual([]);
-    component.selectCategory(0);
+    component.selectCategory('');
     expect(component.filteredCatalog()).toEqual([product]);
   });
 
   it('excludes inactive products from cards and category counts', () => {
     const component = TestBed.createComponent(PosLayoutComponent).componentInstance;
     const product = component.catalog()[0];
-    const initialCount = component.getCategoryCount(0);
+    const initialCount = component.getCategoryCount('');
     const categoryCount = component.getCategoryCount(product.categoriaId);
     component.posService.catalog.update((products) =>
       products.map((p) => (p.id === product.id ? { ...p, activo: false } : p)),
     );
-    expect(component.getCategoryCount(0)).toBe(initialCount - 1);
+    expect(component.getCategoryCount('')).toBe(initialCount - 1);
     expect(component.getCategoryCount(product.categoriaId)).toBe(categoryCount - 1);
     component.searchQuery.set(product.codigoInterno);
     expect(component.filteredCatalog()).toEqual([]);

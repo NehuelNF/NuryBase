@@ -15,7 +15,7 @@ const TEST_PRODUCTS: PosProduct[] = [
   {
     id: 1,
     nombre: 'Café Espresso Doble',
-    categoriaId: 1,
+    categoriaId: 'BEBESTIBLES - CAFÉ',
     categoriaNombre: 'Cafetería',
     codigoInterno: 'NUR-101',
     codigoBarras: '7801234501018',
@@ -27,7 +27,7 @@ const TEST_PRODUCTS: PosProduct[] = [
   {
     id: 2,
     nombre: 'Cappuccino Italiano',
-    categoriaId: 1,
+    categoriaId: 'BEBESTIBLES - CAFÉ',
     categoriaNombre: 'Cafetería',
     codigoInterno: 'NUR-102',
     codigoBarras: '7801234501025',
@@ -39,7 +39,7 @@ const TEST_PRODUCTS: PosProduct[] = [
   {
     id: 3,
     nombre: 'Café Latte Vainilla',
-    categoriaId: 1,
+    categoriaId: 'BEBESTIBLES - CAFÉ',
     categoriaNombre: 'Cafetería',
     codigoInterno: 'NUR-103',
     codigoBarras: '7801234501032',

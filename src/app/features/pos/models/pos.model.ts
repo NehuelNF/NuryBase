@@ -1,5 +1,5 @@
 export interface PosCategory {
-  id: number;
+  id: string;
   nombre: string;
   icono: string;
 }
@@ -7,7 +7,7 @@ export interface PosCategory {
 export interface PosProduct {
   id: number;
   nombre: string;
-  categoriaId: number;
+  categoriaId: string;
   categoriaNombre: string;
   codigoInterno: string;
   codigoBarras: string;
