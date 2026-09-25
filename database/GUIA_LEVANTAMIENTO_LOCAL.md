@@ -180,7 +180,7 @@ database/local/07_seguridad_roles.sql
 
 ## 7. Permisos locales de PostgREST
 
-El JWT usa los roles PostgreSQL `nury_admin`, `nury_cajero` y `nury_bodeguero`. El rol anónimo solo puede llamar a `login`; cajero puede leer productos y registrar ventas mediante la función; bodeguero puede mantener productos y consultar inventario; administrador tiene acceso general. `usuarios` no es accesible a cajero ni bodeguero. Para un volumen existente, aplicar `06_auth.sql` y luego `07_seguridad_roles.sql` sin borrar datos.
+El JWT usa los roles PostgreSQL `nury_admin`, `nury_cajero` y `nury_bodeguero`. El rol anónimo solo puede llamar a `login`; cajero puede leer productos y registrar ventas mediante la función; bodeguero puede leer productos y consultar inventario, pero no crear, editar ni eliminar productos; administrador tiene acceso general. `usuarios` no es accesible a cajero ni bodeguero. Para un volumen existente, aplicar `06_auth.sql` y luego `07_seguridad_roles.sql` sin borrar datos.
 
 ## 8. Sucursal inicial
 

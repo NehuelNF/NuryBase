@@ -1,0 +1,49 @@
+:host {
+  display: block;
+  min-height: 100%;
+}
+
+.access-denied {
+  box-sizing: border-box;
+  display: grid;
+  min-height: 100dvh;
+  padding: 24px;
+  place-items: center;
+}
+
+.access-denied-panel {
+  box-sizing: border-box;
+  width: min(100%, 560px);
+  padding: 32px;
+  border: 1px solid #dedfd5;
+  border-radius: 12px;
+  background: #fffefa;
+  color: #292e27;
+  text-align: center;
+}
+
+h1 {
+  margin: 0 0 16px;
+  font-size: 1.6rem;
+  line-height: 1.25;
+}
+
+p {
+  margin: 0;
+  color: #68735e;
+  line-height: 1.5;
+}
+
+p + p {
+  margin-top: 8px;
+}
+
+@media (max-width: 390px) {
+  .access-denied {
+    padding: 16px;
+  }
+
+  .access-denied-panel {
+    padding: 24px 20px;
+  }
+}

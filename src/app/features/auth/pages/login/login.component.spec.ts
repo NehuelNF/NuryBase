@@ -109,7 +109,7 @@ describe('LoginComponent', () => {
     expect(navigateSpy).toHaveBeenCalledWith('/caja');
   });
 
-  it('should send a warehouse user to product master instead of POS', async () => {
+  it('should send a warehouse user to the restricted-access page by default', async () => {
     const router = TestBed.inject(Router);
     await router.navigateByUrl('/login');
     const navigateSpy = vi.spyOn(router, 'navigateByUrl');
@@ -127,7 +127,7 @@ describe('LoginComponent', () => {
       user: warehouseUser,
     });
 
-    expect(navigateSpy).toHaveBeenCalledWith('/product-master');
+    expect(navigateSpy).toHaveBeenCalledWith('/sin-acceso');
   });
 
   it('should reject a POS returnUrl for a warehouse user', async () => {
@@ -148,6 +148,27 @@ describe('LoginComponent', () => {
       user: warehouseUser,
     });
 
-    expect(navigateSpy).toHaveBeenCalledWith('/product-master');
+    expect(navigateSpy).toHaveBeenCalledWith('/sin-acceso');
+  });
+
+  it('should reject a product-master returnUrl for a warehouse user', async () => {
+    const router = TestBed.inject(Router);
+    await router.navigateByUrl('/login?returnUrl=%2Fproduct-master');
+    const navigateSpy = vi.spyOn(router, 'navigateByUrl');
+    const fixture = TestBed.createComponent(LoginComponent);
+    const component = fixture.componentInstance;
+    const warehouseUser = component.demoAccounts.find((user) => user.rol === 'bodeguero')!;
+
+    component.form.setValue({
+      identificadorAcceso: warehouseUser.identificadorAcceso,
+      contrasena: '1234',
+    });
+    component.submit();
+    TestBed.inject(HttpTestingController).expectOne('http://localhost:3000/rpc/login').flush({
+      token: 'signed.jwt.token',
+      user: warehouseUser,
+    });
+
+    expect(navigateSpy).toHaveBeenCalledWith('/sin-acceso');
   });
 });

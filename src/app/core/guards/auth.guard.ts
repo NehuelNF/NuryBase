@@ -38,5 +38,5 @@ export const roleGuard: CanActivateFn = (route, state) => {
     return true;
   }
 
-  return router.createUrlTree([role === 'bodeguero' ? '/product-master' : '/caja']);
+  return router.createUrlTree([role === 'bodeguero' ? '/sin-acceso' : '/caja']);
 };

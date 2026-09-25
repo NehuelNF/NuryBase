@@ -103,7 +103,7 @@ describe('authGuard', () => {
     ['cajero', '/product-master', false],
     ['bodeguero', '/pos', false],
     ['bodeguero', '/caja', false],
-    ['bodeguero', '/product-master', true],
+    ['bodeguero', '/product-master', false],
     ['admin', '/pos', true],
     ['admin', '/caja', true],
     ['admin', '/product-master', true],
@@ -115,14 +115,14 @@ describe('authGuard', () => {
     });
     await login;
 
-    const allowedRoles = path === '/product-master' ? ['admin', 'bodeguero'] : ['admin', 'cajero'];
+    const allowedRoles = path === '/product-master' ? ['admin'] : ['admin', 'cajero'];
     const result = TestBed.runInInjectionContext(() => roleGuard(
       { data: { allowedRoles } } as any,
       { url: path } as any,
     ));
 
     expect(allowed ? result : router.serializeUrl(result as any)).toBe(
-      allowed ? true : role === 'bodeguero' ? '/product-master' : '/caja',
+      allowed ? true : role === 'bodeguero' ? '/sin-acceso' : '/caja',
     );
   });
 });
