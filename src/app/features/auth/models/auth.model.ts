@@ -5,7 +5,7 @@ export interface User {
   nombre: string;
   identificadorAcceso: string;
   rol: UserRole;
-  sucursalId: number;
+  sucursalId: number | null;
   sucursalNombre: string;
   activo: boolean;
 }
