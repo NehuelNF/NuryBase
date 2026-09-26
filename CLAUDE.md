@@ -14,16 +14,19 @@ Antes de trabajar con base de datos, leer [database/GUIA_LEVANTAMIENTO_LOCAL.md]
    - Trabajar **SIEMPRE** sobre la rama activa autorizada `Patricio2_branch`.
    - La rama anterior `Patricio_Branch` se conserva únicamente como referencia histórica para recuperar implementaciones perdidas. No trabajar sobre ella ni copiar cambios desde ella sin autorización explícita de Patricio.
    - **PROHIBIDO** commitear o pushear cambios directamente a `main`.
-2. **Autor de Git:**
+2. **Sincronización obligatoria antes de trabajar:**
+   - Antes de modificar cualquier archivo del repositorio, ejecutar `git fetch origin` y `git merge origin/develop` sobre `Patricio2_branch`.
+   - Si el merge produce conflictos, detenerse de inmediato, informar al usuario qué archivos están en conflicto y esperar su decisión antes de resolver nada. No usar `git checkout --ours/--theirs` ni ninguna resolución automática sin autorización explícita.
+3. **Autor de Git:**
    - Nombre: `Patricio Menares`
    - Correo: `pa.menares@duocuc.cl`
-3. **Formato de Commits (Conventional Commits):**
+4. **Formato de Commits (Conventional Commits):**
    - `feat: ...`, `fix: ...`, `style: ...`, `refactor: ...`, `test: ...`, `docs: ...`
-4. **Verificación y Registro Obligatorio de Pruebas Unitarias:**
+5. **Verificación y Registro Obligatorio de Pruebas Unitarias:**
    - Pruebas unitarias: `npm test -- --watch=false --reporters=verbose` (deben pasar el 100% de los tests).
    - **Registro Permanente Obligatorio:** Siempre que se creen o ejecuten pruebas unitarias, es mandatorio registrar y mantener actualizado el inventario y resultado en `docs/qa/registro-pruebas-unitarias.md`. Ninguna IA o participante debe dar por concluida una tarea sin reflejar las pruebas ejecutadas en dicho archivo para consulta permanente del equipo.
    - Compilación: `npm run build` (debe compilar con 0 errores y 0 advertencias).
-5. **Exclusividad de Archivos de IA y Regla de Integración con `develop`:**
+6. **Exclusividad de Archivos de IA y Regla de Integración con `develop`:**
    - Los archivos `AGENTS.md`, `CLAUDE.md` y `.cursorrules` son de uso **estricta y exclusivamente personal para `Patricio2_branch`** (contienen credenciales, tokens de Trello y configuración del entorno de trabajo individual).
    - Estos archivos fueron formalmente eliminados de la rama común `develop` y agregados al `.gitignore` de dicha rama.
    - **PROHIBIDO TERMINANTEMENTE:** Cualquier modelo de IA o script que prepare un merge o Pull Request desde `Patricio2_branch` hacia `develop` debe **EXCLUIR** estos tres archivos. Nunca deben volver a comitearse ni empujarse a `develop`.
