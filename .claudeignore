@@ -1,0 +1,43 @@
+# Compiled output
+/dist
+/tmp
+/out-tsc
+/bazel-out
+
+# Node
+/node_modules
+npm-debug.log
+yarn-error.log
+package-lock.json
+
+# IDEs and editors
+.idea/
+.vscode/
+.history/
+
+# Miscellaneous
+/.angular/cache
+.sass-cache/
+/coverage
+__screenshots__/
+
+# Playwright local tests and artifacts
+/e2e/
+/test-results/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Environment variables and secrets
+.env
+.env.*
+/infra/.env.local
+
+# AI agent personal context files (not part of the codebase)
+/AGENTS.md
+/CLAUDE.md
+/.cursorrules
+
+# Project owner's private planning documents
+/docs/personal/
