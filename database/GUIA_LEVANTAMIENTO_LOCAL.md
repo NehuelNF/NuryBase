@@ -186,11 +186,11 @@ El JWT usa los roles PostgreSQL `nury_admin`, `nury_cajero` y `nury_bodeguero`. 
 
 El archivo `database/local/05_sucursal.sql` ya está versionado y será ejecutado automáticamente después del esquema y los seeds.
 
-Cuentas de prueba locales:
+Cuentas locales:
 
-- `cajero@gmail.com` / `cajero123`
-- `admin@gmail.com` / `admin123`
-- `bodeguero@gmail.com` / `bodeguero123`
+- `cajero@gmail.com` / `cajero123` (cuenta de prueba)
+- `bodeguero@gmail.com` / `bodeguero123` (cuenta de prueba)
+- `pa.menares@duocuc.cl` / `admin123` (cuenta real de administrador)
 
 ## 9. Iniciar la base y PostgREST
 

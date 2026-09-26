@@ -14,7 +14,7 @@ INSERT INTO usuarios (
 )
 VALUES
     ('Cajero Demo', 'cajero@gmail.com', crypt('cajero123', gen_salt('bf')), 'cajero', 1, FALSE, TRUE),
-    ('Admin Demo', 'admin@gmail.com', crypt('admin123', gen_salt('bf')), 'administrador', NULL, FALSE, TRUE),
+    ('Patricio Menares H.', 'pa.menares@duocuc.cl', crypt('admin123', gen_salt('bf')), 'administrador', NULL, FALSE, TRUE),
     ('Bodeguero Demo', 'bodeguero@gmail.com', crypt('bodeguero123', gen_salt('bf')), 'bodeguero', 1, FALSE, TRUE)
 ON CONFLICT (identificador_acceso) DO NOTHING;
 
