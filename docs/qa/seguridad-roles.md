@@ -41,7 +41,7 @@ El bodeguero conserva lectura de `/productos` para Inventario. Tras aplicar la m
 ## Implementación y ejecución
 
 - `database/local/07_seguridad_roles.sql` revoca los permisos amplios, crea los roles del JWT y concede acceso mínimo según el flujo actual. Es idempotente para un volumen existente.
-- El 25-09 se actualizó `07_seguridad_roles.sql` para dejar los productos en solo lectura para bodeguero. La aplicación local de ese cambio está pendiente: el contenedor existente no tiene montado ese archivo. No se borró ni modificó el volumen; `06_auth.sql` sí se volvió a aplicar correctamente.
+- El 25-09 se actualizó `07_seguridad_roles.sql` para dejar los productos en solo lectura para bodeguero. La aplicación local de ese cambio quedó verificada el 26-09-2026 (ver sección siguiente). No se borró ni modificó el volumen; `06_auth.sql` sí se volvió a aplicar correctamente.
 - `database/local/06_auth.sql` emite el rol PostgreSQL que corresponde al usuario. Se aplicaron ambos scripts, en ese orden, a la base Docker local sin borrar datos.
 - `npm test -- --watch=false --reporters=verbose`: 13 suites y 102 pruebas aprobadas; 9 casos nuevos del guard por rol.
 - `npm run build`: aprobado, 0 errores y 0 advertencias. Los intentos iniciales dentro del sandbox fallaron al resolver archivos con `Acceso denegado`; ambos comandos pasaron con acceso ampliado al workspace.
@@ -49,3 +49,44 @@ El bodeguero conserva lectura de `/productos` para Inventario. Tras aplicar la m
 La tarjeta Trello ya estaba asignada a Patricio y ubicada en la lista activa «En progreso». El ID de esa lista en `AGENTS.md` está desactualizado; el tablero devuelve `6aa1663b34750a80b909be0e`.
 
 Las sesiones JWT emitidas antes de aplicar el cambio mantienen el rol anterior `web_anon` hasta que el usuario cierre sesión y vuelva a entrar. Ese rol ya no tiene acceso a datos.
+
+## Verificación de aplicación local — 26-09-2026
+
+Se cerró el pendiente del 25-09: aplicar y comprobar `07_seguridad_roles.sql` en la base local, sin borrar el volumen. Rama `Patricio2_branch`. La comprobación se hizo sobre una instancia Docker local desechable (`localhost`), no sobre la base del VPS; no se ejecutó SQL directo en producción.
+
+### Procedimiento
+
+- Stack levantado con `docker compose --env-file ./infra/.env.local -f ./infra/docker-compose.yml up -d` (PostgreSQL 17 + PostgREST). Base con 369 productos y los roles `nury_admin`, `nury_cajero`, `nury_bodeguero`, `authenticator` y `web_anon`.
+- Para reproducir el estado previo se otorgó a `nury_bodeguero` `INSERT`, `UPDATE`, `DELETE` sobre `public.productos`; un `UPDATE` con `SET ROLE nury_bodeguero` devolvió `UPDATE 1` (escritura indebida confirmada).
+- Se aplicó `database/local/07_seguridad_roles.sql` con `psql -v ON_ERROR_STOP=1` sobre la base existente. Terminó en `COMMIT` sin errores; solo `NOTICE` idempotentes de pertenencia de roles. No se borró el volumen.
+
+### Resultado a nivel de base (`SET ROLE`)
+
+Tras aplicar el script, `role_table_grants` de `nury_bodeguero` sobre `productos` quedó solo con `SELECT`.
+
+| Rol | Operación sobre `public.productos` | Resultado |
+| --- | --- | --- |
+| Bodeguero | `SELECT count(*)` | 369 filas (permitido) |
+| Bodeguero | `INSERT` | `ERROR: permission denied for table productos` |
+| Bodeguero | `UPDATE` | `ERROR: permission denied for table productos` |
+| Bodeguero | `DELETE` | `ERROR: permission denied for table productos` |
+| Bodeguero | lectura de `ingredientes`, `stock_sucursal`, `sucursales` | permitido |
+| Admin | `INSERT` + `UPDATE` + `DELETE` | permitido (mantención completa) |
+
+### Resultado end-to-end vía PostgREST (JWT real)
+
+Login con las cuentas locales (`s.vera@nurys.cl` bodeguero, `pa.menares@duocuc.cl` admin), contraseña `1234`.
+
+| Rol | Petición | HTTP |
+| --- | --- | ---: |
+| Bodeguero | `GET /productos` | 200 |
+| Bodeguero | `POST /productos` | 403 |
+| Bodeguero | `PATCH /productos?id=eq.1` | 403 |
+| Bodeguero | `DELETE /productos?id=eq.1` | 403 |
+| Admin | `POST /productos` | 201 |
+
+Los 403 devolvieron `{"code":"42501","message":"permission denied for table productos"}`. El producto de prueba creado por admin se eliminó al final.
+
+### Conclusión
+
+Se cumplen los criterios de término de la tarjeta «Seguridad: probar bloqueo de rutas y endpoints por rol»: bodeguero conserva lectura de productos para Inventario y no puede crear, editar ni borrar; admin mantiene la mantención del catálogo. No hubo cambios de código; `07_seguridad_roles.sql` ya era correcto y el trabajo pendiente era operativo. La tarjeta se movió a «Finalizado» en el tablero NuryBase - Sprint 1.
