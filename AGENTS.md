@@ -8,14 +8,15 @@ Antes de modificar cualquier interfaz, leer y aplicar [docs/GUIA-DE-DISENO.md](d
 
 ---
 
-## Levantamiento local obligatorio
+## Levantamiento local del frontend
 
-Antes de trabajar con base de datos, leer [database/GUIA_LEVANTAMIENTO_LOCAL.md](database/GUIA_LEVANTAMIENTO_LOCAL.md). El entorno usa Docker Desktop, PostgreSQL y PostgREST; pgAdmin 4 se utiliza para inspeccionar PostgreSQL.
+Para el trabajo habitual de frontend NO es necesario instalar PostgreSQL, PostgREST ni Docker Desktop. Angular se conecta directamente vía HTTPS a la API compartida del VPS (`https://api.nury.cl`, configurada en `src/environments/environment.ts`); no cambiar `apiUrl` a `localhost:3000` para uso normal ni crear un `.env` para el frontend.
 
-- PostgreSQL: `localhost:5433` desde Windows/pgAdmin, `5432` dentro de Docker.
-- PostgREST: `http://localhost:3000`; Angular: `http://localhost:4200`.
-- Crear solo `infra/.env.local` según la guía y levantar con `docker compose --env-file .\\infra\\.env.local -f .\\infra\\docker-compose.yml up -d`.
-- Angular se conecta a PostgreSQL únicamente mediante PostgREST.
+Levantar con:
+- `npm ci`
+- `npm start` → abrir `http://localhost:4200`
+
+Si una tarea requiere inspeccionar PostgreSQL directamente (pgAdmin, SQL en el VPS), leer [database/GUIA_LEVANTAMIENTO_LOCAL.md](database/GUIA_LEVANTAMIENTO_LOCAL.md) y solicitar acceso individual al administrador del VPS; no compartir credenciales root, la contraseña de `nury_admin`, claves SSH ni el `.env` del VPS. No ejecutar SQL directo en la base del VPS sin coordinarlo con el responsable.
 
 ## 1. REGLAS CRÍTICAS DEL REPOSITORIO (NO ROMPER)
 
