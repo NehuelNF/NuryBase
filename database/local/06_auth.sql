@@ -13,9 +13,9 @@ INSERT INTO usuarios (
     debe_cambiar_password, activo
 )
 VALUES
-    ('Camila Rojas V.', 'c.rojas@nurys.cl', crypt('1234', gen_salt('bf')), 'cajero', 1, FALSE, TRUE),
-    ('Patricio Menares H.', 'pa.menares@duocuc.cl', crypt('1234', gen_salt('bf')), 'administrador', NULL, FALSE, TRUE),
-    ('Sebastián Vera M.', 's.vera@nurys.cl', crypt('1234', gen_salt('bf')), 'bodeguero', 1, FALSE, TRUE)
+    ('Cajero Demo', 'cajero@gmail.com', crypt('cajero123', gen_salt('bf')), 'cajero', 1, FALSE, TRUE),
+    ('Admin Demo', 'admin@gmail.com', crypt('admin123', gen_salt('bf')), 'administrador', NULL, FALSE, TRUE),
+    ('Bodeguero Demo', 'bodeguero@gmail.com', crypt('bodeguero123', gen_salt('bf')), 'bodeguero', 1, FALSE, TRUE)
 ON CONFLICT (identificador_acceso) DO NOTHING;
 
 CREATE OR REPLACE FUNCTION public.login(p_identificador text, p_contrasena text)
