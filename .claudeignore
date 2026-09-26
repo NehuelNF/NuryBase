@@ -34,10 +34,6 @@ Thumbs.db
 .env.*
 /infra/.env.local
 
-# AI agent personal context files (not part of the codebase)
-/AGENTS.md
-/CLAUDE.md
-/.cursorrules
 
 # Project owner's private planning documents
 /docs/personal/
