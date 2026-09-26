@@ -186,11 +186,11 @@ El JWT usa los roles PostgreSQL `nury_admin`, `nury_cajero` y `nury_bodeguero`. 
 
 El archivo `database/local/05_sucursal.sql` ya está versionado y será ejecutado automáticamente después del esquema y los seeds.
 
-Las cuentas locales usan la contraseña `1234`:
+Cuentas de prueba locales:
 
-- `c.rojas@nurys.cl`
-- `pa.menares@duocuc.cl`
-- `s.vera@nurys.cl`
+- `cajero@gmail.com` / `cajero123`
+- `admin@gmail.com` / `admin123`
+- `bodeguero@gmail.com` / `bodeguero123`
 
 ## 9. Iniciar la base y PostgREST
 

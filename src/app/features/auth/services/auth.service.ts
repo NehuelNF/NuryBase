@@ -30,37 +30,6 @@ export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly loginUrl = `${environment.apiUrl}/rpc/login`;
 
-  /** Perfiles de acceso rápido de desarrollo; las credenciales se validan en la API. */
-  readonly demoAccounts: ReadonlyArray<User> = [
-    {
-      id: 1,
-      nombre: 'Camila Rojas V.',
-      identificadorAcceso: 'c.rojas@nurys.cl',
-      rol: 'cajero',
-      sucursalId: 1,
-      sucursalNombre: 'Nury Providencia',
-      activo: true,
-    },
-    {
-      id: 2,
-      nombre: 'Patricio Menares H.',
-      identificadorAcceso: 'pa.menares@duocuc.cl',
-      rol: 'admin',
-      sucursalId: 1,
-      sucursalNombre: 'Casa Central (Todas)',
-      activo: true,
-    },
-    {
-      id: 3,
-      nombre: 'Sebastián Vera M.',
-      identificadorAcceso: 's.vera@nurys.cl',
-      rol: 'bodeguero',
-      sucursalId: 1,
-      sucursalNombre: 'Bodega Central Santiago',
-      activo: true,
-    },
-  ];
-
   private readonly tokenSignal = signal<string | null>(null);
   private sessionExpiresAt: number | null = null;
   readonly currentUser = signal<User | null>(null);
