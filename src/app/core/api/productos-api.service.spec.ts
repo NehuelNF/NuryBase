@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import { ProductoCreacion, ProductoApi, ProductosApiService } from './productos-api.service';
 
 describe('ProductosApiService', () => {
@@ -45,7 +46,7 @@ describe('ProductosApiService', () => {
     const request = http.expectOne(
       (candidate) =>
         candidate.method === 'POST' &&
-        candidate.url === 'http://localhost:3000/productos' &&
+        candidate.url === `${environment.apiUrl}/productos` &&
         candidate.params.get('select')?.includes('id') === true,
     );
 
@@ -68,7 +69,7 @@ describe('ProductosApiService', () => {
     const request = http.expectOne(
       (candidate) =>
         candidate.method === 'PATCH' &&
-        candidate.url === 'http://localhost:3000/productos' &&
+        candidate.url === `${environment.apiUrl}/productos` &&
         candidate.params.get('id') === 'eq.7',
     );
 
@@ -85,7 +86,7 @@ describe('ProductosApiService', () => {
     const request = http.expectOne(
       (candidate) =>
         candidate.method === 'PATCH' &&
-        candidate.url === 'http://localhost:3000/productos' &&
+        candidate.url === `${environment.apiUrl}/productos` &&
         candidate.params.get('id') === 'eq.7',
     );
 
@@ -101,7 +102,7 @@ describe('ProductosApiService', () => {
     const request = http.expectOne(
       (candidate) =>
         candidate.method === 'DELETE' &&
-        candidate.url === 'http://localhost:3000/productos' &&
+        candidate.url === `${environment.apiUrl}/productos` &&
         candidate.params.get('id') === 'eq.7',
     );
 

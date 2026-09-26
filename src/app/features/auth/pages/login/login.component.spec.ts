@@ -3,10 +3,32 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
+import { environment } from '../../../../../environments/environment';
+import { User } from '../../models/auth.model';
 import { LoginComponent } from './login.component';
 
 @Component({ standalone: true, template: '' })
 class DummyComponent {}
+
+const mockCajeroUser: User = {
+  id: 1,
+  nombre: 'Camila Rojas V.',
+  identificadorAcceso: 'c.rojas@nurys.cl',
+  rol: 'cajero',
+  sucursalId: 1,
+  sucursalNombre: 'Nury Providencia',
+  activo: true,
+};
+
+const mockWarehouseUser: User = {
+  id: 3,
+  nombre: 'Sebastián Vera M.',
+  identificadorAcceso: 's.vera@nurys.cl',
+  rol: 'bodeguero',
+  sucursalId: 1,
+  sucursalNombre: 'Bodega Central Santiago',
+  activo: true,
+};
 
 describe('LoginComponent', () => {
   beforeEach(async () => {
@@ -31,6 +53,14 @@ describe('LoginComponent', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
+  it('should not display demo profiles or quick-access buttons in the template', () => {
+    const fixture = TestBed.createComponent(LoginComponent);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('.quick-access-section')).toBeNull();
+    expect(compiled.querySelector('.quick-user-btn')).toBeNull();
+  });
+
   it('should mark the form invalid when fields are empty', () => {
     const fixture = TestBed.createComponent(LoginComponent);
     const component = fixture.componentInstance;
@@ -51,24 +81,6 @@ describe('LoginComponent', () => {
     expect(component.form.controls.identificadorAcceso.touched).toBe(true);
   });
 
-  it('should quick-select a demo profile and fill the form', () => {
-    const fixture = TestBed.createComponent(LoginComponent);
-    const component = fixture.componentInstance;
-    const adminUser = component.demoAccounts.find((u) => u.rol === 'admin')!;
-
-    component.selectQuickUser(adminUser);
-
-    const http = TestBed.inject(HttpTestingController);
-    http.expectOne('http://localhost:3000/rpc/login').flush({
-      token: 'signed.jwt.token',
-      user: adminUser,
-    });
-
-    expect(component.form.controls.identificadorAcceso.value).toBe(
-      adminUser.identificadorAcceso,
-    );
-  });
-
   it('should return to the protected internal URL after a successful login', async () => {
     const router = TestBed.inject(Router);
     await router.navigateByUrl('/login?returnUrl=%2Fcaja');
@@ -81,9 +93,9 @@ describe('LoginComponent', () => {
       contrasena: '1234',
     });
     component.submit();
-    TestBed.inject(HttpTestingController).expectOne('http://localhost:3000/rpc/login').flush({
+    TestBed.inject(HttpTestingController).expectOne(`${environment.apiUrl}/rpc/login`).flush({
       token: 'signed.jwt.token',
-      user: component.demoAccounts[0],
+      user: mockCajeroUser,
     });
 
     expect(navigateSpy).toHaveBeenCalledWith('/caja');
@@ -101,9 +113,9 @@ describe('LoginComponent', () => {
       contrasena: '1234',
     });
     component.submit();
-    TestBed.inject(HttpTestingController).expectOne('http://localhost:3000/rpc/login').flush({
+    TestBed.inject(HttpTestingController).expectOne(`${environment.apiUrl}/rpc/login`).flush({
       token: 'signed.jwt.token',
-      user: component.demoAccounts[0],
+      user: mockCajeroUser,
     });
 
     expect(navigateSpy).toHaveBeenCalledWith('/caja');
@@ -115,16 +127,15 @@ describe('LoginComponent', () => {
     const navigateSpy = vi.spyOn(router, 'navigateByUrl');
     const fixture = TestBed.createComponent(LoginComponent);
     const component = fixture.componentInstance;
-    const warehouseUser = component.demoAccounts.find((user) => user.rol === 'bodeguero')!;
 
     component.form.setValue({
-      identificadorAcceso: warehouseUser.identificadorAcceso,
+      identificadorAcceso: mockWarehouseUser.identificadorAcceso,
       contrasena: '1234',
     });
     component.submit();
-    TestBed.inject(HttpTestingController).expectOne('http://localhost:3000/rpc/login').flush({
+    TestBed.inject(HttpTestingController).expectOne(`${environment.apiUrl}/rpc/login`).flush({
       token: 'signed.jwt.token',
-      user: warehouseUser,
+      user: mockWarehouseUser,
     });
 
     expect(navigateSpy).toHaveBeenCalledWith('/sin-acceso');
@@ -136,16 +147,15 @@ describe('LoginComponent', () => {
     const navigateSpy = vi.spyOn(router, 'navigateByUrl');
     const fixture = TestBed.createComponent(LoginComponent);
     const component = fixture.componentInstance;
-    const warehouseUser = component.demoAccounts.find((user) => user.rol === 'bodeguero')!;
 
     component.form.setValue({
-      identificadorAcceso: warehouseUser.identificadorAcceso,
+      identificadorAcceso: mockWarehouseUser.identificadorAcceso,
       contrasena: '1234',
     });
     component.submit();
-    TestBed.inject(HttpTestingController).expectOne('http://localhost:3000/rpc/login').flush({
+    TestBed.inject(HttpTestingController).expectOne(`${environment.apiUrl}/rpc/login`).flush({
       token: 'signed.jwt.token',
-      user: warehouseUser,
+      user: mockWarehouseUser,
     });
 
     expect(navigateSpy).toHaveBeenCalledWith('/sin-acceso');
@@ -157,16 +167,15 @@ describe('LoginComponent', () => {
     const navigateSpy = vi.spyOn(router, 'navigateByUrl');
     const fixture = TestBed.createComponent(LoginComponent);
     const component = fixture.componentInstance;
-    const warehouseUser = component.demoAccounts.find((user) => user.rol === 'bodeguero')!;
 
     component.form.setValue({
-      identificadorAcceso: warehouseUser.identificadorAcceso,
+      identificadorAcceso: mockWarehouseUser.identificadorAcceso,
       contrasena: '1234',
     });
     component.submit();
-    TestBed.inject(HttpTestingController).expectOne('http://localhost:3000/rpc/login').flush({
+    TestBed.inject(HttpTestingController).expectOne(`${environment.apiUrl}/rpc/login`).flush({
       token: 'signed.jwt.token',
-      user: warehouseUser,
+      user: mockWarehouseUser,
     });
 
     expect(navigateSpy).toHaveBeenCalledWith('/sin-acceso');

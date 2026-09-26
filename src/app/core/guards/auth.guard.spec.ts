@@ -4,6 +4,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import { AuthService } from '../../features/auth/services/auth.service';
 import { authGuard, roleGuard } from './auth.guard';
 
@@ -46,7 +47,7 @@ describe('authGuard', () => {
 
   it('allows access when there is a valid session', async () => {
     const login = firstValueFrom(authService.login({ identificadorAcceso: 'c.rojas@nurys.cl', contrasena: '1234' }));
-    http.expectOne('http://localhost:3000/rpc/login').flush({
+    http.expectOne(`${environment.apiUrl}/rpc/login`).flush({
       token: 'signed.jwt.token',
       user: { id: 1, nombre: 'Camila Rojas V.', identificadorAcceso: 'c.rojas@nurys.cl', rol: 'cajero', sucursalId: 1, sucursalNombre: 'Nury Providencia', activo: true },
     });
@@ -59,7 +60,7 @@ describe('authGuard', () => {
 
   it('blocks access again right after logout (H1.1 criterio 3)', async () => {
     const login = firstValueFrom(authService.login({ identificadorAcceso: 'c.rojas@nurys.cl', contrasena: '1234' }));
-    http.expectOne('http://localhost:3000/rpc/login').flush({
+    http.expectOne(`${environment.apiUrl}/rpc/login`).flush({
       token: 'signed.jwt.token',
       user: { id: 1, nombre: 'Camila Rojas V.', identificadorAcceso: 'c.rojas@nurys.cl', rol: 'cajero', sucursalId: 1, sucursalNombre: 'Nury Providencia', activo: true },
     });
@@ -109,7 +110,7 @@ describe('authGuard', () => {
     ['admin', '/product-master', true],
   ] as const)('enforces %s access to %s', async (role, path, allowed) => {
     const login = firstValueFrom(authService.login({ identificadorAcceso: 'demo', contrasena: '1234' }));
-    http.expectOne('http://localhost:3000/rpc/login').flush({
+    http.expectOne(`${environment.apiUrl}/rpc/login`).flush({
       token: 'signed.jwt.token',
       user: { id: 1, nombre: 'Demo', identificadorAcceso: 'demo', rol: role, sucursalId: 1, sucursalNombre: 'Nury', activo: true },
     });

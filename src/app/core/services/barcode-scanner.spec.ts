@@ -5,6 +5,7 @@ describe('BarcodeScanner', () => {
   let service: BarcodeScanner;
 
   beforeEach(() => {
+    TestBed.resetTestingModule();
     TestBed.configureTestingModule({});
     service = TestBed.inject(BarcodeScanner);
   });

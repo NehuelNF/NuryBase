@@ -75,32 +75,6 @@
       </button>
     </form>
 
-    <!-- Accesos rápidos de prueba para evaluación de mockup -->
-    <div class="quick-access-section">
-      <div class="quick-title">
-        <span>Explorar con un perfil de demostración</span>
-      </div>
-
-      <div class="quick-users-list">
-        @for (u of demoAccounts; track u.id) {
-          <button
-            type="button"
-            class="quick-user-btn"
-            [class.cajero]="u.rol === 'cajero'"
-            [class.admin]="u.rol === 'admin'"
-            [class.bodeguero]="u.rol === 'bodeguero'"
-            (click)="selectQuickUser(u)"
-          >
-            <div class="qu-role-tag">{{ u.nombre.charAt(0) }}</div>
-            <div class="qu-info">
-              <strong>{{ u.nombre }}</strong>
-              <small>{{ u.rol | uppercase }} · {{ u.sucursalNombre }}</small>
-            </div>
-            <span class="qu-arrow">➜</span>
-          </button>
-        }
-      </div>
-    </div>
 
     <!-- Footer -->
     <div class="login-footer">

@@ -8,8 +8,8 @@ Este documento mantiene el inventario y resultado real de las pruebas ejecutadas
 - **Rama:** `Patricio2_branch`
 - **Entorno:** Angular 22.1 / Vitest 4.1.11 / Node 24
 - **Suites:** 13 aprobadas de 13
-- **Pruebas:** 103 aprobadas de 103
-- **Duración:** 28.62 segundos
+- **Pruebas:** 107 aprobadas de 107
+- **Duración:** 15.44 segundos
 - **Resultado:** PASS, 0 fallos y 0 omitidas
 - **Comando:** `npm test -- --watch=false --reporters=verbose`
 - **Build:** `npm run build` aprobado el 25-09-2026, 0 errores y 0 advertencias
@@ -36,6 +36,14 @@ Este documento mantiene el inventario y resultado real de las pruebas ejecutadas
 | `src/app/features/products/pages/product-master/product-master.spec.ts` | 10 | PASS |
 | `src/app/layout/sidebar/sidebar.spec.ts` | 8 | PASS |
 
+## Retiro de perfiles demo del Login — ejecución del 25-09-2026
+
+- Se retiró la sección de botones de acceso rápido y perfiles de demostración (`quick-access-section`, `demoAccounts`) de la pantalla de login (`login.component.html`, `login.component.ts`, `login.component.css`).
+- Se validó mediante prueba unitaria en `login.component.spec.ts` que los botones y tarjetas de perfil de prueba no se renderizan en el template.
+- Se configuró el consumo dinámico de `environment.apiUrl` en las suites de pruebas de autenticación y API para soportar cualquier URL de endpoint sin desacoples.
+- Se aseguró el aislamiento de `TestBed` en `barcode-scanner.spec.ts`.
+- Resultado automático: 13/13 suites aprobadas, 107/107 pruebas exitosas. Compilación en modo producción sin errores ni advertencias (`npm run build`).
+
 ## AuthGuard y sesión — ejecución del 19-09-2026
 
 - Redirección exacta a `/login?returnUrl=%2Fpos` cuando no existe sesión.
@@ -61,7 +69,7 @@ Este documento mantiene el inventario y resultado real de las pruebas ejecutadas
 
 ### Revalidación — 25-09-2026
 
-- `npm test -- --watch=false --reporters=verbose`: 13/13 suites y 103/103 pruebas aprobadas; incluye que bodeguero no ve ni puede abrir `/product-master`.
+- `npm test -- --watch=false --reporters=verbose`: 13/13 suites y 107/107 pruebas aprobadas; incluye que bodeguero no ve ni puede abrir `/product-master`.
 - `npm run build`: compilación de producción aprobada, sin errores ni advertencias.
 
 ## Procedimiento obligatorio

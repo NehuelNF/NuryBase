@@ -1,5 +1,4 @@
 import { Component, inject, signal } from '@angular/core';
-import { UpperCasePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { User } from '../../models/auth.model';
@@ -8,7 +7,7 @@ import { AuthService } from '../../services/auth.service';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [ReactiveFormsModule, UpperCasePipe],
+  imports: [ReactiveFormsModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
 })
@@ -17,9 +16,6 @@ export class LoginComponent {
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
-
-  /** Cuentas de demostración (sin contraseña) para los accesos rápidos. */
-  readonly demoAccounts = this.authService.demoAccounts;
 
   readonly errorMessage = signal<string | null>(null);
   readonly isLoading = signal(false);
@@ -60,15 +56,6 @@ export class LoginComponent {
       );
       this.router.navigateByUrl(returnUrl);
     });
-  }
-
-  /** Autocompleta el formulario con una cuenta de demo y lo envía. */
-  selectQuickUser(user: User): void {
-    this.form.setValue({
-      identificadorAcceso: user.identificadorAcceso,
-      contrasena: '1234',
-    });
-    this.submit();
   }
 
   /** Acepta únicamente rutas internas y evita un ciclo de regreso al login. */

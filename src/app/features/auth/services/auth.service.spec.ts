@@ -4,6 +4,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 import { AuthService } from './auth.service';
 
 @Component({ standalone: true, template: '' })
@@ -29,11 +30,12 @@ describe('AuthService', () => {
     http = TestBed.inject(HttpTestingController);
   });
 
-  it('should be created', () => {
-    expect(service).toBeTruthy();
+  afterEach(() => {
+    http.verify();
   });
 
-  it('should NOT be authenticated by default (no login automático)', () => {
+  it('should be created and start without a session', () => {
+    expect(service).toBeTruthy();
     expect(service.currentUser()).toBeNull();
     expect(service.isAuthenticated()).toBe(false);
   });
@@ -49,7 +51,7 @@ describe('AuthService', () => {
       identificadorAcceso: 'c.rojas@nurys.cl',
       contrasena: 'incorrecta',
     }));
-    const request = http.expectOne('http://localhost:3000/rpc/login');
+    const request = http.expectOne(`${environment.apiUrl}/rpc/login`);
     request.flush({ message: 'Credenciales inválidas' }, { status: 401, statusText: 'Unauthorized' });
     const result = await resultPromise;
 
@@ -65,7 +67,7 @@ describe('AuthService', () => {
       identificadorAcceso: 'c.rojas@nurys.cl',
       contrasena: '1234',
     }));
-    const request = http.expectOne('http://localhost:3000/rpc/login');
+    const request = http.expectOne(`${environment.apiUrl}/rpc/login`);
     request.flush({
       token: 'signed.jwt.token',
       user: {
@@ -88,7 +90,7 @@ describe('AuthService', () => {
 
   it('should logout and invalidate the session', async () => {
     const resultPromise = firstValueFrom(service.login({ identificadorAcceso: 'c.rojas@nurys.cl', contrasena: '1234' }));
-    const request = http.expectOne('http://localhost:3000/rpc/login');
+    const request = http.expectOne(`${environment.apiUrl}/rpc/login`);
     request.flush({
       token: 'signed.jwt.token',
       user: {
@@ -150,7 +152,7 @@ describe('AuthService', () => {
       identificadorAcceso: 'c.rojas@nurys.cl',
       contrasena: '1234',
     }));
-    http.expectOne('http://localhost:3000/rpc/login').flush({
+    http.expectOne(`${environment.apiUrl}/rpc/login`).flush({
       token: 'signed.jwt.token',
       user: {
         id: 1,

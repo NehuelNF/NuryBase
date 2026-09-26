@@ -152,61 +152,6 @@
 .btn-submit:disabled {
   opacity: 0.6;
 }
-.quick-access-section {
-  margin-top: 32px;
-  border-top: 1px solid #e0e1d8;
-  padding-top: 24px;
-}
-.quick-title {
-  color: #787d71;
-  font-size: 12px;
-  margin-bottom: 12px;
-}
-.quick-users-list {
-  display: grid;
-  gap: 7px;
-}
-.quick-user-btn {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  border: 1px solid #e0e1d8;
-  border-radius: 5px;
-  background: transparent;
-  text-align: left;
-  color: #343a2d;
-}
-.quick-user-btn:hover {
-  border-color: #899278;
-  background: #f0f1e8;
-}
-.qu-role-tag {
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  background: #e8ebdf;
-  color: #536044;
-  border-radius: 50%;
-  font-size: 12px;
-  font-weight: 600;
-}
-.qu-info {
-  flex: 1;
-}
-.qu-info strong {
-  display: block;
-  font-size: 12px;
-  font-weight: 600;
-}
-.qu-info small {
-  color: #777d70;
-  font-size: 11px;
-}
-.qu-arrow {
-  color: #8b917e;
-}
 .login-footer {
   color: #888d80;
   margin-top: 30px;
